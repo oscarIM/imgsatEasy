@@ -18,7 +18,7 @@
 #' @importFrom stringr str_remove str_detect str_replace
 #' @importFrom tibble tibble
 #' @importFrom furrr future_walk
-#' @importFrom future plan
+#' @importFrom future plan multisession
 #' @importFrom doParallel stopImplicitCluster
 #' @export get_L3
 #' @examples
