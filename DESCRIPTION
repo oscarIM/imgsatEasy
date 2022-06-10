@@ -12,12 +12,12 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
-    magrittr
-    tidyverse
-    furrr
-    future
-    lubridate
-    doParallel
+    magrittr,
+    tidyverse.
+    furrr,
+    future,
+    lubridate,
+    doParallel,
     fs
-    
+
     
