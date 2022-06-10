@@ -13,9 +13,9 @@
 #' @return imágenes L3
 #' @importFrom fs dir_ls dir_create file_move
 #' @importFrom dplyr distinct pull
-#' @importFrom lubridate as_date, year, month
+#' @importFrom lubridate as_date year month
 #' @importFrom purrr walk walk2
-#' @importFrom stringr str_remove, str_detect, str_replace
+#' @importFrom stringr str_remove str_detect str_replace
 #' @importFrom tibble tibble
 #' @importFrom furrr future_walk
 #' @importFrom future plan
