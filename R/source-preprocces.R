@@ -81,12 +81,7 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   l2bin <- system.file("inst", "l2bin.sh", package = "imgsatEasy")
   l3bin <- system.file("inst", "l3bin.sh", package = "imgsatEasy")
   l3mapgen <- system.file("inst", "l3mapgen.sh", package = "imgsatEasy")
-  system2(command = "chmod", args = c("+rx", l2bin))
-  system2(command = "chmod", args = c("+rx", l3bin))
-  system2(command = "chmod", args = c("+rx", l3mapgen))
-  l2bin <- system.file("inst", "l2bin.sh", package = "imgsatEasy")
-  l3bin <- system.file("inst", "l3bin.sh", package = "imgsatEasy")
-  l3mapgen <- system.file("inst", "l3mapgen.sh", package = "imgsatEasy")
+  Sys.chmod(c(l2bin,l3bin, l3mapgen), mode = "0777")
   seadas_function <- function(dir) {
     setwd(dir)
      if (var_name == "sst"){
