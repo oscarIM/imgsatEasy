@@ -11,7 +11,7 @@
 #' @param west latitud oeste para la generación de las imágenes L3
 #' @param east latitud este para la generación de las imágenes L3
 #' @return imágenes L3
-#' @importFrom fs dir_ls dir_create file_move
+#' @importFrom fs dir_ls dir_create file_move dir_delete
 #' @importFrom dplyr distinct pull
 #' @importFrom lubridate as_date year month
 #' @importFrom purrr walk walk2
