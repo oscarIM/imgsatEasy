@@ -1,6 +1,6 @@
 #!/bin/bash
-#export OCSSWROOT=${OCSSWROOT:-/home/evolecolab/seadas/ocssw}
-#source ${OCSSWROOT}/OCSSW_bash.env
+export OCSSWROOT=${OCSSWROOT:-/home/evolecolab/seadas/ocssw}
+source ${OCSSWROOT}/OCSSW_bash.env
 for files in *_L3m_tmp.nc; do
   ifile=${files}
   ofile=${files%.*}
