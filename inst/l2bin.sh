@@ -7,5 +7,3 @@ for files in *.nc; do
 	ofile=${name_file}_${1}_${2}_${3}Km_L3b_tmp.nc
 l2bin infile=${infile} ofile=${ofile} prodtype=${1} l3bprod=${2} resolve=${3} verbose=${4} flaguse=${5} qual_max=${6}
 done
-
-  
