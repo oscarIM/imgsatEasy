@@ -83,9 +83,9 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
     l2bin <- system.file("inst", "l2bin.sh", package = "imgsatEasy")
     l3bin <- system.file("inst", "l3bin.sh", package = "imgsatEasy")
     l3mapgen <- system.file("inst", "l3mapgen.sh", package = "imgsatEasy")
-    system(command = "chmod +x", l2bin, intern=FALSE, ignore.stdout =T,ignore.stderr=T, wait  = F)
-    system(command = "chmod +x", l3bin, intern=FALSE, ignore.stdout =T,ignore.stderr=T, wait  = F)
-    system(command = "chmod +x", l3mapgen, intern=FALSE, ignore.stdout =T,ignore.stderr=T, wait  = F)
+    system2(command = "chmod", args = c("+rx", l2bin))
+    system2(command = "chmod", args = c("+rx", l3bin))
+    system2(command = "chmod", args = c("+rx", l3mapgen))
     if (var_name == "sst"){
       flaguse <- "LAND, HISOLZEN"
     } else {
