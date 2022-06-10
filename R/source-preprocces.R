@@ -77,12 +77,11 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   #ahora, moverse a cada folder y correr l2bin-l3mapgen
   cat("corriendo seadas...\n\n")
   Sys.sleep(1)
+  #rutas temporales solo para probar la funcion, despues estaran dentro del programa
+  l2bin <- system.file("exec", "l2bin.sh", package = "imgsatEasy")
+  l3bin <- system.file("exec", "l3bin.sh", package = "imgsatEasy")
+  l3mapgen <- system.file("exec", "l3mapgen.sh", package = "imgsatEasy")
   seadas_function <- function(dir) {
-    #rutas temporales solo para probar la funcion, despues estaran dentro del programa
-    l2bin <- system.file("inst", "l2bin.sh", package = "imgsatEasy")
-    l3bin <- system.file("inst", "l3bin.sh", package = "imgsatEasy")
-    l3mapgen <- system.file("inst", "l3mapgen.sh", package = "imgsatEasy")
-    Sys.chmod(c(l2bin,l3bin, l3mapgen), mode = "0777")
     setwd(dir)
      if (var_name == "sst"){
       flaguse <- "LAND, HISOLZEN"
