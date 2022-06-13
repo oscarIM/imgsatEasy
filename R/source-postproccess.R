@@ -17,7 +17,6 @@
 #' @importFrom raster raster stack calc
 #' @importFrom furrr future_walk
 #' @importFrom future plan multisession
-#' @importFrom ddpcr quiet
 #' @importFrom doParallel stopImplicitCluster
 #' @export get_raster_fix
 #' @examples
@@ -132,10 +131,10 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
   }
   #add progess bar
   if (n_cores == 1) {
-    quiet(walk(nombre_dir, ~internal_raster(dir = ., raster_function = raster_function)), all = TRUE)
+    walk(nombre_dir, ~internal_raster(dir = ., raster_function = raster_function))
   } else {
     plan(multisession, workers = n_cores)
-    quiet(future_walk(nombre_dir, ~internal_raster(dir = ., raster_function = raster_function)), all = TRUE)
+    future_walk(nombre_dir, ~internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
     stopImplicitCluster()
   }
   cat("\n\n Generación de rasters finalizada...\n\n")
@@ -162,7 +161,6 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
 #' @importFrom raster raster as.data.frame
 #' @importFrom furrr future_walk
 #' @importFrom future plan multisession
-#' @importFrom ddpcr quiet
 #' @importFrom doParallel stopImplicitCluster
 #' @export get_csv_fix
 #'\dontrun{
@@ -211,7 +209,7 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores) {
     walk(nombre_dir, ~internal_csv(dir = .))
   } else {
     plan(multisession, workers = n_cores)
-    future_walk(nombre_dir, ~internal_csv(dir = .))
+    future_walk(nombre_dir, ~internal_csv(dir = .), verbose = FALSE)
     stopImplicitCluster()
   }
   #mover todas las salidas a una carpeta llamada output
