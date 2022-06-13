@@ -107,7 +107,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
     if (season == "semana") {
       name_year <- tmp[length(tmp) - 2]
       name_month <- tmp[length(tmp) - 1]
-      name_week <- paste0("s", sprintf("%02d", as.numeric(basename(path_wd()))))
+      name_week <- tmp[length(tmp)]
       name_file <- paste0(name_year, "_", name_month, "_", name_week, "_",var_name)
       if (n_files <= 1) {
         raster <- raster(files, varname = var_name)
