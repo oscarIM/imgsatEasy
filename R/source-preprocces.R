@@ -52,14 +52,14 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   Sys.sleep(1)
   cat("Renombrado archivos y generando sistema de archivos adecuado...\n\n")
   nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE)
-  nc_files_tmp <- basename(nc_ruta_completa_tmp)
+  nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
   #solo para renombrar
-  file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
+  file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
   nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE)
-  nc_files_tmp <- basename(nc_ruta_completa_tmp)
+  nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
   #crear dataframe
-  fechas <- nc_files_tmp %>% as_date(format ="%Y%j") %>%
-  tibble(fecha= .,
+  fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%j") %>%
+  tibble(fecha = .,
          ruta_completa = nc_ruta_completa_tmp,
          archivo = nc_files_tmp,
          año = year(fecha),
