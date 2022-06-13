@@ -18,7 +18,10 @@ Imports:
     future,
     lubridate,
     doParallel,
-    fs
+    fs,
+    raster,
+    terra
+    
     
 
     
