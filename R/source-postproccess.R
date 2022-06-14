@@ -219,7 +219,7 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   walk(all_csv, ~file_move(path = ., new_path = res_path))
 }
 #' @title get_filled_raster
-#' @description Función basada en el paquete Gapfill para predecir valores Nas en series temporales
+#' @description Función basada en el paquete Gapfill para predecir valores Nas en series temporales, funciona para set de datos 4-D
 #' @param dir_input directorio en donde se almacenan las imágenes L3
 #' @param dir_output directorio en donde se almacenaran las imágenes en formato raster
 #' @param shp_mask_file nombre del archivo usado como mascara (formato .shp)
@@ -295,7 +295,7 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   terra::writeRaster(x = final_stack, filename = paste0(dir_output, "/", "all_month_median_filled.tif"), overwrite = TRUE)
   #traducir a map para consistencia del código
   for (i in 1:length(output_stack_fill_list)) {
-    #names(output_stack_fill_list[[i]]) <- layer_names[[i]]
+    names(output_stack_fill_list[[i]]) <- layer_names[[i]]
     raster::extent(output_stack_fill_list[[i]]) <- raster::extent(stack_raw_list[[1]])
     output_stack_fill_list[[i]] <- mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
     output_stack_fill_list[[i]] <- rast(output_stack_fill_list[[i]])
