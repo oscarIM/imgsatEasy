@@ -21,8 +21,8 @@
 #' @export get_raster_fix
 #' @examples
 #'\dontrun{
-#' dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/chlor_a/"
-#' dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/test_raster_fix"
+#' dir_input <- "/home/evolecol/Escritorio/R_package/test_package/chlor_A"
+#' dir_output <- paste0(dir_input, "/", "rasters")
 #' season <- "mes"
 #' raster_function <- "median"
 #' var_name <- "chlor_a"
@@ -170,7 +170,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
 #' n_cores <- 4
 #' get_csv_fix(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores)
 #' }
-get_csv_fix <- function(dir_input, dir_output, var_name, n_cores) {
+get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   cat("\n\n Configurando sistema de archivos...\n\n")
   all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
                    archivo = basename(ruta_completa),
@@ -218,4 +218,85 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores) {
   all_csv <- dir_ls(path = dir_output, regexp = ".csv$", type = "file", recurse = TRUE)
   walk(all_csv, ~file_move(path = ., new_path = res_path))
 }
-
+#' @title get_filled_raster
+#' @description Función basada en el paquete Gapfill para predecir valores Nas en series temporales
+#' @param dir_input directorio en donde se almacenan las imágenes L3
+#' @param dir_output directorio en donde se almacenaran las imágenes en formato raster
+#' @param shp_mask_file nombre del archivo usado como mascara (formato .shp)
+#' @param season temporalidad para la generación de imágenes en formato raster ("semana", "mes"). Actualmente, solo funciona con "mes"
+#' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
+#' @importFrom fs dir_ls dir_create dir_exists dir_delete file_move
+#' @importFrom tibble tibble
+#' @importFrom lubridate as_date year month week
+#' @importFrom dplyr distinct pull mutate group_split group_by
+#' @importFrom stringr str_split
+#' @importFrom purrr map map2 map_chr map_dbl
+#' @importFrom terra writeRaster rast
+#' @importFrom raster raster stack brick as.data.frame cellStats calc mask extent
+#' @importFrom furrr future_walk
+#' @importFrom future plan multisession
+#' @importFrom doParallel stopImplicitCluster
+#' @importFrom tidyr separate
+#' @importFrom gapfill Gapfill
+#' @importFrom st read_sf st_geometry as_Spatial
+#' @return imágenes raster sin Na
+#' @export get_filled_raster
+#' @examples
+#' #'\dontrun{
+#' dir_input <- "/home/evolecol/Escritorio/R_package/test_package/rasters/resultados_raster/"
+#' dir_output <- paste0("/home/evolecol/Escritorio/R_package/test_package", "/", "gapfill")
+#' season <- "mes"
+#' shp_mask_file <- "/home/evolecol/Escritorio/R_package/test_package/Golfo_Arauco_prj2.shp"
+#' n_cores <- 4
+#' get_filled_raster(dir_input = dir_input, dir_output = dir_output, shp_mask_file = shp_mask_file,season = season, n_cores = n_cores)
+#'}
+get_filled_raster(dir_input = dir_input, dir_output = dir_output, shp_mask_file = shp_mask_file,season = season, n_cores = n_cores)
+get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "mes", n_cores = 1) {
+  #agregar mensajes y barra de progreso
+  all_tif <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
+                    archivo = basename(ruta_completa)) %>%
+    separate(archivo, into = c("año", "numero_mes", "mes"), sep = "_",
+             remove = FALSE, extra = "drop")
+  all_tif_list <- all_tif %>%  group_by(mes) %>% group_split()
+  month_names <- map_chr(all_tif_list, ~unique(.$mes))
+  layer_names <- map(all_tif_list, ~paste0(.$mes, "_", .$año))
+  names(all_tif_list) <- month_names
+  stack_raw_list <- map(all_tif_list, ~stack(.$ruta_completa))
+  names(stack_raw_list) <- month_names
+  n_años <- length(unique(all_tif$año))
+  n_mes_año <- 1L
+  n_col <- dim(stack_raw_list[[1]])[2]
+  n_row <- dim(stack_raw_list[[1]])[1]
+  tmp_list <- map(stack_raw_list, ~array(., dim = c(n_col,
+                                                           n_row,
+                                                           n_mes_año,
+                                                           n_años)))
+  input_array_list <- map(tmp_list, ~aperm(., c(2, 1, 3, 4)))
+  min <- min(map_dbl(stack_raw_list, ~min(cellStats(., min, na.rm = TRUE)))
+             %>% min() %>% as.numeric())
+  max <- min(map_dbl(stack_raw_list, ~max(cellStats(., max, na.rm = TRUE)))
+             %>% max() %>% as.numeric())
+  registerDoParallel(n_cores)
+  output_list <- map(input_array_list, ~Gapfill(data = ., dopar = TRUE, clipRange = c(min, max)))
+  stopImplicitCluster()
+  output_array_list <- map(output_list, "fill")
+  n_raster <- n_mes_año * n_años
+  #este objeto contiene todos los meses rellenos
+  output_stack_fill_list <- map(output_array_list, ~stack(brick(array(., c(n_row, n_col, n_raster)))))
+  median_stack_fill_list <- map(output_stack_fill_list, ~calc(., fun = median, na.rm = TRUE))
+  final_stack <- stack(median_stack_fill_list)
+  extent(final_stack) <- extent(stack_raw_list[[1]])
+  shp <- read_sf(shp_mask_file) %>% st_geometry() %>% as_Spatial()
+  final_stack <- mask(final_stack, shp, inverse = TRUE)
+  final_stack <- rast(final_stack)
+  ifelse(!dir_exists(dir_output), dir_create(dir_output), FALSE)
+  terra::writeRaster(x = final_stack, filename = paste0(dir_output, "/", "all_month_median_filled.tif"), overwrite = TRUE)
+  #traducir a map para consistencia del código
+  for (i in 1:length(output_stack_fill_list)) {
+    names(output_stack_fill_list[[i]]) <- layer_names[[i]]
+    extent(output_stack_fill_list[[i]]) <- extent(stack_raw_list[[1]])
+    output_stack_fill_list[[i]] <- raster::mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
+    output_stack_fill_list[[i]] <- rast(output_stack_fill_list[[i]])
+  }
+  walk2(output_stack_fill_list, month_names, ~writeRaster(.x, paste0(dir_output, "/", .y, "_filled.tif"), overwrite = TRUE) )
+}
