@@ -235,7 +235,7 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
 #' @importFrom raster raster stack brick as.data.frame cellStats calc mask extent
 #' @importFrom furrr future_walk
 #' @importFrom future plan multisession
-#' @importFrom doParallel stopImplicitCluster
+#' @importFrom doParallel stopImplicitCluster registerDoParallel
 #' @importFrom tidyr separate
 #' @importFrom gapfill Gapfill
 #' @importFrom sf read_sf st_geometry as_Spatial
