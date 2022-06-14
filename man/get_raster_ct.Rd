@@ -44,6 +44,6 @@ date_2 <- "2010-01-29"
 name_time <- "enero_2010"
 var_name <- "chlor_a"
 raster_function <- "median"
-get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = "caca_2010",var_name = "chlor_a",raster_function = raster_function)
+get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = name_time,var_name = var_name, raster_function = raster_function)
 }
 }
