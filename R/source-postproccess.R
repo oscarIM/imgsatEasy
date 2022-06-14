@@ -399,6 +399,20 @@ get_raster_ct <- function(dir_input, dir_output, date_1, date_2, name_time, var_
 #' @export get_clim
 #' @examples
 #' \dontrun{
+#'dir_input <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/"
+#'dir_output <- "/home/evolecolab/Escritorio/test_satImg/climatologia"
+#'season <- "mes"
+#'raster_function <- "median"
+#'var_name <-  "chlor_a"
+#'n_col <- 3
+#'n_row <- 4
+#'name_output <- "climatologia_chlor_a.png"
+#'shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/Golfo_Arauco_prj2.shp"
+#'res <- 300
+#'heigth <- 7
+#'width <- 9
+#'get_clim(dir_input = dir_input, dir_output = dir_output, season = season ,raster_function = raster_function , var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output,res = res, heigth = heigth, width = width)
+#'}
 get_clim <- function(dir_input, dir_output, season, raster_function, var_name, shp_file, n_col,
                      n_row, name_output, res, heigth, width) {
   all_tif <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
