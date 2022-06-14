@@ -450,7 +450,8 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   df <- stack %>% rasterToPoints() %>%
     as_tibble() %>%
     pivot_longer(cols = 3:last_col(), names_to = "facet_var", values_to = "valor") %>%
-    mutate(across(facet_var, factor, levels = names(stack)))
+    mutate(across(facet_var, factor, levels = names(stack))) %>%
+    mutate(facet_var = str_remove(., pattern = "X"))
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log(valor))) +
