@@ -56,15 +56,17 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
     file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
     nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+    fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%m%d")
   } else {
     nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
     file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
     nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+    fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%j")
     }
   #crear dataframe
-  fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%j") %>%
+  fechas <- fechas %>%
   tibble(fecha = .,
          ruta_completa = nc_ruta_completa_tmp,
          archivo = nc_archivo_tmp,
@@ -90,7 +92,7 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   seadas_function <- function(dir) {
     setwd(dir)
      if (var_name == "sst"){
-      flaguse <- "LAND, HISOLZEN"
+      flaguse <- "LAND,HISOLZEN"
     } else {
       flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
     }
