@@ -63,6 +63,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
         raster <- rast(raster)
         writeRaster(x = raster, filename = paste0(name_file,".tif"), overwrite = TRUE)
       } else {
+        #pasar nombre de las funciones a quoted
         raster <- stack(files, varname = var_name)
         if (raster_function == "median") {
           stack <- raster::calc(raster, fun = median, na.rm = TRUE)
@@ -87,6 +88,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
         raster <- rast(raster)
         writeRaster(x = raster, filename = paste0(name_file,".tif"), overwrite = TRUE)
       } else {
+
         raster <- stack(files, varname = var_name)
         if (raster_function == "median") {
           stack <- raster::calc(raster, fun = median, na.rm = TRUE)
@@ -302,3 +304,73 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   }
   walk2(output_stack_fill_list, month_names, ~writeRaster(.x, paste0(dir_output, "/", .y, "_filled.tif"), overwrite = TRUE) )
 }
+#' @title get_raster_ct
+#' @description Función para generar imágenes raster a partir de imágenes L3 para un intervalo de tiempo determinado (desde intervalos diarios en adelante)
+#' @param dir_input directorio en donde se almacenas las imágenes L3
+#' @param dir_output directorio en donde se almacenaras las imágenes en formato raster
+#' @param date_1 fecha inicio del tiempo personalizado (formato: AAAA-MM-DD)
+#' @param date_2 fecha termino del tiempo personalizado (formato: AAAA-MM-DD)
+#' @param name_time vector tamaño 1 que indica el nombre del intervalo temporal ("eg. "semana 1")
+#' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
+#' @param raster_function función estadística para generar las imágenes raster ("median" o "mean")
+#' @importFrom fs dir_ls dir_create file_copy
+#' @importFrom tibble tibble
+#' @importFrom lubridate as_date
+#' @importFrom dplyr filter between
+#' @importFrom purrr walk
+#' @importFrom terra writeRaster rast
+#' @importFrom raster raster stack calc extent crs resample
+#' @return imágenes raster
+#' @export get_raster_ct
+#' @examples
+#' \dontrun{
+#' dir_input <- "/home/evolecol/Escritorio/R_package/test_package/chlor_A/"
+#' dir_output <- paste0( "/home/evolecol/Escritorio/R_package/test_package/test_ct")
+#' date_1 <- "2010-01-01"
+#' date_2 <- "2010-01-29"
+#' name_time <- "enero_2010"
+#' var_name <- "chlor_a"
+#' raster_function <- "median"
+#' get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = "caca_2010",var_name = "chlor_a",raster_function = raster_function)
+#' }
+get_raster_ct <- function(dir_input, dir_output, date_1, date_2, name_time, var_name, raster_function = "median") {
+  range_time <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
+                   archivo = basename(ruta_completa),
+                   fecha = as_date(archivo, format = "%Y%j"),
+                   name_folder = paste0(dir_output, "/", name_time)) %>%
+    filter(between(fecha, as_date(date_1), as_date(date_2)))
+  name_folder <- paste0(dir_output, "/", name_time)
+  dir_create(name_folder)
+  walk(range_time[, 1], ~file_copy(path = ., new_path = name_folder, overwrite = TRUE))
+  setwd(name_folder)
+  files <- dir_ls(regexp = ".nc$", recurse = T)
+  n_files <- length(files)
+  if (n_files <= 1) {
+    raster <- raster(files, varname = var_name)
+    raster::crs(raster) <- "+proj=longlat"
+    name_file <- paste0(var_name, "_" , name_time, "_1file", ".tif")
+    raster <- rast(raster)
+    writeRaster(x = raster, filename = name_file, overwrite = TRUE)
+    } else {
+      raster <- stack(files, varname = var_name)
+      ext_df <- raster::extent(raster)
+      ext_mask <- raster(ext_df,  resolution = 0.01)
+      raster <- resample(raster, ext_mask, method = "bilinear")
+      #pasar nombre a quoted#
+      if (raster_function == "median") {
+       stack <- calc(raster, fun = median, na.rm = TRUE)
+       raster::crs(stack) <- "+proj=longlat"
+       stack <- rast(stack)
+       writeRaster(x = stack, filename = paste0(var_name, "_", name_time, "_" ,raster_function, ".tif"), overwrite = TRUE)
+     }
+      if (raster_function == "mean") {
+      stack <- calc(raster, fun = mean, na.rm = TRUE)
+      raster::crs(stack) <- "+proj=longlat"
+      stack <- rast(stack)
+      writeRaster(x = stack, filename = paste0(var_name, "_", name_time, "_" ,raster_function, ".tif"), overwrite = TRUE)
+      }
+    }
+  setwd(dir_input)
+}
+
+
