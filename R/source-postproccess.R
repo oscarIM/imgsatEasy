@@ -143,7 +143,6 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
   all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
   walk(all_tif, ~file_move(path = ., new_path = res_path))
 }
-
 #' @title get_csv_fix
 #' @description Función para generar imágenes raster a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3
@@ -163,7 +162,8 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
 #' @importFrom future plan multisession
 #' @importFrom doParallel stopImplicitCluster
 #' @export get_csv_fix
-#' \dontrun{
+#' @examples
+#'\dontrun{
 #' dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/chlor_a/"
 #' dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/test_raster_fix"
 #' var_name <- "chlor_a"

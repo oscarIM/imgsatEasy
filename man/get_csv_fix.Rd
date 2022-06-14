@@ -21,3 +21,12 @@ data.frame csv
 \description{
 Función para generar imágenes raster a partir de imágenes satelitales L3
 }
+\examples{
+\dontrun{
+dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/chlor_a/"
+dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/test_raster_fix"
+var_name <- "chlor_a"
+n_cores <- 4
+get_csv_fix(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores)
+}
+}

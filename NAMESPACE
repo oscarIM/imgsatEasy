@@ -2,6 +2,7 @@
 
 export("%>%")
 export(get_L3)
+export(get_csv_fix)
 export(get_raster_fix)
 importFrom(doParallel,stopImplicitCluster)
 importFrom(dplyr,case_when)
