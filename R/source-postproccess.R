@@ -444,15 +444,14 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     stack <- map(stack_list, ~calc(., fun = mean, na.rm = TRUE))
     stack <- stack(stack)
   }
-  names(stack) <- names
   #plot climatologia
   #config gral
   shp <- read_sf(shp_file) %>% st_geometry()
   df <- stack %>% rasterToPoints() %>%
     as_tibble() %>%
     pivot_longer(cols = 3:last_col(), names_to = "facet_var", values_to = "valor") %>%
-    mutate(across(facet_var, factor, levels = names(stack))) %>%
-    mutate(facet_var = str_remove(facet_var, pattern = "X"))
+        mutate(facet_var = str_remove(facet_var, pattern = "X")) %>%
+    mutate(across(facet_var, factor, levels = names(stack)))
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log(valor))) +
