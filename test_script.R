@@ -1,9 +1,10 @@
 devtools::install_github("oscarIM/imgsatEasy")
 library(imgsatEasy)
-dir_input <- "/home/evolecolab/Escritorio/Analisis_Arauco"
-dir_output <- paste0(dir_input, "/", "imagenes_L3")
-var_name <- "chlor_a"
-n_cores <- 8
+####test get_l3#################################################################
+dir_input <- "/home/evolecolab/Escritorio/Analisis_Arauco/tar_files/"
+dir_output <- "/home/evolecolab/Escritorio/Analisis_Arauco/imagenes_L3/"
+var_name <- "sst"
+n_cores <- 6
 res_l2 <- "1"
 res_l3 <- "1km"
 north <- -36.77544
@@ -12,10 +13,10 @@ west <- -73.67165
 east <- -73.11573
 get_L3(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
 ################################################################################
-dir_input <- "/media/evolecol/Transcend/sat_img/Proyecto_ARAUCO/analisis_imagenes/OC/CHLOR_A/all/input/nc_files/requested_files"
-dir_output <-  paste0("/home/evolecol/Escritorio/R_package/test_package", "/", "raster_all")
-var_name <- "chlor_a"
-n_cores <- 12
+dir_input <-  "/home/evolecolab/Escritorio/Analisis_Arauco/imagenes_L3/Rrs_645/"
+dir_output <-  "/home/evolecolab/Escritorio/Analisis_Arauco"
+var_name <- "Rrs_645"
+n_cores <- 6
 season = "mes"
 raster_function <- "median"
 get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season,raster_function = raster_function,var_name = var_name,n_cores = n_cores)

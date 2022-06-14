@@ -31,19 +31,36 @@
 #' }
 get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_function = "median", var_name, n_cores = 1) {
   cat("\n\n Configurando sistema de archivos...\n\n")
-  all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
-                   archivo = basename(ruta_completa),
-                   fecha = as_date(archivo, format = "%Y%j"),
-                   año = year(fecha),
-                   mes = month(fecha),
-                   mes_num = sprintf("%02d", mes),
-                   mes_ch = month(fecha, label = TRUE, abbr = FALSE),
-                   semana = week(fecha),
-                   semana_num = sprintf("%02d", semana),
-                   nombre_semana = paste0("s_", semana_num),
-                   nombre_dir = case_when(season == "año" ~paste0(dir_output, "/", año),
-                                          season == "mes" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch),
-                                          season == "semana" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch, "/", nombre_semana)))
+  #arreglar
+  if (var_name == "sst") {
+    all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
+                     archivo = basename(ruta_completa),
+                     fecha = as_date(archivo, format = "%Y%m%d"),
+                     año = year(fecha),
+                     mes = month(fecha),
+                     mes_num = sprintf("%02d", mes),
+                     mes_ch = month(fecha, label = TRUE, abbr = FALSE),
+                     semana = week(fecha),
+                     semana_num = sprintf("%02d", semana),
+                     nombre_semana = paste0("s_", semana_num),
+                     nombre_dir = case_when(season == "año" ~paste0(dir_output, "/", año),
+                                            season == "mes" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch),
+                                            season == "semana" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch, "/", nombre_semana)))
+  } else {
+    all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
+                     archivo = basename(ruta_completa),
+                     fecha = as_date(archivo, format = "%Y%j"),
+                     año = year(fecha),
+                     mes = month(fecha),
+                     mes_num = sprintf("%02d", mes),
+                     mes_ch = month(fecha, label = TRUE, abbr = FALSE),
+                     semana = week(fecha),
+                     semana_num = sprintf("%02d", semana),
+                     nombre_semana = paste0("s_", semana_num),
+                     nombre_dir = case_when(season == "año" ~paste0(dir_output, "/", año),
+                                            season == "mes" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch),
+                                            season == "semana" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch, "/", nombre_semana)))
+  }
   nombre_dir <- all_nc %>% distinct(nombre_dir) %>% pull(nombre_dir)
   walk(nombre_dir, ~dir_create(., recurse = T))
   walk2(all_nc[, 1], all_nc[, 11], ~file_copy(.x, .y, overwrite = TRUE))
