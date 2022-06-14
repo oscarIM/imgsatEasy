@@ -2,7 +2,7 @@
 #' @description Función para generar imágenes raster a partir de imágenes satelitales L3 (formato aaajulianday)
 #' @param dir_input directorio en donde se almacenan las imágenes L3
 #' @param dir_output directorio en donde se almacenaran las imágenes en formato raster
-#' @param season temporalidad para la generación de imágenes en formato raster ("semana", "mes", año). Se obtiene 1 raster por temporalidad (e.g. 1 raster por cada semana, o un raster por cada mes). Por defecto "mes"
+#' @param season temporalidad para la generación de imágenes en formato raster ("semana", "mes", año).
 #' @param raster_function función estadística para generar las imágenes raster ("median" o "mean").  Por defecto, median
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
@@ -28,7 +28,7 @@
 #' var_name <- "chlor_a"
 #' n_cores <- 4
 #' get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season,raster_function = raster_function,var_name = var_name,n_cores = n_cores)
-##'}
+#' }
 get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_function = "median", var_name, n_cores = 1) {
   cat("\n\n Configurando sistema de archivos...\n\n")
   all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
@@ -143,11 +143,11 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
   all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
   walk(all_tif, ~file_move(path = ., new_path = res_path))
 }
+
 #' @title get_csv_fix
-#' @description Función para generar imágenes raster a partir de imágenes satelitales L3 (formato aaajulianday)
+#' @description Función para generar imágenes raster a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3
 #' @param dir_output directorio en donde se almacenaran las imágenes en formato raster
-#' @param season temporalidad para la generación de imágenes en formato raster ("semana", "mes", año). Se obtiene 1 raster por temporalidad (e.g. 1 raster por cada semana, o un raster por cada mes). Por defecto "mes"
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
 #' @return data.frame csv
@@ -163,13 +163,13 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
 #' @importFrom future plan multisession
 #' @importFrom doParallel stopImplicitCluster
 #' @export get_csv_fix
-#'\dontrun{
+#' \dontrun{
 #' dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/chlor_a/"
 #' dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/test_raster_fix"
 #' var_name <- "chlor_a"
 #' n_cores <- 4
 #' get_csv_fix(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores)
-##'}
+#' }
 get_csv_fix <- function(dir_input, dir_output, var_name, n_cores) {
   cat("\n\n Configurando sistema de archivos...\n\n")
   all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),

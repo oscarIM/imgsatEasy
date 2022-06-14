@@ -18,7 +18,7 @@ get_raster_fix(
 
 \item{dir_output}{directorio en donde se almacenaran las imágenes en formato raster}
 
-\item{season}{temporalidad para la generación de imágenes en formato raster ("semana", "mes", año). Se obtiene 1 raster por temporalidad (e.g. 1 raster por cada semana, o un raster por cada mes). Por defecto "mes"}
+\item{season}{temporalidad para la generación de imágenes en formato raster ("semana", "mes", año).}
 
 \item{raster_function}{función estadística para generar las imágenes raster ("median" o "mean").  Por defecto, median}
 
