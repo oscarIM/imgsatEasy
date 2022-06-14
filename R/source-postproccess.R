@@ -438,11 +438,12 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   if (raster_function == "median") {
     stack <- map(stack_list, ~calc(., fun = median, na.rm = TRUE))
     stack <- stack(stack)
-  }
+    }
   if (raster_function == "mean") {
     stack <- map(stack_list, ~calc(., fun = mean, na.rm = TRUE))
     stack <- stack(stack)
   }
+  names(stack) <- names
   #plot climatologia
   #config gral
   shp <- read_sf(shp_file) %>% st_geometry()
