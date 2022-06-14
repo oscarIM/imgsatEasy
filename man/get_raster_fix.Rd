@@ -34,8 +34,8 @@ Función para generar imágenes raster a partir de imágenes satelitales L3 (for
 }
 \examples{
 \dontrun{
-dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/chlor_a/"
-dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3/test_raster_fix"
+dir_input <- "/home/evolecol/Escritorio/R_package/test_package/chlor_A"
+dir_output <- paste0(dir_input, "/", "rasters")
 season <- "mes"
 raster_function <- "median"
 var_name <- "chlor_a"

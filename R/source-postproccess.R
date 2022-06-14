@@ -238,19 +238,18 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
 #' @importFrom doParallel stopImplicitCluster
 #' @importFrom tidyr separate
 #' @importFrom gapfill Gapfill
-#' @importFrom st read_sf st_geometry as_Spatial
+#' @importFrom sf read_sf st_geometry as_Spatial
 #' @return imágenes raster sin Na
 #' @export get_filled_raster
 #' @examples
-#' #'\dontrun{
+#' \dontrun{
 #' dir_input <- "/home/evolecol/Escritorio/R_package/test_package/rasters/resultados_raster/"
 #' dir_output <- paste0("/home/evolecol/Escritorio/R_package/test_package", "/", "gapfill")
 #' season <- "mes"
 #' shp_mask_file <- "/home/evolecol/Escritorio/R_package/test_package/Golfo_Arauco_prj2.shp"
 #' n_cores <- 4
 #' get_filled_raster(dir_input = dir_input, dir_output = dir_output, shp_mask_file = shp_mask_file,season = season, n_cores = n_cores)
-#'}
-get_filled_raster(dir_input = dir_input, dir_output = dir_output, shp_mask_file = shp_mask_file,season = season, n_cores = n_cores)
+#' }
 get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "mes", n_cores = 1) {
   #agregar mensajes y barra de progreso
   all_tif <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),

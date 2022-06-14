@@ -4,7 +4,7 @@
 \alias{get_csv_fix}
 \title{get_csv_fix}
 \usage{
-get_csv_fix(dir_input, dir_output, var_name, n_cores)
+get_csv_fix(dir_input, dir_output, var_name, n_cores = 1)
 }
 \arguments{
 \item{dir_input}{directorio en donde se almacenan las imágenes L3}
