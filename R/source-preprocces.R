@@ -37,26 +37,32 @@
 #'}
 get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east) {
   #agregar control de flujo por errores
-  #pacman::p_load(fs, tidyverse, furrr, doParallel,lubridate)
   setwd(dir_input)
   cat("Descomprimiendo archivos...\n\n")
   list_tar_tmp <- dir_ls(regexp = "*.tar")
   ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
   plan(multisession)
   future_walk(list_tar_tmp, ~untar(tarfile = .x, exdir = "nc_files"))
+  stopImplicitCluster()
   name_dirs <- dir_ls(recurse = TRUE, type = "directory")
   tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
   input_folder <- name_dirs[tmp_folder]
-  stopImplicitCluster()
   setwd(input_folder)
   Sys.sleep(1)
   cat("\n\n Renombrado archivos y generando sistema de archivos adecuado...\n\n")
-  nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE)
-  nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
-  #solo para renombrar
-  file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
-  nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE)
-  nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+  if(var_name == "sst"){
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$", recurse = TRUE)
+    nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+    file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$", recurse = TRUE)
+    nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+  } else {
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+    file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
+    }
   #crear dataframe
   fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%j") %>%
   tibble(fecha = .,

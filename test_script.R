@@ -1,9 +1,9 @@
 devtools::install_github("oscarIM/imgsatEasy")
 library(imgsatEasy)
-dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3"
-dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3"
+dir_input <- "/home/evolecolab/Escritorio/Analisis_Arauco"
+dir_output <- paste0(dir_input, "/", "imagenes_L3")
 var_name <- "chlor_a"
-n_cores <- 6
+n_cores <- 8
 res_l2 <- "1"
 res_l3 <- "1km"
 north <- -36.77544
@@ -33,7 +33,7 @@ dir_output <- paste0( "/home/evolecol/Escritorio/R_package/test_package/test_ct"
 date_1 <- "2010-01-01"
 date_2 <- "2010-01-29"
 name_time <- "enero_2010"
-var_name <- "chlor_a" 
+var_name <- "chlor_a"
 raster_function <- "median"
 get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = name_time,var_name = var_name, raster_function = raster_function)
 ################################################################################
@@ -52,5 +52,4 @@ width <- 9
 get_clim(dir_input = dir_input, dir_output = dir_output, season = season ,raster_function = raster_function , var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output,res = res, heigth = heigth, width = width)
 ################################################################################
 
-  
-  
+
