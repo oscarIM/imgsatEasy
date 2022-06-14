@@ -27,7 +27,7 @@ get_filled_raster(
 imágenes raster sin Na
 }
 \description{
-Función basada en el paquete Gapfill para predecir valores Nas en series temporales
+Función basada en el paquete Gapfill para predecir valores Nas en series temporales, funciona para set de datos 4-D
 }
 \examples{
 \dontrun{
