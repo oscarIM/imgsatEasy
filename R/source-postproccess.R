@@ -457,8 +457,8 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log(valor))) +
       scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
-      metR::scale_x_longitude(ticks = .2) +
-      metR::scale_y_latitude(ticks = .2) +
+      scale_x_longitude(ticks = .2) +
+      scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
@@ -476,8 +476,8 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor)) +
       scale_fill_gradientn(colours = c(blues, reds), na.value = "white") +
-      metR::scale_x_longitude(ticks = .2) +
-      metR::scale_y_latitude(ticks = .2) +
+      scale_x_longitude(ticks = .2) +
+      scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
@@ -490,9 +490,9 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   if (var_name == "Rrs_645") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor)) +
-      scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value= "white") +
-      metR::scale_x_longitude(ticks = .2) +
-      metR::scale_y_latitude(ticks = .2) +
+      scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
+      scale_x_longitude(ticks = .2) +
+      scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
@@ -510,9 +510,9 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   if (var_name == "nflh") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor)) +
-      scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value= "white") +
-      metR::scale_x_longitude(ticks = .2) +
-      metR::scale_y_latitude(ticks = .2) +
+      scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value = "white") +
+      scale_x_longitude(ticks = .2) +
+      scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
@@ -531,6 +531,6 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   ifelse(!dir_exists(dir_output), dir_create(dir_output), FALSE)
   ggsave(filename = paste0(dir_output, "/", name_output), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
   stack <- rast(stack)
-  writeRaster(stack, paste0(dir_output, "/", "raster_climatologia.tif"), overwrite = TRUE)
+  writeRaster(x = stack, filename = paste0(dir_output, "/", "raster_climatologia.tif"), overwrite = TRUE)
   save(df, plot, file = paste0(dir_output, "/", "plot_data.RData"))
 }
