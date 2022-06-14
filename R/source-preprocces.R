@@ -43,14 +43,14 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   list_tar_tmp <- dir_ls(regexp = "*.tar")
   ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
   plan(multisession)
-  future_walk(list_tar_tmp, ~untar(tarfile = .x, exdir = "nc_files"), .progress = TRUE)
+  future_walk(list_tar_tmp, ~untar(tarfile = .x, exdir = "nc_files"))
   name_dirs <- dir_ls(recurse = TRUE, type = "directory")
   tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
   input_folder <- name_dirs[tmp_folder]
   stopImplicitCluster()
   setwd(input_folder)
   Sys.sleep(1)
-  cat("Renombrado archivos y generando sistema de archivos adecuado...\n\n")
+  cat("\n\n Renombrado archivos y generando sistema de archivos adecuado...\n\n")
   nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE)
   nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
   #solo para renombrar
@@ -61,7 +61,7 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   fechas <-  nc_archivo_tmp %>% as_date(format ="%Y%j") %>%
   tibble(fecha = .,
          ruta_completa = nc_ruta_completa_tmp,
-         archivo = nc_files_tmp,
+         archivo = nc_archivo_tmp,
          año = year(fecha),
          mes = month(fecha),
          mes_num = sprintf("%02d", mes),
