@@ -394,7 +394,7 @@ get_raster_ct <- function(dir_input, dir_output, date_1, date_2, name_time, var_
 #' @importFrom sf read_sf st_geometry
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
-#' @importFrom RColorBrewer brew.pal
+#' @importFrom RColorBrewer brewer.pal
 #' @return imágenes raster
 #' @export get_clim
 #' @examples
