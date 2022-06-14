@@ -266,6 +266,7 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   n_mes_año <- 1L
   n_col <- dim(stack_raw_list[[1]])[2]
   n_row <- dim(stack_raw_list[[1]])[1]
+  cat("\n\n Generando inputs...\n\n")
   tmp_list <- map(stack_raw_list, ~array(., dim = c(n_col,
                                                            n_row,
                                                            n_mes_año,
@@ -275,9 +276,11 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
              %>% min() %>% as.numeric())
   max <- min(map_dbl(stack_raw_list, ~max(cellStats(., max, na.rm = TRUE)))
              %>% max() %>% as.numeric())
+  cat("\n\n Generando predición para valores NAS...\n\n")
   registerDoParallel(n_cores)
-  output_list <- map(input_array_list, ~Gapfill(data = ., dopar = TRUE, clipRange = c(min, max)))
+  output_list <- map(input_array_list, ~Gapfill(data = ., dopar = TRUE, clipRange = c(min, max),verbose = FALSE))
   stopImplicitCluster()
+  cat("\n\n Generando resultados...\n\n")
   output_array_list <- map(output_list, "fill")
   n_raster <- n_mes_año * n_años
   #este objeto contiene todos los meses rellenos
@@ -292,7 +295,7 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   terra::writeRaster(x = final_stack, filename = paste0(dir_output, "/", "all_month_median_filled.tif"), overwrite = TRUE)
   #traducir a map para consistencia del código
   for (i in 1:length(output_stack_fill_list)) {
-    names(output_stack_fill_list[[i]]) <- layer_names[[i]]
+    #names(output_stack_fill_list[[i]]) <- layer_names[[i]]
     raster::extent(output_stack_fill_list[[i]]) <- raster::extent(stack_raw_list[[1]])
     output_stack_fill_list[[i]] <- mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
     output_stack_fill_list[[i]] <- rast(output_stack_fill_list[[i]])
