@@ -331,7 +331,7 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
 #' name_time <- "enero_2010"
 #' var_name <- "chlor_a"
 #' raster_function <- "median"
-#' get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = "caca_2010",var_name = "chlor_a",raster_function = raster_function)
+#' get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = name_time,var_name = "chlor_a",raster_function = raster_function)
 #' }
 get_raster_ct <- function(dir_input, dir_output, date_1, date_2, name_time, var_name, raster_function = "median") {
   range_time <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
