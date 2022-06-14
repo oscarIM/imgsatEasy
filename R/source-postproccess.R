@@ -284,7 +284,7 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   output_stack_fill_list <- map(output_array_list, ~stack(brick(array(., c(n_row, n_col, n_raster)))))
   median_stack_fill_list <- map(output_stack_fill_list, ~calc(., fun = median, na.rm = TRUE))
   final_stack <- stack(median_stack_fill_list)
-  extent(final_stack) <- extent(stack_raw_list[[1]])
+  raster::extent(final_stack) <- raster::extent(stack_raw_list[[1]])
   shp <- read_sf(shp_mask_file) %>% st_geometry() %>% as_Spatial()
   final_stack <- mask(final_stack, shp, inverse = TRUE)
   final_stack <- rast(final_stack)
@@ -293,8 +293,8 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "me
   #traducir a map para consistencia del código
   for (i in 1:length(output_stack_fill_list)) {
     names(output_stack_fill_list[[i]]) <- layer_names[[i]]
-    extent(output_stack_fill_list[[i]]) <- extent(stack_raw_list[[1]])
-    output_stack_fill_list[[i]] <- raster::mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
+    raster::extent(output_stack_fill_list[[i]]) <- raster::extent(stack_raw_list[[1]])
+    output_stack_fill_list[[i]] <- mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
     output_stack_fill_list[[i]] <- rast(output_stack_fill_list[[i]])
   }
   walk2(output_stack_fill_list, month_names, ~writeRaster(.x, paste0(dir_output, "/", .y, "_filled.tif"), overwrite = TRUE) )
