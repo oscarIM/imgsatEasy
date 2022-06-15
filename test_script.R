@@ -14,7 +14,7 @@ east <- -73.11573
 get_L3(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
 ################################################################################
 dir_input <-  "/home/evolecolab/Escritorio/Analisis_Arauco/imagenes_L3/Rrs_645/"
-dir_output <-  "/home/evolecolab/Escritorio/Analisis_Arauco"
+dir_output <-  "/home/evolecolab/Escritorio/Analisis_Arauco/rrs_645"
 var_name <- "Rrs_645"
 n_cores <- 6
 season = "mes"
@@ -22,10 +22,10 @@ raster_function <- "median"
 get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season,raster_function = raster_function,var_name = var_name,n_cores = n_cores)
 #aagregar el get_csv_fix
 ################################################################################
-dir_input <- "/home/evolecol/Escritorio/R_package/test_package/rasters/resultados_raster/"
-dir_output <- paste0("/home/evolecol/Escritorio/R_package/test_package", "/", "gapfill")
+dir_input <- "/home/evolecolab/Escritorio/Analisis_Arauco/rasters/chlor_a/resultados_raster/"
+dir_output <- "/home/evolecolab/Escritorio/Analisis_Arauco/gapfill_chlor_a"
 season <- "mes"
-shp_mask_file <- "/home/evolecol/Escritorio/R_package/test_package/Golfo_Arauco_prj2.shp"
+shp_mask_file <- "/home/evolecolab/Escritorio/Analisis_Arauco/Golfo_Arauco_prj2.shp"
 n_cores <- 12
 get_filled_raster(dir_input = dir_input, dir_output = dir_output, shp_mask_file = shp_mask_file,season = season, n_cores = n_cores)
 ################################################################################
