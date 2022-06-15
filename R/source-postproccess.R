@@ -411,7 +411,7 @@ get_raster_ct <- function(dir_input, dir_output, date_1, date_2, name_time, var_
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom stringr str_remove
+#' @importFrom stringr str_remove str_to_title
 #' @return imágenes raster
 #' @export get_clim
 #' @examples
@@ -468,6 +468,7 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     pivot_longer(cols = 3:last_col(), names_to = "facet_var", values_to = "valor") %>%
         mutate(facet_var = str_remove(facet_var, pattern = "X")) %>%
     mutate(across(facet_var, factor, levels = names(stack)))
+  df <- df %>% str_to_title(facet_var)
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log10(valor))) +
@@ -477,10 +478,10 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
-      guides(fill = guide_colorbar(title = expression(paste("Log"," ", Clorofila-alpha~(mg~m^{-3}))),
+      guides(fill = guide_colorbar(title = expression(paste("Log10"," ", Clorofila-alpha~(mg~m^{-3}))),
                                    title.position = "right",
                                    title.theme = element_text(angle = 90),
-                                   barwidth = unit(.5, "cm"), barheight = unit(7.5, "cm"), title.hjust = .5)) +
+                                   barwidth = unit(.5, "cm"), barheight = unit(8.5, "cm"), title.hjust = .5)) +
       theme_bw()
     #para tratar de poner eje y en formato 10^.x
     #scale_fill_continuous(labels = trans_format("log", math_format(10^.x)))

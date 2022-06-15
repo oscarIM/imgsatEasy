@@ -38,18 +38,18 @@ var_name <- "chlor_a"
 raster_function <- "median"
 get_raster_ct(dir_input = dir_input, dir_output = dir_output, date_1 = date_1, date_2 = date_2, name_time = name_time,var_name = var_name, raster_function = raster_function)
 ################################################################################
-dir_input <- "/home/evolecol/Escritorio/R_package/test_package/rasters/resultados_raster"
+dir_input <- "/home/evolecol/Escritorio/R_package/test_package/Analisis_Arauco/clasificacion_zonas/raster_raw/chlor_a/"
 dir_output <- "/home/evolecol/Escritorio/R_package/test_package/climatologia"
-season <- "año"
+season <- "mes"
 raster_function <- "median"
 var_name <-  "chlor_a"
 n_col <- 3
 n_row <- 4
 name_output <- "climatologia_chlor_a.png"
-shp_file <- "/home/evolecol/Escritorio/R_package/test_package/Golfo_Arauco_prj2.shp"
+shp_file <- "/home/evolecol/Escritorio/R_package/test_package/Analisis_Arauco/Golfo_Arauco_prj2.shp"
 res <- 300
-heigth <- 7
-width <- 9
+heigth <- 8
+width <- 11
 get_clim(dir_input = dir_input, dir_output = dir_output, season = season ,raster_function = raster_function , var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output,res = res, heigth = heigth, width = width)
 ################################################################################
 
