@@ -5,6 +5,7 @@
 \title{get_L3}
 \usage{
 get_L3(
+  dir_ocssw,
   dir_input,
   dir_output,
   var_name,
@@ -18,6 +19,8 @@ get_L3(
 )
 }
 \arguments{
+\item{dir_ocssw}{directorio en donde estan los binarion ocssw (seadas)}
+
 \item{dir_input}{directorio en donde se almacenan las imágenes L2}
 
 \item{dir_output}{directorio en donde se almacenaran las imágenes L3 resultantes}
@@ -56,6 +59,6 @@ north <- -36.77544
 south <- -37.29073
 west <- -73.67165
 east <- -73.11573
-get_L3(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east)
+get_L3(dir_ocssw=dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east)
 }
 }
