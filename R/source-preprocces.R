@@ -1,5 +1,6 @@
 #' @title get_L3
 #' @description Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
+#' @param dir_ocssw directorio en donde estan los binarion ocssw (seadas)
 #' @param dir_input directorio en donde se almacenan las imágenes L2
 #' @param dir_output directorio en donde se almacenaran las imágenes L3 resultantes
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
@@ -33,9 +34,9 @@
 #' south <- -37.29073
 #' west <- -73.67165
 #' east <- -73.11573
-#' get_L3(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east)
+#' get_L3(dir_ocssw=dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east)
 #'}
-get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east) {
   #agregar control de flujo por errores
   setwd(dir_input)
   cat("Descomprimiendo archivos...\n\n")
@@ -49,32 +50,35 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   input_folder <- name_dirs[tmp_folder]
   setwd(input_folder)
   Sys.sleep(1)
-  cat("\n\n Renombrado archivos y generando sistema de archivos adecuado...\n\n")
-  if(var_name == "sst"){
-    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$", recurse = TRUE)
+  cat("\n\n Renombrado archivos y generando sistema de archivos...\n\n")
+  if (var_name == "sst") {
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
     file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
-    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$", recurse = TRUE)
+    nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
-    fechas <-  nc_archivo_tmp %>% as_date(format = "%Y%m%d")
+    file_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    fechas <- nc_archivo_tmp %>% as_date(format = "%Y%m%d")
   } else {
     nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
     file_move(path = basename(nc_ruta_completa_tmp), new_path = str_replace(nc_archivo_tmp, "^\\D+(\\d)", "\\1"))
     nc_ruta_completa_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_archivo_tmp <- basename(nc_ruta_completa_tmp)
-    fechas <-  nc_archivo_tmp %>% as_date(format = "%Y%j")
-    }
+    file_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
+    fechas <- nc_archivo_tmp %>% as_date(format = "%Y%j")
+  }
+  file_delete(file_remove)
   #crear dataframe
   fechas <- fechas %>%
-  tibble(fecha = .,
-         ruta_completa = nc_ruta_completa_tmp,
-         archivo = nc_archivo_tmp,
-         año = year(fecha),
-         mes = month(fecha),
-         mes_num = sprintf("%02d", mes),
-         mes_ch = month(fecha, label = TRUE, abbr = FALSE),
-         directorio = paste0(dir_output, "/", var_name, "/", año, "/", mes_num,"_",mes_ch))
+    tibble(fecha = .,
+           ruta_completa = nc_ruta_completa_tmp,
+           archivo = nc_archivo_tmp,
+           año = year(fecha),
+           mes = month(fecha),
+           mes_num = sprintf("%02d", mes),
+           mes_ch = month(fecha, label = TRUE, abbr = FALSE),
+           directorio = paste0(dir_output, "/", var_name, "/", año, "/", mes_num,"_",mes_ch))
   directorios <- fechas %>% distinct(directorio) %>% pull(directorio)
   rm(list = ls(pattern = "tmp"))
   #crear carpertas por año/mes
@@ -89,9 +93,24 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
   l2bin <- system.file("exec", "l2bin.sh", package = "imgsatEasy")
   l3bin <- system.file("exec", "l3bin.sh", package = "imgsatEasy")
   l3mapgen <- system.file("exec", "l3mapgen.sh", package = "imgsatEasy")
+  #modificar los scripts
+  l2bin <- readLines(l2bin)
+  l3bin <- readLines(l3bin)
+  l3mapgen <- readLines(l3mapgen)
+  l2bin[2] <- l3bin[2] <- l3mapgen[2] <- paste0("export OCSSWROOT=${OCSSWROOT:-",dir_ocssw, "}")
+  #escribir los scripts
+  writeLines(l2bin, con = paste0(dir_output, "/", "l2bin.sh"))
+  writeLines(l3bin, con = paste0(dir_output, "/", "l3bin.sh"))
+  writeLines(l3mapgen, con = paste0(dir_output, "/", "l3mapgen.sh"))
+  l2bin <- paste0(dir_output,"/", "l2bin.sh")
+  l3bin <- paste0(dir_output,"/", "l3bin.sh")
+  l3mapgen <- paste0(dir_output,"/", "l3mapgen.sh")
+  system2(command = "chmod", args = c("+x", l2bin))
+  system2(command = "chmod", args = c("+x", l3bin))
+  system2(command = "chmod", args = c("+x", l3mapgen))
   seadas_function <- function(dir) {
     setwd(dir)
-     if (var_name == "sst"){
+    if (var_name == "sst") {
       flaguse <- "LAND,HISOLZEN"
     } else {
       flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
@@ -101,10 +120,10 @@ get_L3 <- function(dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", r
     system2(command = l3bin, args = c(var_name, "netCDF4", "off"))
     system2(command = l3mapgen, args = c(var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     setwd(dir_input)
-    }
+  }
   plan(multisession, workers = n_cores)
   future_walk(directorios, ~seadas_function(dir = .))
   stopImplicitCluster()
   cat(paste0("Terminado el pre-proceso de " , var_name))
-  cat("\n\n")
+  cat("...\n\n")
 }
