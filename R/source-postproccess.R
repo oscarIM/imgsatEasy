@@ -451,6 +451,7 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   #  names <- all_tif %>% distinct(semana) %>% pull(semana)
   #  names(all_tif_split) <- names
   #}
+  cat("\n\n Calculando climatologías...\n\n")
   stack_list <- map(all_tif_split, ~stack(.$ruta_completa))
   if (raster_function == "median") {
     stack <- map(stack_list, ~calc(., fun = median, na.rm = TRUE))
@@ -466,9 +467,9 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   df <- stack %>% rasterToPoints() %>%
     as_tibble() %>%
     pivot_longer(cols = 3:last_col(), names_to = "facet_var", values_to = "valor") %>%
-    mutate(facet_var = str_remove(facet_var, pattern = "X")) %>%
-    mutate(facet_var = str_to_sentence(facet_var)) %>%
-  mutate(across(facet_var, factor, levels = names(stack)))
+    mutate(facet_var = str_remove(facet_var, pattern = "X"), facet_var = str_to_sentence(facet_var)) %>%
+  mutate(across(facet_var, factor, levels = str_to_sentence(names(stack))))
+  cat("\n\n Generando gráfico...\n\n")
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log10(valor))) +
@@ -545,9 +546,12 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
                                    barwidth = unit(.5, "cm"), barheight = unit(7.5, "cm"), title.hjust = .5)) +
       theme_bw()
   }
+  cat("\n\n Exportando resultados...\n\n")
   ifelse(!dir_exists(dir_output), dir_create(dir_output), FALSE)
   ggsave(filename = paste0(dir_output, "/", name_output), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
   stack <- rast(stack)
+  name_month = paste0(sprintf("%02d", seq(1,12)),"_",names(stack))
   writeRaster(x = stack, filename = paste0(dir_output, "/", "raster_climatologia.tif"), overwrite = TRUE)
+  writeRaster(x = stack, filename = paste0(dir_output, "/", name_month,".tif"), overwrite = TRUE)
   save(df, plot, file = paste0(dir_output, "/", "plot_data.RData"))
 }
