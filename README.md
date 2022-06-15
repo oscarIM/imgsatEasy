@@ -11,7 +11,7 @@ The goal of imgsatEasy is to ...
 You can install the development version of imgsatEasy like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+devtools::install_github("oscarIM/imgsatEasy")
 ```
 
 ## Example
