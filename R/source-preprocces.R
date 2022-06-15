@@ -1,16 +1,17 @@
 #' @title get_L3
 #' @description Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
-#' @param dir_ocssw directorio en donde estan los binarion ocssw (seadas)
+#' @param dir_ocssw directorio en donde estan los binarios ocssw (seadas)
 #' @param dir_input directorio en donde se almacenan las imágenes L2
 #' @param dir_output directorio en donde se almacenaran las imágenes L3 resultantes
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
-#' @param n_cores número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial)
+#' @param n_cores número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente
 #' @param res_l2 resolución para l2bin. Por defecto, res = "1" (H: 0.5km, Q: 250m, HQ: 100m, HH: 50m, 1: 1.1km, 2: 2.3km, 4: 4.6km, 9: 9.2km, 18: 18.5km, 36: 36km, 1D: 1 degree, HD: 0.5 degree, QD: 0.25 degree)
 #' @param res_l3 resolución para l3mapgen. Por defecto, res = "1km" (36km: 1080 x 540, 18km: 2160 x 1080, 9km: 4320 x 2160, 4km: 8640 x 4320, 2km: 17280 x 8640, 1km: 34560 x 17280, hkm: 69120 x 34560, qkm: 138240 x 69120, smi: 4096 x 2048, smi4: 8192 x 4096, land: 8640 x 4320)
 #' @param north latitud norte para la generación de las imágenes L3
 #' @param south latitud sur para la generación de las imágenes L3
 #' @param west latitud oeste para la generación de las imágenes L3
 #' @param east latitud este para la generación de las imágenes L3
+#' @param keep_all mantener sistema de archivos? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
 #' @importFrom fs dir_ls dir_create file_move dir_delete file_delete
 #' @importFrom dplyr distinct pull
@@ -24,8 +25,9 @@
 #' @export get_L3
 #' @examples
 #'\dontrun{
-#' dir_input <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3"
-#' dir_output <- "/home/evolecolab/Escritorio/test_satImg/test_get_L3"
+#' dir_input <- "/dir/to/tar_files/
+#' dir_output <- "/dir/to/desired_output/
+#' dir_ocssw <- "/dir/to/ocssw/"
 #' var_name <- "chlor_a"
 #' n_cores <- 6
 #' res_l2 <- "1"
@@ -34,9 +36,10 @@
 #' south <- -37.29073
 #' west <- -73.67165
 #' east <- -73.11573
-#' get_L3(dir_ocssw=dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east)
+#' kepp_all <- FALSE
+#' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2=res_l2, res_l3 = res_l3, north = north, sout = south, west = west, east = east,keep_all = keep_all)
 #'}
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, keep_all = "FALSE") {
   #agregar control de flujo por errores
   setwd(dir_input)
   cat("Descomprimiendo archivos...\n\n")
@@ -124,6 +127,21 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   plan(multisession, workers = n_cores)
   future_walk(directorios, ~seadas_function(dir = .))
   stopImplicitCluster()
-  cat(paste0("Terminado el pre-proceso de " , var_name))
-  cat("...\n\n")
+  binaries <-c(l2bin, l3bin,l3mapgen)
+  file_delete(binaries)
+  if (keep_all) {
+    cat(paste0("Terminado el pre-proceso de " , var_name))
+    cat("...\n\n")
+  } else {
+    dir_create(path = paste0(dir_output,"/", paste0("L3_"var_name)))
+    res_path <- paste0(dir_output,"/", paste0("L3_"var_name))
+    all_nc <- dir_ls(path = dir_output, regexp = ".nc$", type = "file", recurse = TRUE)
+    walk(all_nc, ~file_move(path = ., new_path = res_path))
+    dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
+    dir_remove <- dirs %>% str_detect(., pattern = paste0("L3_"var_name)), negate = TRUE)
+    dir_remove <- dirs[dir_remove]
+    dir_delete(path = dir_remove)
+    cat(paste0("Terminado el pre-proceso de " , var_name))
+    cat("...\n\n")
+  }
 }

@@ -1,12 +1,14 @@
 #' @title get_raster_fix
-#' @description Función para generar imágenes raster a partir de imágenes satelitales L3 (formato aaajulianday)
-#' @param dir_input directorio en donde se almacenan las imágenes L3
-#' @param dir_output directorio en donde se almacenaran las imágenes en formato raster
+#' @description Función para generar imágenes raster a partir de imágenes satelitales L3
+#' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
+#' @param dir_output directorio en donde se almacenaran las imágenes en formato raster (formato raster .tif)
 #' @param season temporalidad para la generación de imágenes en formato raster ("semana", "mes", año).
 #' @param raster_function función estadística para generar las imágenes raster ("median" o "mean").  Por defecto, median
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
-#' @return Imágenes raster
+#' @param use_mask completar 
+#' @param shp_mask_file completar
+#' @return Imágenes raster (.tif)
 #' @importFrom fs dir_ls dir_create dir_exists dir_delete file_move file_copy path_wd
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week
@@ -18,6 +20,7 @@
 #' @importFrom furrr future_walk
 #' @importFrom future plan multisession
 #' @importFrom doParallel stopImplicitCluster
+#' @importFrom sf read_sf st_geometry as_Spatial
 #' @export get_raster_fix
 #' @examples
 #'\dontrun{
@@ -27,9 +30,17 @@
 #' raster_function <- "median"
 #' var_name <- "chlor_a"
 #' n_cores <- 4
+#' use_mask = "FALSE" 
+#' shp_mask_file = "...shp"
 #' get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season,raster_function = raster_function,var_name = var_name,n_cores = n_cores)
 #' }
-get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_function = "median", var_name, n_cores = 1) {
+get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_function = "median", var_name, n_cores = 1, use_mask="FALSE", shp_mask_file = NULL) {
+  ###pensar en un if para leer
+  if (use_mask){
+    shp <- read_sf(shp_mask_file) %>% st_geometry() %>% as_Spatial()
+    } else {
+      cat("Solo se usara imágen por defecto...\n\n")
+    }
   cat("\n\n Configurando sistema de archivos temporal...\n\n")
   #arreglar
   if (var_name == "sst") {
@@ -67,6 +78,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
       name_file <- paste0(name_year, "_", var_name)
       if (n_files <= 1) {
         raster <- raster(files, varname = var_name)
+        final_stack <- mask(final_stack, shp, inverse = TRUE)
         raster <- rast(raster)
         writeRaster(x = raster, filename = paste0(name_file,".tif"), overwrite = TRUE)
       } else {
@@ -184,18 +196,26 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
 #' get_csv_fix(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores)
 #' }
 get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
-  cat("\n\n Configurando sistema de archivos...\n\n")
+  cat("\n\n Configurando sistema de archivos temporal...\n\n")
+  #arreglar
+  if (var_name == "sst") {
+    var_type <- "sst"
+    } else {
+    var_type <- "oc"
+    }
   all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
-                   archivo = basename(ruta_completa),
-                   fecha = as_date(archivo, format = "%Y%j"),
-                   año = year(fecha),
-                   mes = month(fecha),
-                   mes_num = sprintf("%02d", mes),
-                   mes_ch = month(fecha, label = TRUE, abbr = FALSE),
-                   semana = week(fecha),
-                   semana_num = sprintf("%02d", semana),
-                   nombre_semana = paste0("s_", semana_num),
-                   nombre_dir = paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch))
+                     archivo = basename(ruta_completa),
+                     fecha = case_when(var_type == "sst" ~as_date(archivo, format = "%Y%m%d"),
+                                       var_type == "oc" ~ as_date(archivo, format = "%Y%j")),
+                     año = year(fecha),
+                     mes = month(fecha),
+                     mes_num = sprintf("%02d", mes),
+                     mes_ch = month(fecha, label = TRUE, abbr = FALSE),
+                     semana = week(fecha),
+                     semana_num = sprintf("%02d", semana),
+                     nombre_semana = paste0("s_", semana_num),
+                     nombre_dir = paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch))
+    
   nombre_dir <- all_nc %>% distinct(nombre_dir) %>% pull(nombre_dir)
   walk(nombre_dir, ~dir_create(., recurse = T))
   walk2(all_nc[, 1], all_nc[, 11], ~file_copy(.x, .y, overwrite = TRUE))
