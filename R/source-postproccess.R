@@ -471,7 +471,7 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     mutate(across(facet_var, factor, levels = names(stack)))
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = log(valor))) +
+      geom_raster(aes(x, y, fill = log10(valor))) +
       scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
@@ -504,8 +504,9 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
       theme_bw()
   }
   if (var_name == "Rrs_645") {
+    df <- df %>% mutate(valor_corrected = valor * 158.9418)
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = valor)) +
+      geom_raster(aes(x, y, fill = valor_corrected)) +
       scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
