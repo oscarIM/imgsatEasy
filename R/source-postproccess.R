@@ -30,12 +30,17 @@
 #' get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season,raster_function = raster_function,var_name = var_name,n_cores = n_cores)
 #' }
 get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_function = "median", var_name, n_cores = 1) {
-  cat("\n\n Configurando sistema de archivos...\n\n")
+  cat("\n\n Configurando sistema de archivos temporal...\n\n")
   #arreglar
   if (var_name == "sst") {
-    all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
+    var_type <- "sst"
+    } else {
+    var_type <- "oc"
+    }
+  all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
                      archivo = basename(ruta_completa),
-                     fecha = as_date(archivo, format = "%Y%m%d"),
+                     fecha = case_when(var_type == "sst" ~as_date(archivo, format = "%Y%m%d"),
+                                       var_type == "oc" ~ as_date(archivo, format = "%Y%j")),
                      año = year(fecha),
                      mes = month(fecha),
                      mes_num = sprintf("%02d", mes),
@@ -46,21 +51,6 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
                      nombre_dir = case_when(season == "año" ~paste0(dir_output, "/", año),
                                             season == "mes" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch),
                                             season == "semana" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch, "/", nombre_semana)))
-  } else {
-    all_nc <- tibble(ruta_completa = dir_ls(path = dir_input, regexp = ".nc$", recurse = TRUE),
-                     archivo = basename(ruta_completa),
-                     fecha = as_date(archivo, format = "%Y%j"),
-                     año = year(fecha),
-                     mes = month(fecha),
-                     mes_num = sprintf("%02d", mes),
-                     mes_ch = month(fecha, label = TRUE, abbr = FALSE),
-                     semana = week(fecha),
-                     semana_num = sprintf("%02d", semana),
-                     nombre_semana = paste0("s_", semana_num),
-                     nombre_dir = case_when(season == "año" ~paste0(dir_output, "/", año),
-                                            season == "mes" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch),
-                                            season == "semana" ~paste0(dir_output, "/", año,"/", mes_num, "_", mes_ch, "/", nombre_semana)))
-  }
   nombre_dir <- all_nc %>% distinct(nombre_dir) %>% pull(nombre_dir)
   walk(nombre_dir, ~dir_create(., recurse = T))
   walk2(all_nc[, 1], all_nc[, 11], ~file_copy(.x, .y, overwrite = TRUE))
@@ -160,6 +150,11 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
   res_path <- paste0(dir_output,"/", "resultados_raster")
   all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
   walk(all_tif, ~file_move(path = ., new_path = res_path))
+  dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
+  dir_remove <- dirs %>% str_detect(., pattern = "resultados_raster", negate = TRUE)
+  dir_remove <- dirs[dir_remove]
+  dir_delete(path = dir_remove)
+  cat("\n\n Generación de rasters finalizada...\n\n")
 }
 #' @title get_csv_fix
 #' @description Función para generar imágenes raster a partir de imágenes satelitales L3
@@ -235,6 +230,11 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   res_path <- paste0(dir_output, "/", "resultados_csv")
   all_csv <- dir_ls(path = dir_output, regexp = ".csv$", type = "file", recurse = TRUE)
   walk(all_csv, ~file_move(path = ., new_path = res_path))
+  dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
+  dir_remove <- dirs %>% str_detect(., pattern = "resultados_csv", negate = TRUE)
+  dir_remove <- dirs[dir_remove]
+  dir_delete(path = dir_remove)
+  cat("\n\n Generación de csv finalizada...\n\n")
 }
 #' @title get_filled_raster
 #' @description Función basada en el paquete Gapfill para predecir valores Nas en series temporales, funciona para set de datos 4-D
@@ -552,6 +552,6 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   stack <- rast(stack)
   name_month = paste0(sprintf("%02d", seq(1,12)),"_",names(stack))
   writeRaster(x = stack, filename = paste0(dir_output, "/", "raster_climatologia.tif"), overwrite = TRUE)
-  writeRaster(x = stack, filename = paste0(dir_output, "/", name_month,".tif"), overwrite = TRUE)
+  writeRaster(x = stack, filename = paste0(dir_output, "/", name_month,"_",var_name,".tif"), overwrite = TRUE)
   save(df, plot, file = paste0(dir_output, "/", "plot_data.RData"))
 }
