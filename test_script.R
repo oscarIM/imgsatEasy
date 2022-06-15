@@ -11,7 +11,7 @@ north <- -36.77544
 south <- -37.29073
 west <- -73.67165
 east <- -73.11573
-get_L3(dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
+get_L3(dir_ocssw =  dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
 ################################################################################
 dir_input <-  "/home/evolecolab/Escritorio/Analisis_Arauco/imagenes_L3/Rrs_645/"
 dir_output <-  "/home/evolecolab/Escritorio/Analisis_Arauco"
