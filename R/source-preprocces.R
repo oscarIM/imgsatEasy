@@ -125,5 +125,5 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   future_walk(directorios, ~seadas_function(dir = .))
   stopImplicitCluster()
   cat(paste0("Terminado el pre-proceso de " , var_name))
-  cat("\n\n")
+  cat("...\n\n")
 }

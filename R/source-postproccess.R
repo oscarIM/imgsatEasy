@@ -105,7 +105,6 @@ get_raster_fix <- function(dir_input, dir_output, season = "mes", raster_functio
         raster <- rast(raster)
         writeRaster(x = raster, filename = paste0(name_file,".tif"), overwrite = TRUE)
       } else {
-
         raster <- stack(files, varname = var_name)
         if (raster_function == "median") {
           stack <- raster::calc(raster, fun = median, na.rm = TRUE)
