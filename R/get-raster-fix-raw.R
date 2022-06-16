@@ -21,7 +21,7 @@
 #' @importFrom ncdf4 nc_open
 #' @importFrom oceanmap nc2raster
 #' @importFrom parallel stopCluster
-#' @export get_raster_fix
+#' @export get_raster_fix_raw
 #' @examples
 #' \dontrun{
 #' dir_input <- "/dir/to/L3files/"
