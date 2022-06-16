@@ -6,7 +6,7 @@
 #' @param raster_function función estadística para generar las imágenes raster ("median" o "mean").  Por defecto, median
 #' @param var_name vector de tamyear 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamyear 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
-#' @return Imágenes raster (.tif)
+#' @return Imágenes raster sin interpolar(.tif)
 #' @importFrom fs dir_ls dir_create dir_exists dir_delete file_move file_copy path_wd
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week
