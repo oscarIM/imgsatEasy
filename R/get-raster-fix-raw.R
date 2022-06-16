@@ -32,7 +32,7 @@
 #' n_cores <- 4
 #' get_raster_fix(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_raster_fix <- function(dir_input, dir_output, season = "month", raster_function = "median", var_name, n_cores = 1) {
+get_raster_fix_raw <- function(dir_input, dir_output, season = "month", raster_function = "median", var_name, n_cores = 1) {
   cat("\n\n Configurando sistema de archivos temporal...\n\n")
   # acortar
   if (var_name == "sst") {
