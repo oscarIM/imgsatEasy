@@ -1,4 +1,4 @@
-#' @title get_raster_fix
+#' @title get_raster_fix_inter
 #' @description Función para generar imágenes raster a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio en donde se almacenaran las imágenes en formato raster (formato raster .tif)
@@ -10,18 +10,18 @@
 #' @importFrom fs dir_ls dir_create dir_exists dir_delete file_move file_copy path_wd
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week
-#' @importFrom dplyr distinct pull case_when
+#' @importFrom dplyr distinct pull case_when bind_rows
 #' @importFrom stringr str_split
 #' @importFrom purrr walk walk2 possibly keep map
 #' @importFrom terra writeRaster rast
-#' @importFrom raster stack calc flip rotate
+#' @importFrom raster stack calc flip rotate resample raster
 #' @importFrom furrr future_walk
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom ncdf4 nc_open
 #' @importFrom oceanmap nc2raster
 #' @importFrom parallel stopCluster
-#' @export get_raster_fix
+#' @export get_raster_fix_inter
 #' @examples
 #' \dontrun{
 #' dir_input <- "/dir/to/L3files/"
@@ -98,26 +98,26 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
     nc_raster_tmp <- nc_raster_tmp %>% keep(~ !is.null(.))
     nc_raster_flip_tmp <- map(nc_raster_tmp, ~ flip(., "y"))
     rasters <- map(nc_raster_flip_tmp, ~ rotate(.))
-    # ext_df <- purrr::map(rasters, ~raster::extent(.))
-    # xmin <- purrr::map(ext_df, "xmin") %>% bind_rows()
-    # xmax <- purrr::map(ext_df, "xmax") %>% bind_rows()
-    # ymin <- purrr::map(ext_df, "ymin") %>% bind_rows()
-    # ymax <- purrr::map(ext_df, "ymax") %>% bind_rows()
-    # final_ext <- data.frame("xmin" = t(xmin), "xmax" = t(xmax), "ymin" = t(ymin), "ymax" = t(ymax))
-    # ext_mask <- raster(ymx = max(final_ext$ymax), ymn = min(final_ext$ymin), xmn = min(final_ext$xmin), xmx = max(final_ext$xmax), resolution = 0.01)
-    # rasters <- purrr::map(rasters, ~raster::resample(., ext_mask, method = "bilinear"))
+    ext_df <- map(rasters, ~raster::extent(.))
+    xmin <- map(ext_df, "xmin") %>% bind_rows()
+    xmax <- map(ext_df, "xmax") %>% bind_rows()
+    ymin <- map(ext_df, "ymin") %>% bind_rows()
+    ymax <- map(ext_df, "ymax") %>% bind_rows()
+    final_ext <- data.frame("xmin" = t(xmin), "xmax" = t(xmax), "ymin" = t(ymin), "ymax" = t(ymax))
+    ext_mask <- raster(ymx = max(final_ext$ymax), ymn = min(final_ext$ymin), xmn = min(final_ext$xmin), xmx = max(final_ext$xmax), resolution = 0.01)
+    rasters <- map(rasters, ~resample(., ext_mask, method = "bilinear"))
     rasters <- stack(rasters)
     if (raster_function == "median") {
       stack <- raster::calc(rasters, fun = median, na.rm = TRUE)
       name_file <- paste0(name_file, "_", raster_function)
       stack <- rast(stack)
-      writeRaster(x = stack, filename = paste0(name_file, ".tif"), overwrite = TRUE)
+      writeRaster(x = stack, filename = paste0(name_file, "_inter.tif"), overwrite = TRUE)
     }
     if (raster_function == "mean") {
       stack <- raster::calc(rasters, fun = mean, na.rm = TRUE)
       name_file <- paste0(name_file, "_", raster_function)
       stack <- rast(stack)
-      writeRaster(x = stack, filename = paste0(name_file, ".tif"), overwrite = TRUE)
+      writeRaster(x = stack, filename = paste0(name_file, "_inter.tif"), overwrite = TRUE)
     }
     setwd(dir_output)
   }
@@ -132,10 +132,10 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
   }
   dir_create(path = paste0(dir_output, "/", "raster_", var_name))
   res_path <- paste0(dir_output, "/", "raster_", var_name)
-  all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
+  all_tif <- dir_ls(path = dir_output, regexp = ".tif$", type = "file", recurse = TRUE)
   walk(all_tif, ~ file_move(path = ., new_path = res_path))
   dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
-  dir_remove <- dirs %>% str_detect(., pattern = paste0("raster_",var_name), negate = TRUE)
+  dir_remove <- dirs %>% str_detect(., pattern = paste0("raster_", var_name), negate = TRUE)
   dir_remove <- dirs[dir_remove]
   dir_delete(path = dir_remove)
   cat("\n\n Generación de rasters finalizada...\n\n")
