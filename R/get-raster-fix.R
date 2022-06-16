@@ -135,7 +135,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
   all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
   walk(all_tif, ~ file_move(path = ., new_path = res_path))
   dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
-  dir_remove <- dirs %>% str_detect(., pattern = "raster_", negate = TRUE)
+  dir_remove <- dirs %>% str_detect(., pattern = paste0("raster_",var_name), negate = TRUE)
   dir_remove <- dirs[dir_remove]
   dir_delete(path = dir_remove)
   cat("\n\n Generación de rasters finalizada...\n\n")
