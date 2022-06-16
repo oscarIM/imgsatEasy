@@ -100,7 +100,10 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   walk(dirs, ~ dir_create(path = ., recurse = T))
   walk2(dates[, 2], dates[, 8], ~ file_move(path = .x, new_path = .y))
   setwd(dir_input)
-  dir_delete("nc_files")
+ if (need_descompress) {
+   dir_delete("nc_files")
+ }
+
   # ahora, moverse a cada folder y correr l2bin-l3mapgen
   cat("Corriendo seadas...\n\n")
   Sys.sleep(1)
