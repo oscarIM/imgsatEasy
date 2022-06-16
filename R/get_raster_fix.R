@@ -94,7 +94,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
     nc_files_tmp <- map(files, ~possible_nc_open(.))
     nc_file_tmp <- nc_files_tmp %>% keep(~ !is.null(.))
     nc_raster_tmp <- map(nc_files_tmp, ~ possible_nc2raster(., var_name, lonname = "lon", latname = "lat"))
-    nc_raster_tmp <- nc_raster_tmp %>% keep(!is.null(.))
+    nc_raster_tmp <- nc_raster_tmp %>% keep(~ !is.null(.))
     nc_raster_flip_tmp <- map(nc_raster_tmp, ~ flip(., "y"))
     rasters <- map(nc_raster_flip_tmp, ~ rotate(.))
     # ext_df <- purrr::map(rasters, ~raster::extent(.))
