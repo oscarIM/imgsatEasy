@@ -25,10 +25,6 @@ get_raster_fix(
 \item{var_name}{vector de tamyear 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")}
 
 \item{n_cores}{vector tamyear 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1}
-
-\item{use_mask}{completar}
-
-\item{shp_mask_file}{completar}
 }
 \value{
 Imágenes raster (.tif)
