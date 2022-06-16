@@ -11,6 +11,7 @@
 #' @param south latitud sur para la generación de las imágenes L3
 #' @param west latitud oeste para la generación de las imágenes L3
 #' @param east latitud este para la generación de las imágenes L3
+#' @param need_descompress mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @param keep_all mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
 #' @importFrom fs dir_ls dir_create file_move dir_delete file_delete
@@ -38,24 +39,30 @@
 #' east <- -73.11573
 #' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, keep_all = "TRUE")
 #' }
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, keep_all = FALSE) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, keep_all = FALSE, need_descompress = TRUE) {
   # agregar control de flujo por errores
-  setwd(dir_input)
-  cat("Descomprimiendo files...\n\n")
-  list_tar_tmp <- dir_ls(regexp = "*.tar")
-  ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
-  nc_need <- length(list_tar_tmp)
-  cl <- makeClusterPSOCK(nc_need)
-  plan(cluster, workers = cl)
-  future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
-  stopCluster(cl)
-  name_dirs <- dir_ls(recurse = TRUE, type = "directory")
-  tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
-  input_folder <- name_dirs[tmp_folder]
-  setwd(input_folder)
-  Sys.sleep(1)
-  cat("\n\n Renombrado files y generando sistema de files...\n\n")
-  if (var_name == "sst") {
+  if (need_descompress) {
+    setwd(dir_input)
+    cat("Descomprimiendo files...\n\n")
+    list_tar_tmp <- dir_ls(regexp = "*.tar")
+    ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
+    nc_need <- length(list_tar_tmp)
+    cl <- makeClusterPSOCK(nc_need)
+    plan(cluster, workers = cl)
+    future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
+    stopCluster(cl)
+    name_dirs <- dir_ls(recurse = TRUE, type = "directory")
+    tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
+    input_folder <- name_dirs[tmp_folder]
+    setwd(input_folder)
+    Sys.sleep(1)
+    cat("\n\n Renombrado files y generando sistema de files...\n\n")
+  } else {
+    setwd(dir_input)
+    Sys.sleep(1)
+    cat("\n\n Renombrado files y generando sistema de files...\n\n")
+  }
+   if (var_name == "sst") {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
