@@ -12,8 +12,8 @@
 #' @importFrom stringr str_split
 #' @importFrom purrr map map2 possibly keep possibly keep walk
 #' @importFrom furrr future_walk
-#' @importFrom future plan cluster makeClusterPSOCK
-#' @importFrom parallel stopCluster
+#' @importFrom parallel stopCluster makeForkCluster
+#' @importFrom doParallel registerDoParallel
 #' @importFrom tidync tidync hyper_tibble
 #' @importFrom readr write_csv
 #' @export get_csv_fix
@@ -78,8 +78,8 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   if (n_cores == 1) {
     walk(nombre_dir, ~ internal_csv(dir = .))
   } else {
-    cl <- makeClusterPSOCK(n_cores)
-    plan(cluster, workers = cl)
+    cl <- makeForkCluster(n_cores)
+    registerDoParallel(cl)
     future_walk(nombre_dir, ~ internal_csv(dir = .), verbose = FALSE)
     stopCluster(cl)
   }

@@ -16,7 +16,8 @@
 #' @importFrom terra writeRaster rast
 #' @importFrom raster stack calc flip rotate
 #' @importFrom furrr future_walk
-#' @importFrom future plan cluster makeClusterPSOCK
+#' @importFrom parallel stopCluster makeForkCluster
+#' @importFrom doParallel registerDoParallel
 #' @importFrom ncdf4 nc_open
 #' @importFrom oceanmap nc2raster
 #' @importFrom parallel stopCluster
@@ -124,8 +125,8 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
   if (n_cores == 1) {
     walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function))
   } else {
-    cl <- makeClusterPSOCK(n_cores)
-    plan(cluster, workers = cl)
+    cl <- makeForkCluster(n_cores)
+    registerDoParallel(cl)
     future_walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
     stopCluster(cl)
   }
