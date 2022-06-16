@@ -98,7 +98,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   rm(list = ls(pattern = "tmp"))
   # crear carpertas por year/month
   walk(dirs, ~ dir_create(path = ., recurse = T))
-  walk2(dates[, 2], dates[, 8], ~ file_move(path = .x, new_path = .y, overwrite = TRUE))
+  walk2(dates[, 2], dates[, 8], ~ file_move(path = .x, new_path = .y))
   setwd(dir_input)
  if (need_descompress) {
    dir_delete("nc_files")
