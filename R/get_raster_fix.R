@@ -129,13 +129,12 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
     future_walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
     stopCluster(cl)
   }
-  cat("\n\n Generación de rasters finalizada...\n\n")
-  dir_create(path = paste0(dir_output, "/", "resultados_raster"))
-  res_path <- paste0(dir_output, "/", "resultados_raster")
+  dir_create(path = paste0(dir_output, "/", "raster_", var_name))
+  res_path <- paste0(dir_output, "/", "raster_", var_name)
   all_tif <- dir_ls(path = dir_output, regexp = ".tif", type = "file", recurse = TRUE)
   walk(all_tif, ~ file_move(path = ., new_path = res_path))
   dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
-  dir_remove <- dirs %>% str_detect(., pattern = "resultados_raster", negate = TRUE)
+  dir_remove <- dirs %>% str_detect(., pattern = "raster_", negate = TRUE)
   dir_remove <- dirs[dir_remove]
   dir_delete(path = dir_remove)
   cat("\n\n Generación de rasters finalizada...\n\n")
