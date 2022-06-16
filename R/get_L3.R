@@ -20,7 +20,7 @@
 #' @importFrom stringr str_remove str_detect str_replace
 #' @importFrom tibble tibble
 #' @importFrom furrr future_walk
-#' @importFrom future plan cluster
+#' @importFrom future plan cluster makeClusterPSOCK
 #' @importFrom parallel stopCluster
 #' @export get_L3
 #' @examples

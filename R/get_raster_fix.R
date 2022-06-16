@@ -16,7 +16,7 @@
 #' @importFrom terra writeRaster rast
 #' @importFrom raster stack calc flip rotate
 #' @importFrom furrr future_walk
-#' @importFrom future plan cluster
+#' @importFrom future plan cluster makeClusterPSOCK
 #' @importFrom ncdf4 nc_open
 #' @importFrom oceanmap nc2raster
 #' @importFrom parallel stopCluster
