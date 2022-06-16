@@ -120,30 +120,13 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
     }
     setwd(dir_output)
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   # add progess bar
   if (n_cores == 1) {
-    walk(dirs, ~ .internal_raster(dir = ., raster_function = raster_function))
+    walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function))
   } else {
     cl <- makeClusterPSOCK(n_cores)
     plan(cluster, workers = cl)
-    future_walk(dirs, ~ .internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
+    future_walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
     stopCluster(cl)
   }
   dir_create(path = paste0(dir_output, "/", "raster_", var_name))

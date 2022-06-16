@@ -76,11 +76,11 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   }
   # add progess bar
   if (n_cores == 1) {
-    walk(nombre_dir, ~ .internal_csv(dir = .))
+    walk(nombre_dir, ~ internal_csv(dir = .))
   } else {
     cl <- makeClusterPSOCK(n_cores)
     plan(cluster, workers = cl)
-    future_walk(nombre_dir, ~ .internal_csv(dir = .), verbose = FALSE)
+    future_walk(nombre_dir, ~ internal_csv(dir = .), verbose = FALSE)
     stopCluster(cl)
   }
   # mover todas las salidas a una carpeta
