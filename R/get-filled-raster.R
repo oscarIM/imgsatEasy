@@ -45,9 +45,9 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "mo
     group_split()
   month_names <- map_chr(all_tif_list, ~ unique(.$month))
   layer_names <- map(all_tif_list, ~ paste0(.$month, "_", .$year))
-  namonth(all_tif_list) <- month_names
+  names(all_tif_list) <- month_names
   stack_raw_list <- map(all_tif_list, ~ stack(.$full_path))
-  namonth(stack_raw_list) <- month_names
+  names(stack_raw_list) <- month_names
   n_years <- length(unique(all_tif$year))
   n_month_year <- 1L
   n_col <- dim(stack_raw_list[[1]])[2]
@@ -86,10 +86,10 @@ get_filled_raster <- function(dir_input, dir_output, shp_mask_file, season = "mo
   writeRaster(x = final_stack, filename = paste0(dir_output, "/", "all_month_median_filled.tif"), overwrite = TRUE)
   # traducir a map para consistencia del código
   for (i in 1:length(output_stack_fill_list)) {
-    namonth(output_stack_fill_list[[i]]) <- layer_namonth[[i]]
+    names(output_stack_fill_list[[i]]) <- layer_names[[i]]
     raster::extent(output_stack_fill_list[[i]]) <- raster::extent(stack_raw_list[[1]])
     output_stack_fill_list[[i]] <- mask(output_stack_fill_list[[i]], shp, inverse = TRUE)
     output_stack_fill_list[[i]] <- rast(output_stack_fill_list[[i]])
   }
-  walk2(output_stack_fill_list, month_namonth, ~ writeRaster(.x, paste0(dir_output, "/", .y, "_filled.tif"), overwrite = TRUE))
+  walk2(output_stack_fill_list, month_names, ~ writeRaster(.x, paste0(dir_output, "/", .y, "_filled.tif"), overwrite = TRUE))
 }
