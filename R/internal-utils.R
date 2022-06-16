@@ -1,7 +1,7 @@
 #  función interna de imgsatEasy
 #
 # \code{.internal_csv} es una función interna
-#
+#' .internal_raster
 .internal_csv <- function(dir) {
   setwd(dir)
   files <- dir_ls(regexp = ".nc$", recurse = T)
