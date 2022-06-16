@@ -54,8 +54,26 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
     pull(directory)
   walk(nombre_dir, ~ dir_create(., recurse = T))
   walk2(all_nc[, 1], all_nc[, 11], ~ file_copy(.x, .y, overwrite = TRUE))
-  cat("\n\n Listo...\n\n")
   cat("\n\n Iniciando creación de csv...\n\n")
+  internal_csv <- function(dir) {
+    setwd(dir)
+    files <- dir_ls(regexp = ".nc$", recurse = T)
+    tmp <- str_split(string = path_wd(), pattern = "/", simplify = T)
+    name_year <- tmp[length(tmp) - 1]
+    name_month <- tmp[length(tmp)]
+    name_out <- paste0(name_year, "_", name_month, "_", var_name, ".csv")
+    possible_tidync <- possibly(.f = tidync, otherwise = NULL)
+    tmp <- map(files, ~ possible_tidync(.)) %>% keep(~ !is.null(.))
+    tmp <- map(tmp, ~ hyper_tibble(.))
+    dates <- case_when(
+      var_type == "sst" ~ as_date(names(tmp), format = "%Y%m%d"),
+      var_type == "oc" ~ as_date(names(tmp), format = "%Y%j")
+    )
+    tmp <- map2(tmp, dates, ~ mutate(.x, date = .y))
+    final <- bind_rows(tmp)
+    write_csv(final, file = name_out)
+    setwd(dir_raiz)
+  }
   # add progess bar
   if (n_cores == 1) {
     walk(nombre_dir, ~ .internal_csv(dir = .))
