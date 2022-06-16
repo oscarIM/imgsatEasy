@@ -70,7 +70,7 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
   # mover la funcion interna a otro archivo
   # add progess bar
   if (n_cores == 1) {
-    walk(dirs, ~ .internal_raster(dir = ., raster_function = raster_function))
+    walk(dirs, ~ .internal_raster(dir = ., raster_function = raster_function, season = season))
   } else {
     cl <- makeClusterPSOCK(n_cores)
     plan(cluster, workers = cl)

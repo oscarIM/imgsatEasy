@@ -25,7 +25,7 @@
 #
 # \code{.internal_raster} es una función interna
 #
-.internal_raster <- function(dir, raster_function) {
+.internal_raster <- function(dir, raster_function, season = season) {
   setwd(dir)
   files <- dir_ls(regexp = ".nc$", recurse = T)
   # configurando nombre del stack final
