@@ -72,7 +72,7 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
     tmp <- map2(tmp, dates, ~ mutate(.x, date = .y))
     final <- bind_rows(tmp)
     write_csv(final, file = name_out)
-    setwd(dir_raiz)
+    setwd(dir_output)
   }
   # add progess bar
   if (n_cores == 1) {
