@@ -58,7 +58,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     input_folder <- name_dirs[tmp_folder]
     setwd(input_folder)
     Sys.sleep(1)
-    cat("\n\n Renombrado files y generando sistema de files...\n\n")
+    cat("\n\n Renombrado y generando sistema de archivos...\n\n")
   } else {
     setwd(dir_input)
     Sys.sleep(1)
