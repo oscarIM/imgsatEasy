@@ -136,7 +136,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
     }
     # correr seadas scripts
-    system2(command = l2bin, args = c("day", var_name, res_l2, "off", flaguse, "1"))
+    system2(command = l2bin, args = c("day", var_name, res_l2, "off", flaguse, "0"))
     system2(command = l3bin, args = c(var_name, "netCDF4", "off"))
     system2(command = l3mapgen, args = c(var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     setwd(dir_input)
