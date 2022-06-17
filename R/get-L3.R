@@ -131,7 +131,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_function <- function(dir) {
     setwd(dir)
     if (var_name == "sst") {
-      flaguse <- "LAND,HISOLZEN"
+      flaguse <- "LAND,HISOLZEN,COASTZ,CLDICE"
     } else {
       flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
     }
