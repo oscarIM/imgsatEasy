@@ -23,6 +23,7 @@
 #' @importFrom furrr future_walk
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
+#' @importFrom utils untar
 #' @export get_L3
 #' @examples
 #' \dontrun{
@@ -49,7 +50,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     nc_need <- length(list_tar_tmp)
     cl <- parallel::makeForkCluster(nc_need)
     plan(cluster, workers = cl)
-    future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
+    future_walk(list_tar_tmp, ~ utils::untar(tarfile = .x, exdir = "nc_files"))
     parallel::stopCluster(cl)
     rm(cl)
     name_dirs <- dir_ls(recurse = TRUE, type = "directory")
