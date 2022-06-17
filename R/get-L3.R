@@ -46,7 +46,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     cat("Descomprimiendo files...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
     ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
-    nc_need <- length(nc_need)
+    nc_need <- length(list_tar_tmp)
     cl <- parallel::makeForkCluster(nc_need)
     plan(cluster, workers = cl)
     future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
