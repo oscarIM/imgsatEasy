@@ -52,7 +52,7 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   dirs <- all_nc %>%
     distinct(directory) %>%
     pull(directory)
-  walk(nombre_dir, ~ dir_create(., recurse = T))
+  walk(dirs, ~ dir_create(., recurse = T))
   walk2(all_nc[, 1], all_nc[, 11], ~ file_copy(.x, .y, overwrite = TRUE))
   cat("\n\n Iniciando creación de csv...\n\n")
   internal_csv <- function(dir) {
