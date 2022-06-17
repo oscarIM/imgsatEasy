@@ -44,7 +44,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # agregar control de flujo por errores
   if (need_descompress) {
     setwd(dir_input)
-    cat("Descomprimiendo files...\n\n")
+    cat("Descomprimiendo archivos...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
     ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
     nc_need <- length(list_tar_tmp)
@@ -107,7 +107,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   }
 
   # ahora, moverse a cada folder y correr l2bin-l3mapgen
-  cat("Corriendo seadas...\n\n")
+  cat("Corriendo wrapper de seadas...\n\n")
   Sys.sleep(1)
   # rutas temporales solo para probar la funcion, despues estaran dentro del programa
   l2bin <- system.file("exec", "l2bin.sh", package = "imgsatEasy")
@@ -131,7 +131,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_function <- function(dir) {
     setwd(dir)
     if (var_name == "sst") {
-      flaguse <- "LAND,HISOLZEN,COASTZ,CLDICE"
+      flaguse <- "LAND,HISOLZEN,COASTZ"
     } else {
       flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
     }
