@@ -12,8 +12,8 @@
 #' @importFrom stringr str_split
 #' @importFrom purrr map map2 possibly keep possibly keep walk
 #' @importFrom furrr future_walk
+#' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
-#' @importFrom doParallel registerDoParallel
 #' @importFrom tidync tidync hyper_tibble
 #' @importFrom readr write_csv
 #' @export get_csv_fix
@@ -78,10 +78,11 @@ get_csv_fix <- function(dir_input, dir_output, var_name, n_cores = 1) {
   if (n_cores == 1) {
     walk(nombre_dir, ~ internal_csv(dir = .))
   } else {
-    cl <- makeForkCluster(n_cores)
-    registerDoParallel(cl)
+    cl <- parallel::makeForkCluster(n_cores)
+    plan(cluster, workers = cl)
     future_walk(nombre_dir, ~ internal_csv(dir = .), verbose = FALSE)
-    stopCluster(cl)
+    parallel::stopCluster(cl)
+    rm(cl)
   }
   # mover todas las salidas a una carpeta
   dir_create(path = paste0(dir_output, "/", "csv_", var_name))

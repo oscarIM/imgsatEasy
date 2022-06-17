@@ -16,7 +16,8 @@ get_L3(
   south,
   west,
   east,
-  keep_all = FALSE
+  keep_all = FALSE,
+  need_descompress = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ get_L3(
 \item{east}{latitud este para la generación de las imágenes L3}
 
 \item{keep_all}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
+
+\item{need_descompress}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
 }
 \value{
 imágenes L3

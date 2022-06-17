@@ -16,9 +16,8 @@
 #' @importFrom terra writeRaster rast
 #' @importFrom raster raster stack calc
 #' @importFrom furrr future_walk
-#' @importFrom future plan multisession
+#' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
-#' @importFrom doParallel registerDoParallel
 #' @export get_raster_fix
 #' @examples
 #' \dontrun{
@@ -108,10 +107,11 @@ get_raster_fix <- function(dir_input, dir_output, season = "month", raster_funct
   if (n_cores == 1) {
     walk(nombre_dir, ~ internal_raster(dir = ., raster_function = raster_function))
   } else {
-    cl <- makeForkCluster(n_cores)
-    registerDoParallel(cl)
+    cl <- parallel::makeForkCluster(n_cores)
+    plan(cluster, workers = cl)
     future_walk(dirs, ~ internal_raster(dir = ., raster_function = raster_function), verbose = FALSE)
-    stopCluster(cl)
+    parallel::stopCluster(cl)
+    rm(cl)
   }
   dir_create(path = paste0(dir_output, "/", "raster_", var_name))
   res_path <- paste0(dir_output, "/", "raster_", var_name)

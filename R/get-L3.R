@@ -21,8 +21,8 @@
 #' @importFrom stringr str_remove str_detect str_replace
 #' @importFrom tibble tibble
 #' @importFrom furrr future_walk
-#' @importFrom future plan cluster makeClusterPSOCK
-#' @importFrom parallel stopCluster
+#' @importFrom future plan cluster
+#' @importFrom parallel stopCluster makeForkCluster
 #' @export get_L3
 #' @examples
 #' \dontrun{
@@ -46,11 +46,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     cat("Descomprimiendo files...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
     ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
-    nc_need <- length(list_tar_tmp)
-    cl <- makeClusterPSOCK(nc_need)
+    nc_need <- length(nc_need)
+    cl <- parallel::makeForkCluster(nc_need)
     plan(cluster, workers = cl)
     future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
-    stopCluster(cl)
+    parallel::stopCluster(cl)
+    rm(cl)
     name_dirs <- dir_ls(recurse = TRUE, type = "directory")
     tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
     input_folder <- name_dirs[tmp_folder]
@@ -60,9 +61,9 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   } else {
     setwd(dir_input)
     Sys.sleep(1)
-    cat("\n\n Renombrado files y generando sistema de files...\n\n")
+    cat("\n\n Renombrado y generando sistema de archivos...\n\n")
   }
-   if (var_name == "sst") {
+  if (var_name == "sst") {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
@@ -100,9 +101,9 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   walk(dirs, ~ dir_create(path = ., recurse = T))
   walk2(dates[, 2], dates[, 8], ~ file_move(path = .x, new_path = .y))
   setwd(dir_input)
- if (need_descompress) {
-   dir_delete("nc_files")
- }
+  if (need_descompress) {
+    dir_delete("nc_files")
+  }
 
   # ahora, moverse a cada folder y correr l2bin-l3mapgen
   cat("Corriendo seadas...\n\n")
@@ -139,10 +140,11 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     system2(command = l3mapgen, args = c(var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     setwd(dir_input)
   }
-  cl <- makeClusterPSOCK(n_cores)
+  cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   future_walk(dirs, ~ seadas_function(dir = .))
-  stopCluster(cl)
+  parallel::stopCluster(cl)
+  rm(cl)
   bins <- c(l2bin, l3bin, l3mapgen)
   file_delete(bins)
   if (keep_all) {
