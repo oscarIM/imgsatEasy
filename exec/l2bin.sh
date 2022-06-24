@@ -1,9 +1,5 @@
 #!/bin/bash
 export OCSSWROOT=${OCSSWROOT:-/home/evolecolab/seadas/ocssw}
 source ${OCSSWROOT}/OCSSW_bash.env
-for files in *.nc; do
-	infile=${files}
-	name_file=${infile%%.*}
-	ofile=${name_file}_${1}_${2}_${3}Km_L3b_tmp.nc
-l2bin infile=${infile} ofile=${ofile} prodtype=${1} l3bprod=${2} resolve=${3} verbose=${4} flaguse=${5} qual_max=${6}
-done
+l2bin infile=${1} ofile=${2} prodtype=${3} l3bprod=${4} resolve=${5} verbose=${6} flaguse=${7} qual_max=${8}
+
