@@ -11,8 +11,8 @@
 #' @param south latitud sur para la generación de las imágenes L3
 #' @param west latitud oeste para la generación de las imágenes L3
 #' @param east latitud este para la generación de las imágenes L3
-#' @param need_descompress mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
-#' @param keep_all mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
+#' @param need_extract mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
+#' @param keep_all_dir mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
 #' @importFrom fs dir_ls dir_create file_move dir_delete file_delete
 #' @importFrom dplyr distinct pull
@@ -40,9 +40,9 @@
 #' east <- -73.11573
 #' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, keep_all = "TRUE")
 #' }
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, keep_all = FALSE, need_descompress = TRUE) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract = TRUE, keep_all_dir = FALSE) {
   # agregar control de flujo por errores
-  if (need_descompress) {
+  if (need_extract) {
     setwd(dir_input)
     cat("Descomprimiendo archivos...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
