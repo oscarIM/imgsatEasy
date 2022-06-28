@@ -1,12 +1,8 @@
 #!/bin/bash
 export OCSSWROOT=${OCSSWROOT:-/home/evolecolab/seadas/ocssw}
 source ${OCSSWROOT}/OCSSW_bash.env
-for files in *_L3m_tmp.nc; do
-  ifile=${files}
-  ofile=${files%.*}
-  tmp_name=${ofile/_L3m_tmp/_L3mapped}
-  ofile=${tmp_name}.nc
-  l3mapgen ifile=${ifile} ofile=${ofile} product=${1} oformat=${2} resolution=${3} projection=${4} interp={5} north=${6} south=${7} west=${8} east=${9} quiet=${10} mask_land=${11}
-done
+  l3mapgen ifile=${1} ofile=${2} product=${3} oformat=${4} resolution=${5} projection=${6} interp=${7} north=${8} south=${9} west=${10} east=${11} quiet=${12} mask_land=${11}
+mkdir log_files
+mv *.txt log_files
 rm *_tmp.nc
 rm *.x.nc
