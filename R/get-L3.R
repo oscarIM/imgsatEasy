@@ -12,10 +12,10 @@
 #' @param west latitud oeste para la generación de las imágenes L3
 #' @param east latitud este para la generación de las imágenes L3
 #' @param need_extract mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
-#' @param keep_all_dir mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
+#' @param sort_files crearr sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
 #' @importFrom fs dir_ls dir_create file_move dir_delete file_delete path_file
-#' @importFrom readr read_lines write_lines()
+#' @importFrom readr read_lines write_lines
 #' @importFrom dplyr distinct pull
 #' @importFrom lubridate as_date year month
 #' @importFrom purrr walk walk2
@@ -41,19 +41,23 @@
 #' east <- -73.11573
 #' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, keep_all = "TRUE")
 #' }
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract = TRUE, keep_all_dir = FALSE) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
   if (need_extract) {
     setwd(dir_input)
     cat("Descomprimiendo archivos...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
     ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
-    nc_need <- length(list_tar_tmp)
-    cl <- parallel::makeForkCluster(nc_need)
-    plan(cluster, workers = cl)
-    future_walk(list_tar_tmp, ~ utils::untar(tarfile = .x, exdir = "nc_files"))
-    parallel::stopCluster(cl)
-    rm(cl)
+    if (length(list_tar_tmp) <= 1) {
+      walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
+    } else {
+      nc_need <- length(list_tar_tmp)
+      cl <- parallel::makeForkCluster(nc_need)
+      plan(cluster, workers = cl)
+      future_walk(list_tar_tmp, ~ utils::untar(tarfile = .x, exdir = "nc_files"))
+      parallel::stopCluster(cl)
+      rm(cl)
+    }
     name_dirs <- dir_ls(recurse = TRUE, type = "directory")
     tmp_folder <- str_detect(name_dirs, pattern = "requested_files")
     input_folder <- name_dirs[tmp_folder]
@@ -83,12 +87,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     # dates <- nc_files_tmp %>% as_date(format = "%Y%j")
   }
   file_delete(files_remove)
-  #mover todo a la carpeta output
+  # mover todo a la carpeta output
   dir_create(path = dir_output)
-  walk(nc_full_path_tmp, ~file_move(path = ., new_path = dir_output))
+  walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
   dir_delete(path = paste0(dir_input, "/", "nc_files"))
   setwd(dir_output)
-   # crear dataframe
+  # crear dataframe
   files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
     tibble(
       infile_l2bin = .,
@@ -100,7 +104,8 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       ofile_l3bin = str_replace(
         string = ofile_l2bin,
         pattern = "L3b_tmp.nc",
-        replacement = "L3m_tmp.nc"),
+        replacement = "L3m_tmp.nc"
+      ),
       ofile_l3mapgen = str_replace(
         string = ofile_l3bin,
         pattern = "L3m_tmp.nc",
@@ -140,31 +145,37 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   }
   cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
-  future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ seadas_l2bin(infile =.x , ofile = .y), verbose = FALSE)
-  #filtrar solo los archivos para los cuales hubo resultados
-  l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc" , recurse = TRUE)
+  future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y), verbose = FALSE)
+  # filtrar solo los archivos para los cuales hubo resultados
+  l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
-  future_walk2(files_to_l3bin$ofile_l2bin, files_to_l3bin$ofile_l3bin, ~ seadas_l3bin(infile =.x, ofile =.y), verbose = FALSE)
-  l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc" , recurse = TRUE)
+  future_walk2(files_to_l3bin$ofile_l2bin, files_to_l3bin$ofile_l3bin, ~ seadas_l3bin(infile = .x, ofile = .y), verbose = FALSE)
+  # filtrar solo los archivos para los cuales hubo resultados
+  l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc", recurse = TRUE)
   files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
-  future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ seadas_l3mapgen(infile = .x , ofile =.y), verbose = FALSE)
+  future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), verbose = FALSE)
   parallel::stopCluster(cl)
   rm(cl)
-  bins <- c(l2bin, l3bin, l3mapgen)
-  file_delete(bins)
-  if (keep_all) {
+  file_delete(c(seadas_bins[[1]],seadas_bins[[2]], seadas_bins[[3]]))
+  files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$|x.nc|SST.x.nc$|SST.NRT.x.nc$")#quizas dejar los L2
+  file_delete(files_remove)
+  if (sort_files) {
+    cat("Moviendo archivos a sus respectivos directorios...\n\n")
+    df_dates <- dir_ls(path = dir_output, regexp = "L3mapped.nc$") %>%
+      tibble(file_to_move = .,
+             file_name = path_file(file_to_move),
+             date = case_when(var_name == "sst" ~as_date(file_name, format = "%Y%m%d"),
+                              TRUE ~ as_date(file_name, format ="%Y%j")),
+             year = year(date),
+             month = month(date),
+             month_num = sprintf("%02d", month),
+             month_ch = month(date, label = TRUE, abbr = FALSE),
+             directory = paste0(dir_output, "/", year, "/", month_num, "_", month_ch))
+    dirs <- df_dates %>% distinct(directory) %>% pull(directory)
+    walk(dirs, ~ dir_create(., recurse = T))
+    walk2(df_dates[, 1], df_dates[, 8], ~ file_move(.x, .y))
     cat(paste0("Terminado el pre-proceso de ", var_name))
-    cat("...\n\n")
-  } else {
-    dir_create(path = paste0(dir_output, "/", paste0("L3_", var_name)))
-    res_path <- paste0(dir_output, "/", paste0("L3_", var_name))
-    all_nc <- dir_ls(path = dir_output, regexp = ".nc$", type = "file", recurse = TRUE)
-    walk(all_nc, ~ file_move(path = ., new_path = res_path))
-    dirs <- dir_ls(path = dir_output, type = "directory", recurse = FALSE)
-    dir_remove <- dirs %>% str_detect(., pattern = paste0("L3_", var_name), negate = TRUE)
-    dir_remove <- dirs[dir_remove]
-    dir_delete(path = dir_remove)
+  } else{
     cat(paste0("Terminado el pre-proceso de ", var_name))
-    cat("...\n\n")
-  }
+    }
 }
