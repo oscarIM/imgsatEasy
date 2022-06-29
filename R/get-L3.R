@@ -21,7 +21,7 @@
 #' @importFrom purrr walk walk2
 #' @importFrom stringr str_remove str_detect str_replace
 #' @importFrom tibble tibble
-#' @importFrom furrr future_walk
+#' @importFrom furrr future_walk future_walk2
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom utils untar
