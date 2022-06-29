@@ -14,7 +14,8 @@
 #' @param need_extract mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @param keep_all_dir mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
-#' @importFrom fs dir_ls dir_create file_move dir_delete file_delete
+#' @importFrom fs dir_ls dir_create file_move dir_delete file_delete path_file
+#' @importFrom readr read_lines write_lines()
 #' @importFrom dplyr distinct pull
 #' @importFrom lubridate as_date year month
 #' @importFrom purrr walk walk2
@@ -71,7 +72,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
-    dates <- nc_files_tmp %>% as_date(format = "%Y%m%d")
+    # dates <- nc_files_tmp %>% as_date(format = "%Y%m%d")
   } else {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
@@ -79,71 +80,74 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
-    dates <- nc_files_tmp %>% as_date(format = "%Y%j")
+    # dates <- nc_files_tmp %>% as_date(format = "%Y%j")
   }
   file_delete(files_remove)
-  # crear dataframe
-  dates <- dates %>%
+  #mover todo a la carpeta output
+  dir_create(path = dir_output)
+  walk(nc_full_path_tmp, ~file_move(path = ., new_path = dir_output))
+  dir_delete(path = paste0(dir_input, "/", "nc_files"))
+  setwd(dir_output)
+   # crear dataframe
+  files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
     tibble(
-      fecha = .,
-      full_path = nc_full_path_tmp,
-      file = nc_files_tmp,
-      year = year(fecha),
-      month = month(fecha),
-      month_num = sprintf("%02d", month),
-      month_ch = month(fecha, label = TRUE, abbr = FALSE),
-      directory = paste0(dir_output, "/", var_name, "/", year, "/", month_num, "_", month_ch)
+      infile_l2bin = .,
+      ofile_l2bin = str_replace(
+        string = infile_l2bin,
+        pattern = ".L2_LAC_OC.x.nc",
+        replacement = paste0("_", var_name, "_", res_l2, "km_L3b_tmp.nc")
+      ),
+      ofile_l3bin = str_replace(
+        string = ofile_l2bin,
+        pattern = "L3b_tmp.nc",
+        replacement = "L3m_tmp.nc"),
+      ofile_l3mapgen = str_replace(
+        string = ofile_l3bin,
+        pattern = "L3m_tmp.nc",
+        replacement = "L3mapped.nc"
+      )
     )
-  dirs <- dates %>%
-    distinct(directory) %>%
-    pull(directory)
   rm(list = ls(pattern = "tmp"))
-  # crear carpertas por year/month
-  walk(dirs, ~ dir_create(path = ., recurse = T))
-  walk2(dates[, 2], dates[, 8], ~ file_move(path = .x, new_path = .y))
-  setwd(dir_input)
-  #if (need_extract) {
-  #  dir_delete("nc_files")
-  #}
-
-  # ahora, moverse a cada folder y correr l2bin-l3mapgen
+  # correr l2bin-l3mapgen
   cat("Corriendo wrapper de seadas...\n\n")
   Sys.sleep(1)
   # rutas temporales solo para probar la funcion, despues estaran dentro del programa
-  l2bin <- system.file("exec", "l2bin.sh", package = "imgsatEasy")
-  l3bin <- system.file("exec", "l3bin.sh", package = "imgsatEasy")
-  l3mapgen <- system.file("exec", "l3mapgen.sh", package = "imgsatEasy")
-  # modificar los scripts
-  l2bin <- readLines(l2bin)
-  l3bin <- readLines(l3bin)
-  l3mapgen <- readLines(l3mapgen)
-  l2bin[2] <- l3bin[2] <- l3mapgen[2] <- paste0("export OCSSWROOT=${OCSSWROOT:-", dir_ocssw, "}")
+  seadas_bins <- dir_ls(path = system.file("exec", package = "imgsatEasy"))
+  names(seadas_bins) <- path_file(seadas_bins)
+  seadas_bins <- map(seadas_bins, ~ read_lines(.))
+  # pasar a map para consistencia del código
+  for (i in 1:length(seadas_bins)) {
+    seadas_bins[[i]][2] <- paste0("export OCSSWROOT=${OCSSWROOT:-", dir_ocssw, "}")
+  }
   # escribir los scripts
-  writeLines(l2bin, con = paste0(dir_output, "/", ".l2bin.sh"))
-  writeLines(l3bin, con = paste0(dir_output, "/", ".l3bin.sh"))
-  writeLines(l3mapgen, con = paste0(dir_output, "/", ".l3mapgen.sh"))
-  l2bin <- paste0(dir_output, "/", ".l2bin.sh")
-  l3bin <- paste0(dir_output, "/", ".l3bin.sh")
-  l3mapgen <- paste0(dir_output, "/", ".l3mapgen.sh")
-  system2(command = "chmod", args = c("+x", l2bin))
-  system2(command = "chmod", args = c("+x", l3bin))
-  system2(command = "chmod", args = c("+x", l3mapgen))
-  seadas_function <- function(dir) {
-    setwd(dir)
-    if (var_name == "sst") {
-      flaguse <- "LAND,HISOLZEN"
-    } else {
-      flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
-    }
-    # correr seadas scripts
-    system2(command = l2bin, args = c("day", var_name, res_l2, "off", flaguse, "0"))
-    system2(command = l3bin, args = c(var_name, "netCDF4", "off"))
-    system2(command = l3mapgen, args = c(var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
-    setwd(dir_input)
+  names_bins <- paste0(".", names(seadas_bins))
+  walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
+  # re read to change permisos
+  seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
+  # walk(seadas_bins, ~ system2(., command = "chmod", args = c("+x", .)))
+  seadas_l2bin <- function(infile, ofile) {
+    flaguse <- case_when(
+      var_name == "sst" ~ "LAND,HISOLZEN",
+      TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
+    )
+    system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
+  }
+  seadas_l3bin <- function(infile, ofile) {
+    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
+  }
+  seadas_l3mapgen <- function(infile, ofile) {
+    system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
   }
   cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
-  future_walk(dirs, ~ seadas_function(dir = .))
+  future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ seadas_l2bin(infile =.x , ofile = .y), verbose = FALSE)
+  #filtrar solo los archivos para los cuales hubo resultados
+  l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc" , recurse = TRUE)
+  files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
+  future_walk2(files_to_l3bin$ofile_l2bin, files_to_l3bin$ofile_l3bin, ~ seadas_l3bin(infile =.x, ofile =.y), verbose = FALSE)
+  l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc" , recurse = TRUE)
+  files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
+  future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ seadas_l3mapgen(infile = .x , ofile =.y), verbose = FALSE)
   parallel::stopCluster(cl)
   rm(cl)
   bins <- c(l2bin, l3bin, l3mapgen)
