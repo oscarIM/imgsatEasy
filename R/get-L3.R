@@ -156,8 +156,14 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), verbose = FALSE)
   parallel::stopCluster(cl)
   rm(cl)
+  l2_files <- dir_ls(path = dir_output, regexp = "|x.nc$|SST.x.nc$|SST.NRT.x.nc$", recurse = FALSE)
+  l3_files <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
+  dir_create <- paste0(dir_output, "/", "img_L2")
+  dir_create <- paste0(dir_output, "/", "img_L3")
+  walk(l2_files, ~file_move(path = l2_files, new_path = paste0(dir_output, "/", "img_L2")))
+  walk(l3_files, ~file_move(path = l3_files, new_path = paste0(dir_output, "/", "img_L3")))
   file_delete(c(seadas_bins[[1]],seadas_bins[[2]], seadas_bins[[3]]))
-  files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$|x.nc|SST.x.nc$|SST.NRT.x.nc$")#quizas dejar los L2
+  files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
   file_delete(files_remove)
   if (sort_files) {
     cat("Moviendo archivos a sus respectivos directorios...\n\n")
