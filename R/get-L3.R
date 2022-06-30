@@ -81,16 +81,14 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
-    # dates <- nc_files_tmp %>% as_date(format = "%Y%m%d")
-  } else {
+    } else {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
-    # dates <- nc_files_tmp %>% as_date(format = "%Y%j")
-  }
+    }
   file_delete(files_remove)
   # mover todo a la carpeta output
   dir_create(path = dir_output)
