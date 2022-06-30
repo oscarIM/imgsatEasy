@@ -112,6 +112,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
         replacement = "L3mapped.nc"
       )
     )
+  assign("files_df", files_df, envir = globalenv())
   rm(list = ls(pattern = "tmp"))
   # correr l2bin-l3mapgen
   cat("Corriendo wrapper de seadas...\n\n")
