@@ -204,6 +204,6 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]], seadas_bins[[3]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
-    cat(paste0("Fin proceso generación imágenes L3 de ", var_name))
+    cat(paste0("Fin de la generación de imágenes L3 de ", var_name))
   }
 }
