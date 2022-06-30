@@ -163,7 +163,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
   cat("Corriendo l3bin...\n\n")
   with_progress({
-    p <- progressor(steps = length(nrow(files_to_l3bin)))
+    p <- progressor(steps = length(files_to_l3bin$ofile_l2bin))
     future_walk2(files_to_l3bin$ofile_l2bin, files_to_l3bin$ofile_l3bin, ~ {
       p()
       Sys.sleep(.2)
