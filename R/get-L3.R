@@ -166,7 +166,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   })
   # filtrar solo los archivos para los cuales hubo resultados
   l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
-  files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
+  files_to_l3bin <- files_df %>% filter(files_df$ofile_l2bin %in% l2binned_files)
   cat("Corriendo l3bin...\n\n")
   with_progress({
     p <- progressor(steps = length(files_to_l3bin$ofile_l2bin))
