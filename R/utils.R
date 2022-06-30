@@ -12,9 +12,10 @@
 #' @param rhs A function call using the magrittr semantics.
 #' @return The result of calling `rhs(lhs)`.
 NULL
-#' moving files
+#' @name to_move_file
+#' @rdname to_move_file
+#' @keywords internal
 #' @param files an input file
-#' @NoRd
 to_move_files <- function(files) {
     l2_pattern <- ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
     l3_pattern <- "L3mapped.nc$"
