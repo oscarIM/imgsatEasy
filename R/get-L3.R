@@ -132,9 +132,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # escribir los scripts
   names_bins <- paste0(".", names(seadas_bins))
   walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
-  # re read to change permisos
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
-  # walk(seadas_bins, ~ system2(., command = "chmod", args = c("+x", .)))
   # AUX#
   seadas_l2bin <- function(infile, ofile) {
     {
@@ -171,7 +169,6 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # filtrar solo los archivos para los cuales hubo resultados
   l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
-
   cat("Corriendo l3bin...\n\n")
   with_progress({
     p <- progressor(steps = length(files_to_l3bin$ofile_l2bin))
