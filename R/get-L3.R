@@ -81,14 +81,14 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
-    } else {
+  } else {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
-    }
+  }
   file_delete(files_remove)
   # mover todo a la carpeta output
   dir_create(path = dir_output)
@@ -197,7 +197,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = "*.txt", recurse = FALSE)
   # AUX#
-  #to_move_files <- function(files) {
+  # to_move_files <- function(files) {
   #  l2_pattern <- ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
   #  l3_pattern <- "L3mapped.nc$"
   #  logfiles_pattern <- ".*txt"
@@ -225,7 +225,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   #    dir_create(.)
   #  })
   #  walk2(files, df$dir, ~ file_move(path = .x, new_path = .y))
-  #}
+  # }
   cat("Moviendo archivos a sus respectivos directorios...\n\n")
   if (sort_files) {
     file_list <- list(files_l2, files_l3mapped, files_logfiles)
