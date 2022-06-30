@@ -130,6 +130,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # re read to change permisos
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
   # walk(seadas_bins, ~ system2(., command = "chmod", args = c("+x", .)))
+  #AUX#
   seadas_l2bin <- function(infile, ofile) {
     flaguse <- case_when(
       var_name == "sst" ~ "LAND,HISOLZEN",
@@ -137,9 +138,11 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     )
     system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
   }
+  #AUX#
   seadas_l3bin <- function(infile, ofile) {
     system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
   }
+  #AUX#
   seadas_l3mapgen <- function(infile, ofile) {
     system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
   }
@@ -156,11 +159,13 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), verbose = FALSE)
   parallel::stopCluster(cl)
   rm(cl)
+  cat(paste0("Fin de la generación de imágenes L3 de ", var_name))
   ##############################################################################
   ## movimento de files
   files_l2 <- dir_ls(path = dir_output, regexp = ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$", recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = "*.txt", recurse = FALSE)
+  #AUX#
   to_move_files <- function(files) {
     l2_pattern <- ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
     l3_pattern <- "L3mapped.nc$"
@@ -182,12 +187,8 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       ),
       dir = paste0(dir_output, "/", year, "/", month_num, "_", month_ch, "/", dir_type)
     )
-    dirs <- df %>%
-      distinct(dir) %>%
-      pull(dir)
-    walk(dirs, ~ if (!dir_exists(.)) {
-      dir_create(.)
-    })
+    dirs <- df %>% distinct(dir) %>% pull(dir)
+    walk(dirs, ~ if (!dir_exists(.)) {dir_create(.)})
     walk2(files, df$dir, ~ file_move(path = .x, new_path = .y))
   }
   if (sort_files) {
@@ -195,6 +196,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     file_list <- list(files_l2, files_l3mapped, files_logfiles)
     walk(file_list, ~ to_move_files(files = .))
   } else {
+    cat("Moviendo archivos a sus respectivos directorios...\n\n")
     dir_create(path = paste0(dir_output, "/", "all_img_L2"))
     dir_create(path = paste0(dir_output, "/", "all_img_L3"))
     dir_create(path = paste0(dir_output, "/", "all_log_files"))
@@ -204,6 +206,6 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]], seadas_bins[[3]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
-    cat(paste0("Fin de la generación de imágenes L3 de ", var_name))
-  }
+    }
 }
+cat("Fin..\n\n")
