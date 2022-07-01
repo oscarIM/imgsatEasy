@@ -158,9 +158,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       seadas_l2bin(infile = .x, ofile = .y)
     })
   })
+  parallel::stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
+  cl <- parallel::makeForkCluster(n_cores)
+  plan(cluster, workers = cl)
   cat("Corriendo l3bin...\n\n")
   with_progress({
     p <- progressor(steps = length(files_to_l3bin$ofile_l2bin))
@@ -170,9 +173,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       seadas_l3bin(infile = .x, ofile = .y)
     })
   })
+  parallel::stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc", recurse = TRUE)
   files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
+  cl <- parallel::makeForkCluster(n_cores)
+  plan(cluster, workers = cl)
   cat("Corriendo l3mapgen...\n\n")
   with_progress({
     p <- progressor(steps = length(files_to_l3mapgen$ofile_l3bin))
@@ -186,12 +192,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
-  ## movimento de files
+  ## movimento de archivos
   files_l2 <- dir_ls(path = dir_output, regexp = ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$", recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = "*.txt", recurse = FALSE)
   # AUX#
-  # to_move_files <- function(files) {
+  # move_file <- function(files) {
   #  l2_pattern <- ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
   #  l3_pattern <- "L3mapped.nc$"
   #  logfiles_pattern <- ".*txt"
@@ -223,7 +229,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   cat("Moviendo archivos a sus respectivos directorios...\n\n")
   if (sort_files) {
     file_list <- list(files_l2, files_l3mapped, files_logfiles)
-    walk(file_list, ~ to_move_files(files = .))
+    walk(file_list, ~ move_files(files = .))
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]], seadas_bins[[3]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
