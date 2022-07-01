@@ -47,7 +47,7 @@
 #' }
 get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
-  tic(msg = "Duración análisis")
+  tic(msg = "Duración total análisis")
   if (need_extract) {
     setwd(dir_input)
     cat("Descomprimiendo archivos...\n\n")
@@ -150,6 +150,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l2bin...\n\n")
+  tic(msg = "Duración l2bin")
   with_progress({
     p <- progressor(steps = length(files_df$infile_l2bin))
     future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ {
@@ -158,6 +159,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       seadas_l2bin(infile = .x, ofile = .y)
     })
   })
+  toc()
   parallel::stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
@@ -165,6 +167,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l3bin...\n\n")
+  tic(msg = "Duración l3bin")
   with_progress({
     p <- progressor(steps = length(files_to_l3bin$ofile_l2bin))
     future_walk2(files_to_l3bin$ofile_l2bin, files_to_l3bin$ofile_l3bin, ~ {
@@ -173,6 +176,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       seadas_l3bin(infile = .x, ofile = .y)
     })
   })
+  toc()
   parallel::stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc", recurse = TRUE)
@@ -180,6 +184,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   cl <- parallel::makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l3mapgen...\n\n")
+  tic(msg = "Duración l3mapgen")
   with_progress({
     p <- progressor(steps = length(files_to_l3mapgen$ofile_l3bin))
     future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ {
@@ -188,11 +193,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       seadas_l3mapgen(infile = .x, ofile = .y)
     })
   })
+  toc()
   parallel::stopCluster(cl)
   rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
-  ## movimento de archivos
+  ## movimiento de archivos
   files_l2 <- dir_ls(path = dir_output, regexp = ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$", recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = "*.txt", recurse = FALSE)
