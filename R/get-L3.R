@@ -131,6 +131,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   names_bins <- paste0(".", names(seadas_bins))
   walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
+  var_name <- var_name
   # AUX#
   #seadas_l2bin <- function(infile, ofile) {
   #    flaguse <- case_when(
