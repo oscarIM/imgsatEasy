@@ -46,34 +46,3 @@ move_files <- function(files) {
     })
     walk2(files, df$dir, ~ file_move(path = .x, new_path = .y))
   }
-
-#' @title seadas_l2bin
-#' @rdname seadas_l2bin
-#' @keywords internal
-#' @param infile an input file
-#' @param ofile an input file
-seadas_l2bin <- function(infile, ofile, var_name = var_name) {
-      flaguse <- case_when(
-        var_name == "sst" ~ "LAND,HISOLZEN",
-        TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
-      )
-      system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
-    } %>% possibly(., otherwise = "Error en archivo de entrada")
-
-#' @title seadas_l3bin
-#' @rdname seadas_l3bin
-#' @keywords internal
-#' @param infile an input file
-#' @param ofile an input file
-seadas_l3bin <- function(infile, ofile) {
-      system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
-    } %>% possibly(., otherwise = "Error en archivo de entrada")
-
-#' @title seadas_l3mapgen
-#' @rdname seadas_l3mapgen
-#' @keywords internal
-#' @param infile an input file
-#' @param ofile an input file
- seadas_l3mapgen <- function(infile, ofile) {
-      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
-    } %>% possibly(., otherwise = "Error en archivo de entrada")
