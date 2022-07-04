@@ -157,7 +157,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ {
       p()
       Sys.sleep(.2)
-      seadas_l2bin(infile = .x, ofile = .y)
+      seadas_l2bin(infile = .x, ofile = .y, var_name = var_name)
     })
   })
   toc()
