@@ -67,7 +67,7 @@ seadas_l2bin <- function(infile, ofile) {
 #' @param ofile an input file
 seadas_l3bin <- function(infile, ofile) {
       system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
-    } %> possibly(., otherwise = "Error en archivo de entrada")
+    } %>% possibly(., otherwise = "Error en archivo de entrada")
 
 #' @title seadas_l3mapgen
 #' @rdname seadas_l3mapgen
@@ -77,4 +77,3 @@ seadas_l3bin <- function(infile, ofile) {
  seadas_l3mapgen <- function(infile, ofile) {
       system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  
