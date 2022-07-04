@@ -52,7 +52,7 @@ move_files <- function(files) {
 #' @keywords internal
 #' @param infile an input file
 #' @param ofile an input file
-seadas_l2bin <- function(infile, ofile) {
+seadas_l2bin <- function(infile, ofile, var_name = var_name) {
       flaguse <- case_when(
         var_name == "sst" ~ "LAND,HISOLZEN",
         TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
