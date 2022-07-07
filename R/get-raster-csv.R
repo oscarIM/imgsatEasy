@@ -31,7 +31,7 @@
 #' var_name <- "chlor_a"
 #' result_type <- "raster"
 #' n_cores <- 4
-#' get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name,  n_cores = n_cores,result_type = "raster")
+#' get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 #' }
 get_raster_csv <- function(dir_input, dir_output, season = "month", raster_function = "median", result_type, var_name, n_cores = 1) {
   current_wd <- path_wd()
@@ -217,6 +217,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
         p()
         Sys.sleep(.2)
         st_set_dimensions(., names = c("x", "y", "date")) %>%
+          setNames(var_name) %>%
           as.data.frame()
       }, .options = furrr_options(seed = TRUE))
     })
@@ -228,8 +229,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
         p()
         Sys.sleep(.2)
         separate(., col = date, into = "date", sep = "_", extra = "drop") %>%
-          drop_na(X) %>%
-          rename(var = X) %>%
+          drop_na(all_of(var_name)) %>%
           mutate(date = case_when(
             var_name == "sst" ~ as_date(date, format = "%Y%m%d"),
             TRUE ~ as_date(date, format = "%Y%j")
@@ -238,7 +238,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
     })
     cat("Exportando archivos csv mensuales...\n\n")
     dir <- dir_create(path = paste0(dir_output, "/", "all_csv")) %>% fs_path()
-    name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]),"_",var_name, ".csv"))
+    name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", var_name, ".csv"))
     walk2(list_csv, name_out, ~ write_csv(x = .x, file = .y))
     toc()
     stopCluster(cl)
