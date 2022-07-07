@@ -13,7 +13,7 @@
 #' @importFrom lubridate as_date year month week day
 #' @importFrom dplyr case_when group_by group_split rename mutate
 #' @importFrom tidyr drop_na separate
-#' @importFrom purrr map map_int walk map_chr keep walk2 map2 
+#' @importFrom purrr map map_int walk map_chr keep walk2 map2
 #' @importFrom stars read_stars st_apply write_stars merge st_set_dimensions
 #' @importFrom furrr future_walk future_map
 #' @importFrom future plan cluster
@@ -29,7 +29,7 @@
 #' season <- "month"
 #' raster_function <- "median"
 #' var_name <- "chlor_a"
-#' result_type <- "raster
+#' result_type <- "raster"
 #' n_cores <- 4
 #' get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name,  n_cores = n_cores,result_type = "raster")
 #' }
@@ -220,7 +220,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
           as.data.frame()
       }, .options = furrr_options(seed = TRUE))
     })
-    
+
     cat("Formateando data.frames...\n\n")
     list_csv <- with_progress({
       p <- progressor(steps = length(list_csv_tmp))
