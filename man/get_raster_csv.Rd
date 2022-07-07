@@ -35,3 +35,15 @@ imágenes raster o archivos csv
 \description{
 Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
 }
+\examples{
+\dontrun{
+dir_input <- "/dir/to/input"
+dir_output <- "/dir/to/output"
+season <- "month"
+raster_function <- "median"
+var_name <- "chlor_a"
+result_type <- "raster"
+n_cores <- 4
+get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name,  n_cores = n_cores,result_type = "raster")
+}
+}
