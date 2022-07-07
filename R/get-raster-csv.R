@@ -15,7 +15,7 @@
 #' @importFrom tidyr drop_na separate
 #' @importFrom purrr map map_int walk map_chr keep walk2 map2
 #' @importFrom stars read_stars st_apply write_stars st_set_dimensions
-#' @importFrom furrr future_walk future_map
+#' @importFrom furrr future_walk future_map furrr_options
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom tictoc tic toc
