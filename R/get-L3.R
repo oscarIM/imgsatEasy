@@ -133,27 +133,24 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
   # AUX
   seadas_l2bin <- function(infile, ofile) {
-    {
       flaguse <- case_when(
         var_name == "sst" ~ "LAND,HISOLZEN",
         TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
+      system2(command =  "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
   # AUX
   seadas_l3bin <- function(infile, ofile) {
-    {
-      system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
+    system2(command =  "chmod", args = c("+x", seadas_bins[2]))
+    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
   # AUX#
   seadas_l3mapgen <- function(infile, ofile) {
-    {
-      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
+    system2(command =  "chmod", args = c("+x", seadas_bins[3]))
+    system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
-  cl <- parallel::makeForkCluster(n_cores)
+  cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l2bin...\n\n")
   tic(msg = "Duración l2bin")
@@ -166,11 +163,11 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     })
   })
   toc()
-  parallel::stopCluster(cl)
+  stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
-  cl <- parallel::makeForkCluster(n_cores)
+  cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l3bin...\n\n")
   tic(msg = "Duración l3bin")
@@ -183,11 +180,11 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     })
   })
   toc()
-  parallel::stopCluster(cl)
+  stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc", recurse = TRUE)
   files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
-  cl <- parallel::makeForkCluster(n_cores)
+  cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l3mapgen...\n\n")
   tic(msg = "Duración l3mapgen")
@@ -200,7 +197,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     })
   })
   toc()
-  parallel::stopCluster(cl)
+  stopCluster(cl)
   rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
