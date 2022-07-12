@@ -24,8 +24,8 @@
 #' @export get_raster_csv
 #' @examples
 #' \dontrun{
-#' dir_input <- "/dir/to/input"
-#' dir_output <- "/dir/to/output"
+#' dir_input <- "/dir/to/input/"
+#' dir_output <- "/dir/to/output/"
 #' season <- "month"
 #' raster_function <- "median"
 #' var_name <- "chlor_a"
@@ -33,7 +33,7 @@
 #' n_cores <- 4
 #' get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 #' }
-get_raster_csv <- function(dir_input, dir_output, season = "month", raster_function = "median", result_type, var_name, n_cores = 1) {
+get_raster_csv <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, raster_function, ...) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   setwd(dir_input)
@@ -67,29 +67,17 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
-      if (raster_function == "median") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) median(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
-      if (raster_function == "mean") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) mean(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
+      list_raster <- with_progress({
+        p <- progressor(steps = length(list_stack))
+        future_map(list_stack, ~ {
+          p()
+          Sys.sleep(.2)
+          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+        }, .options = furrr_options(seed = TRUE))
+      })
       cat("Exportando rasters anuales...\n\n")
-      dir <- dir_create(path = paste0(dir_output, "/", "all_rasters")) %>% fs_path()
-      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", raster_function, ".tif"))
+      dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
+      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", var_name, ".tif"))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       ### agregar función de mover todo a carpetas separadas
       toc()
@@ -112,29 +100,17 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
-      if (raster_function == "median") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) median(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
-      if (raster_function == "mean") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) mean(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
+      list_raster <- with_progress({
+        p <- progressor(steps = length(list_stack))
+        future_map(list_stack, ~ {
+          p()
+          Sys.sleep(.2)
+          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+        }, .options = furrr_options(seed = TRUE))
+      })
       cat("Exportando archivos rasters mensuales...\n\n")
-      dir <- dir_create(path = paste0(dir_output, "/", "all_rasters")) %>% fs_path()
-      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", raster_function, ".tif"))
+      dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
+      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]),"_", var_name, ".tif"))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       ### agregar función de mover todo a carpetas separadas
       toc()
@@ -151,8 +127,8 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
       files_by_season <- map_int(list, ~ nrow(.))
       to_write <- list %>% keep(~ nrow(.) < 2)
       stack_to_write <- map(to_write, ~ read_stars(.$mapped_files, quiet = TRUE, sub = var_name))
-      dir <- dir_create(path = paste0(dir_output, "/", "all_rasters")) %>% fs_path()
-      name_out_w <- map_chr(to_write, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", unique(.["day"]), "_unique", ".tif"))
+      dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
+      name_out_w <- map_chr(to_write, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", unique(.["day"]), "_unique", "_" , var_name,".tif"))
       list_files <- list %>% keep(~ nrow(.) > 1)
       cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
       list_stack <- with_progress({
@@ -164,28 +140,16 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
-      if (raster_function == "median") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) median(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
-      if (raster_function == "mean") {
-        list_raster <- with_progress({
-          p <- progressor(steps = length(list_stack))
-          future_map(list_stack, ~ {
-            p()
-            Sys.sleep(.2)
-            st_apply(X = ., MARGIN = 1:2, function(x) mean(x, na.rm = T))
-          }, .options = furrr_options(seed = TRUE))
-        })
-      }
+      list_raster <- with_progress({
+        p <- progressor(steps = length(list_stack))
+        future_map(list_stack, ~ {
+          p()
+          Sys.sleep(.2)
+          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+        }, .options = furrr_options(seed = TRUE))
+      })
       cat("Exportando archivos rasters semanales...\n\n")
-      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", raster_function, ".tif"))
+      name_out <- map_chr(list_files, ~ paste0(dir,  "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]),"_",var_name, ".tif"))
       walk2(stack_to_write, name_out_w, ~ write_stars(obj = .x, dsn = .y))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       toc()
@@ -237,7 +201,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", raster_funct
       }, .options = furrr_options(seed = TRUE))
     })
     cat("Exportando archivos csv mensuales...\n\n")
-    dir <- dir_create(path = paste0(dir_output, "/", "all_csv")) %>% fs_path()
+    dir <- dir_create(path = paste0(dir_output, "/all_csv")) %>% fs_path()
     name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", var_name, ".csv"))
     walk2(list_csv, name_out, ~ write_csv(x = .x, file = .y))
     toc()
