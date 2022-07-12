@@ -93,7 +93,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # mover todo a la carpeta output
   dir_create(path = dir_output)
   walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
-  dir_delete(path = paste0(dir_input, "/", "nc_files"))
+  dir_delete(path = paste0(dir_input, "nc_files"))
   setwd(dir_output)
   # crear dataframe
   files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
@@ -129,26 +129,26 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   }
   # escribir los scripts
   names_bins <- paste0(".", names(seadas_bins))
-  walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
-  seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
+  walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, .y)))
+  seadas_bins <- map(names_bins, ~ paste0(dir_input, .))
   # AUX
   seadas_l2bin <- function(infile, ofile) {
       flaguse <- case_when(
         var_name == "sst" ~ "LAND,HISOLZEN",
         TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
-      system2(command =  "chmod", args = c("+x", seadas_bins[1]))
+      system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   # AUX
   seadas_l3bin <- function(infile, ofile) {
-    system2(command =  "chmod", args = c("+x", seadas_bins[2]))
-    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
+      system2(command = "chmod", args = c("+x", seadas_bins[2]))
+      system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   # AUX#
   seadas_l3mapgen <- function(infile, ofile) {
-    system2(command =  "chmod", args = c("+x", seadas_bins[3]))
-    system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
+      system2(command = "chmod", args = c("+x", seadas_bins[3]))
+      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
@@ -213,12 +213,12 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
   } else {
-    dir_create(path = paste0(dir_output, "/", "all_img_L2"))
-    dir_create(path = paste0(dir_output, "/", "all_img_L3"))
-    dir_create(path = paste0(dir_output, "/", "all_log_files"))
-    walk(files_l2, ~ file_move(path = ., new_path = paste0(dir_output, "/", "all_img_L2")))
-    walk(files_l3mapped, ~ file_move(path = ., new_path = paste0(dir_output, "/", "all_img_L3")))
-    walk(files_logfiles, ~ file_move(path = ., new_path = paste0(dir_output, "/", "all_log_files")))
+    dir_create(path = paste0(dir_output, "all_img_L2"))
+    dir_create(path = paste0(dir_output, "all_img_L3"))
+    dir_create(path = paste0(dir_output, "all_log_files"))
+    walk(files_l2, ~ file_move(path = ., new_path = paste0(dir_output, "all_img_L2")))
+    walk(files_l3mapped, ~ file_move(path = ., new_path = paste0(dir_output, "all_img_L3")))
+    walk(files_logfiles, ~ file_move(path = ., new_path = paste0(dir_output, "all_log_files")))
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]], seadas_bins[[3]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
