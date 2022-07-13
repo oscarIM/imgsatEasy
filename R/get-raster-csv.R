@@ -3,7 +3,7 @@
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio de destino
 #' @param season temporalidad para la generación de imágenes en formato raster. Opciones "year", "month", "week"
-#' @param raster_function función estadística para generar los compuestos ("median" o "mean").  Por defecto, median
+#' @param raster_function función estadística para generar los compuestos ("median", "mean", etc).  Por defecto, "median"
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
 #' @param result_type tipo de salida requerida. Si result_type == "raster", se generaran imágenes raster según la estacionalidad y función para los compuestos definidos. Si result_type =="csv", se generar archivos año/mes en fomato csv
@@ -33,7 +33,7 @@
 #' n_cores <- 4
 #' get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 #' }
-get_raster_csv <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, raster_function, ...) {
+get_raster_csv <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, raster_function = "median") {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   setwd(dir_input)
@@ -72,12 +72,12 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_stack, ~ {
           p()
           Sys.sleep(.2)
-          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+          st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Exportando rasters anuales...\n\n")
       dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
-      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", var_name, ".tif"))
+      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", var_name, "_", raster_function, ".tif"))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       ### agregar función de mover todo a carpetas separadas
       toc()
@@ -105,12 +105,12 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_stack, ~ {
           p()
           Sys.sleep(.2)
-          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+          st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Exportando archivos rasters mensuales...\n\n")
       dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
-      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]),"_", var_name, ".tif"))
+      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", var_name, "_", raster_function, ".tif"))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       ### agregar función de mover todo a carpetas separadas
       toc()
@@ -128,7 +128,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       to_write <- list %>% keep(~ nrow(.) < 2)
       stack_to_write <- map(to_write, ~ read_stars(.$mapped_files, quiet = TRUE, sub = var_name))
       dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
-      name_out_w <- map_chr(to_write, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", unique(.["day"]), "_unique", "_" , var_name,".tif"))
+      name_out_w <- map_chr(to_write, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", unique(.["day"]), "_unique", "_", var_name, "_", raster_function, ".tif"))
       list_files <- list %>% keep(~ nrow(.) > 1)
       cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
       list_stack <- with_progress({
@@ -145,11 +145,11 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_stack, ~ {
           p()
           Sys.sleep(.2)
-          st_apply(X = ., MARGIN = 1:2, function(x) raster_function(x, na.rm = TRUE))
+          st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Exportando archivos rasters semanales...\n\n")
-      name_out <- map_chr(list_files, ~ paste0(dir,  "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]),"_",var_name, ".tif"))
+      name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", var_name, "_", raster_function, ".tif"))
       walk2(stack_to_write, name_out_w, ~ write_stars(obj = .x, dsn = .y))
       walk2(list_raster, name_out, ~ write_stars(obj = .x, dsn = .y))
       toc()
