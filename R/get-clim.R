@@ -4,31 +4,41 @@
 #' @param dir_output directorio en donde se almacenará la imagen png
 #' @param season temporalidad para la generación de imágenes en formato raster("mes", o "year")
 #' @param raster_function función estadística para generar las imágenes raster ("median" o "mean")
+#' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
 #' @param shp_file nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa)
 #' @param n_col numero de columnas para el gráfico
 #' @param n_row numero de filas para el gráfico
-#' @param height altura imagen de salida
-#' @param width ancho tamyear de salida
+#' @param name_output nombre para la salidas
+#' @param res resolución para la imágen png de la climatología
+#' @param height altura para la imágen png de la climatología
+#' @param width  amplitud para la imágen png de la climatología
 #' @import ggplot2
 #' @importFrom fs dir_ls dir_create dir_exists
+#' @importFrom stars st_as_stars write_stars read_stars st_apply
+#' @importFrom raster stack
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr mutate distinct pull last_col across group_split group_by
+#' @importFrom dplyr mutate across group_split group_by case_when
 #' @importFrom purrr map
-#' @importFrom terra writeRaster rast
-#' @importFrom raster raster stack calc rasterToPoints
 #' @importFrom tidyr separate pivot_longer
 #' @importFrom sf read_sf st_geometry
+#' @importFrom raster stack
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom stringr str_remove str_to_sentence
-#' @return imágenes png climatologías raster Rdata
+#' @importFrom stringr str_remove str_to_sentence str_extract str_replace
+#' @importFrom tictoc tic toc
+#' @importFrom future plan cluster
+#' @importFrom parallel stopCluster makeForkCluster
+#' @importFrom progressr with_progress progressor
+#' @importFrom furrr future_map furrr_options
+#' @importFrom methods as
+#' @return imágenes png y tif de climatologías y Rdata
 #' @export get_clim
 #' @examples
 #' \dontrun{
-#' dir_input <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/"
-#' dir_output <- "/home/evolecolab/Escritorio/test_satImg/climatologia"
-#' season <- "mes"
+#' dir_input <- "/dir/to/input/"
+#' dir_output <- "/dir/to/ouput/"
+#' season <- "month"
 #' raster_function <- "median"
 #' var_name <- "chlor_a"
 #' n_col <- 3
@@ -40,91 +50,102 @@
 #' width <- 9
 #' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, heigth = heigth, width = width)
 #' }
-get_clim <- function(dir_input, dir_output, season, raster_function, var_name, shp_file, n_col,
-                     n_row, name_output, res, heigth, width) {
+get_clim <- function(dir_input, dir_output, season, raster_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8,  width = 6) {
+  tic(msg = "Duración total análisis")
   all_tif <- tibble(
-    full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
-    archivo = basename(full_path)
-  ) %>%
-    separate(archivo,
-      into = c("year", "month_num", "month", "var_name"), sep = "_",
-      remove = FALSE, extra = "drop"
-    )
+  full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
+  archivo = basename(full_path)
+) %>%
+  mutate(week = case_when(season == "week" ~ str_extract(archivo, pattern = "w\\d+"))) %>%
+  separate(archivo,
+    into = c("year", "month_num", "month"), sep = "_",
+    remove = FALSE, extra = "drop"
+  )
   if (season == "year") {
-    all_tif_split <- all_tif %>%
-      group_by(year) %>%
-      group_split()
-    names <- all_tif %>%
-      distinct(year) %>%
-      pull(year)
-    names(all_tif_split) <- names
-  }
+  all_tif_split <- all_tif %>%
+    group_by(year) %>%
+    group_split() %>%
+  setNames(unique(all_tif$year))
+}
   if (season == "month") {
-    all_tif_split <- all_tif %>%
-      group_by(month_num) %>%
-      group_split()
-    names <- all_tif %>%
-      distinct(month) %>%
-      pull(month)
-    names(all_tif_split) <- names
-  }
-  # if (season == "semana") {
-  #  all_tif_split <- all_tif %>% group_by(semana) %>% group_split()
-  #  names <- all_tif %>% distinct(semana) %>% pull(semana)
-  #  names(all_tif_split) <- names
-  # }
+  all_tif_split <- all_tif %>%
+    group_by(month) %>%
+    group_split() %>%
+  setNames(unique(all_tif$month))
+}
+  #####AGREGAR IF POR NUMERO DE ARCHIVOS#####
+  if (season == "week") {
+  all_tif_split <- all_tif %>%
+    group_by(week) %>%
+    group_split() %>%
+    setNames(unique(all_tif$week))
+}
   cat("\n\n Calculando climatologías...\n\n")
-  stack_list <- map(all_tif_split, ~ stack(.$full_path))
-  if (raster_function == "median") {
-    stack <- map(stack_list, ~ calc(., fun = median, na.rm = TRUE))
-    stack <- stack(stack)
-  }
-  if (raster_function == "mean") {
-    stack <- map(stack_list, ~ calc(., fun = mean, na.rm = TRUE))
-    stack <- stack(stack)
-  }
+  cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
+  cl <- makeForkCluster(n_cores)
+  plan(cluster, workers = cl)
+  list_stack <- with_progress({
+    p <- progressor(steps = length(all_tif_split))
+    future_map(all_tif_split, ~ {
+      p()
+      Sys.sleep(.2)
+      read_stars(.$full_path, quiet = TRUE) %>% merge()
+    }, .options = furrr_options(seed = TRUE))
+  })
+  cat("Paso 2: Generando climatologías según función seleccionada...\n\n")
+      list_raster <- with_progress({
+      p <- progressor(steps = length(list_stack))
+      future_map(list_stack, ~ {
+        p()
+        Sys.sleep(.2)
+        st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
+      }, .options = furrr_options(seed = TRUE))
+    })
+  stopCluster(cl)
+  rm(cl)
   # plot climatologia
   # config gral
   shp <- read_sf(shp_file) %>% st_geometry()
-  df <- stack %>%
-    rasterToPoints() %>%
-    as_tibble() %>%
-    pivot_longer(cols = 3:last_col(), names_to = "facet_var", values_to = "valor") %>%
-    mutate(facet_var = str_remove(facet_var, pattern = "X"), facet_var = str_to_sentence(facet_var)) %>%
-    mutate(across(facet_var, factor, levels = str_to_sentence(names(stack))))
+  df <- list_raster %>% map(., ~ as.data.frame(., XY = TRUE)) %>% bind_rows(.id = "season")
+  if (season == "week") {
+    df <- df %>% mutate(season = str_replace(season, pattern = "w", replacement = "semana "))
+  }
+  if (season == "month" ) {
+    months <- names(list_raster)
+    df <- df %>% mutate(season = str_to_sentence(season)) %>%
+  mutate(across(season, factor, levels = str_to_sentence(months)))
+    }
   cat("\n\n Generando gráfico...\n\n")
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = log10(valor))) +
-      scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
+      geom_raster(aes(x, y, fill = log10(X))) +
+      scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
-      facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
+      facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
         title = expression(paste("Log10", " ", Clorofila - alpha ~ (mg ~ m^{
           -3
         }))),
         title.position = "right",
         title.theme = element_text(angle = 90),
-        barwidth = unit(.5, "cm"), barheight = unit(8.5, "cm"), title.hjust = .5
+        barwidth = unit(.5, "cm"), barheight = unit(7.5, "cm"), title.hjust = .5
       )) +
       theme_bw()
-    # para tratar de poner eje y en formato 10^.x
-    # scale_fill_continuous(labels = trans_format("log", math_format(10^.x)))
   }
   if (var_name == "sst") {
     blues <- rev(brewer.pal(9, "YlGnBu"))
     reds <- brewer.pal(9, "YlOrRd")
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = valor)) +
+      geom_raster(aes(x, y, fill = X)) +
       scale_fill_gradientn(colours = c(blues, reds), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
-      facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
+      facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
         title = "Temperatura Superficial Mar (°C)",
         title.position = "right",
@@ -137,12 +158,12 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     df <- df %>% mutate(valor_corrected = valor * 158.9418)
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor_corrected)) +
-      scale_fill_gradientn(colours = oce::oce.colorsJet(120), na.value = "white") +
+      scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
-      facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
+      facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
         title = expression(paste(
           "nWLR 645",
@@ -160,13 +181,13 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   }
   if (var_name == "nflh") {
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = valor)) +
+      geom_raster(aes(x, y, fill = X)) +
       scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value = "white") +
       scale_x_longitude(ticks = .2) +
       scale_y_latitude(ticks = .2) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
-      facet_wrap(~facet_var, ncol = n_col, nrow = n_row, scales = "fixed") +
+      facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
         title = expression(paste(
           "nLFH",
@@ -184,11 +205,15 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
       theme_bw()
   }
   cat("\n\n Exportando resultados...\n\n")
-  ifelse(!dir_exists(dir_output), dir_create(dir_output), FALSE)
-  ggsave(filename = paste0(dir_output, "/", name_output), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
-  stack <- rast(stack)
-  name_month <- paste0(sprintf("%02d", seq(1, 12)), "_", names(stack))
-  writeRaster(x = stack, filename = paste0(dir_output, "/", "raster_climatologia_", var_name, ".tif"), overwrite = TRUE)
-  writeRaster(x = stack, filename = paste0(dir_output, "/", name_month, "_", var_name, ".tif"), overwrite = TRUE)
-  save(df, plot, file = paste0(dir_output, "/", "plot_data_", var_name, ".RData"))
+  dir_create(dir_output)
+  #export png y tif de la climatología
+  filename <-  paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year))
+  ggsave(filename =  paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
+  #export el stack
+  #coarse each layer to raster
+  list <- map(list_raster, ~ as(.,"Raster"))
+  stack <- stack(list) %>% st_as_stars()
+  write_stars(obj = stack, dsn = paste0(filename, ".tif"))
+  save(df, plot, file = paste0(dir_output, "plot_data_", var_name, "_", raster_function, ".RData"))
+  toc()
 }
