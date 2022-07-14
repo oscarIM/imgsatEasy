@@ -11,7 +11,9 @@ get_raster_csv(
   result_type,
   var_name,
   n_cores = 1,
-  raster_function = "median"
+  raster_function = "median",
+  begin_day,
+  end_day
 )
 }
 \arguments{
@@ -27,7 +29,13 @@ get_raster_csv(
 
 \item{n_cores}{vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1}
 
-\item{raster_function}{función estadística para generar los compuestos ("median", "mean", etc).  Por defecto, "median"}
+\item{raster_function}{función estadística para generar los compuestos ("median", "mean", etc).Por defecto, "median"}
+
+\item{begin_day}{fecha inicio (formato aaaa-mm-dd)}
+
+\item{end_day}{fecha de termino (formato aaaa-mm-dd)}
+
+\item{custom_time}{se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes}
 }
 \value{
 imágenes raster o archivos csv
@@ -44,6 +52,8 @@ raster_function <- "median"
 var_name <- "chlor_a"
 result_type <- "raster"
 n_cores <- 4
-get_raster_csv(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
+fecha1 <- "2022-04-18"
+fecha2 <- "2022-04-24"
+get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 }
 }

@@ -3,11 +3,11 @@
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio de destino
 #' @param season temporalidad para la generación de imágenes en formato raster. Opciones "year", "month", "week"
-#' @param raster_function función estadística para generar los compuestos ("median", "mean", etc).  Por defecto, "median"
+#' @param raster_function función estadística para generar los compuestos ("median", "mean", etc).Por defecto, "median"
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
 #' @param result_type tipo de salida requerida. Si result_type == "raster", se generaran imágenes raster según la estacionalidad y función para los compuestos definidos. Si result_type =="csv", se generar archivos año/mes en fomato csv
-#' @param custom_time se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes 
+#' @param custom_time se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
 #' @return imágenes raster o archivos csv
@@ -38,7 +38,7 @@
 #' fecha2 <- "2022-04-24"
 #' get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 #' }
-get_raster_csv_ct <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, raster_function = "median", begin_day, end_day) {
+get_raster_csv <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, raster_function = "median", begin_day, end_day) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   setwd(dir_input)
@@ -54,10 +54,10 @@ get_raster_csv_ct <- function(dir_input, dir_output, season = "month", result_ty
       day = day(date),
       month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE)),
       week_name = paste0("w", sprintf("%02d", week(date)))
-    ) 
+    )
   if (custom_time) {
-    files <- files %>%  filter(between(date, as_date(begin_day), as_date(end_day)))
-  }  
+    files <- files %>% filter(between(date, as_date(begin_day), as_date(end_day)))
+  }
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   if (result_type == "raster") {
