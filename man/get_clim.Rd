@@ -14,9 +14,10 @@ get_clim(
   n_col,
   n_row,
   name_output,
-  res,
-  heigth,
-  width
+  n_cores = 1,
+  res = 300,
+  height = 8,
+  width = 6
 )
 }
 \arguments{
@@ -28,27 +29,33 @@ get_clim(
 
 \item{raster_function}{función estadística para generar las imágenes raster ("median" o "mean")}
 
+\item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
+
 \item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa)}
 
 \item{n_col}{numero de columnas para el gráfico}
 
 \item{n_row}{numero de filas para el gráfico}
 
-\item{width}{ancho tamyear de salida}
+\item{name_output}{nombre para la salidas}
 
-\item{height}{altura imagen de salida}
+\item{res}{resolución para la imágen png de la climatología}
+
+\item{height}{altura para la imágen png de la climatología}
+
+\item{width}{amplitud para la imágen png de la climatología}
 }
 \value{
-imágenes png climatologías raster Rdata
+imágenes png y tif de climatologías y Rdata
 }
 \description{
 Función para generar climatología y exportarla (formato png) para una variable determinada
 }
 \examples{
 \dontrun{
-dir_input <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/"
-dir_output <- "/home/evolecolab/Escritorio/test_satImg/climatologia"
-season <- "mes"
+dir_input <- "/dir/to/input/"
+dir_output <- "/dir/to/ouput/"
+season <- "month"
 raster_function <- "median"
 var_name <- "chlor_a"
 n_col <- 3
