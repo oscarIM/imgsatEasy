@@ -207,7 +207,7 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   cat("\n\n Exportando resultados...\n\n")
   dir_create(dir_output)
   #export png y tif de la climatología
-  filename <-  paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year))
+  filename <-  paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", raster_function)
   ggsave(filename =  paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
   #export el stack
   #coarse each layer to raster
