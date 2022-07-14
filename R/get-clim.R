@@ -17,7 +17,7 @@
 #' @importFrom stars st_as_stars write_stars read_stars st_apply
 #' @importFrom raster stack
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr mutate across group_split group_by case_when
+#' @importFrom dplyr mutate across group_split group_by case_when bind_rows
 #' @importFrom purrr map
 #' @importFrom tidyr separate pivot_longer
 #' @importFrom sf read_sf st_geometry
