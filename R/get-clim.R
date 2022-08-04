@@ -62,6 +62,7 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     remove = FALSE, extra = "drop"
   )
   if (season == "year") {
+  #chequear todos los setNames, parece que no hace lo que debe...debería ser algo como setNames(map(.,~unique(.[["tipo"]])))
   all_tif_split <- all_tif %>%
     group_by(year) %>%
     group_split() %>%
