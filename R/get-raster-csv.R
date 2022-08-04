@@ -71,7 +71,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -104,7 +104,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -134,7 +134,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       # cosas especiales para casos en donde solo hay un archivo por temporalidad
       files_by_season <- map_int(list, ~ nrow(.))
       to_write <- list %>% keep(~ nrow(.) < 2)
-      stack_to_write <- map(to_write, ~ read_stars(.$mapped_files, quiet = TRUE, sub = var_name))
+      stack_to_write <- map(to_write, ~ read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE))
       dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
       name_out_w <- map_chr(to_write, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", unique(.["week_name"]), "_", unique(.["day"]), "_unique", "_", var_name, "_", raster_function, ".tif"))
       list_files <- list %>% keep(~ nrow(.) > 1)
@@ -144,7 +144,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -177,7 +177,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       future_map(list_files, ~ {
         p()
         Sys.sleep(.2)
-        read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>%
+        read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>%
           merge()
       }, .options = furrr_options(seed = TRUE))
     })
