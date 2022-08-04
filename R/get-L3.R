@@ -76,15 +76,17 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   }
   if (var_name == "sst") {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
-    nc_files_tmp <- basename(nc_full_path_tmp)
-    file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
+    old_name <- basename(nc_full_path_tmp)
+    new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
+    file_move(path = old_name, new_path = new_name)
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
   } else {
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
-    nc_files_tmp <- basename(nc_full_path_tmp)
-    file_move(path = basename(nc_full_path_tmp), new_path = str_replace(nc_files_tmp, "^\\D+(\\d)", "\\1"))
+    old_name <- basename(nc_full_path_tmp)
+    new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
+    file_move(path = old_name, new_path = new_name)
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
