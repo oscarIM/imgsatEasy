@@ -103,7 +103,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       infile_l2bin = .,
       ofile_l2bin = str_replace(
         string = infile_l2bin,
-        pattern = ".L2_LAC_OC.x.nc|.L2.SST.x.nc",
+        pattern = ".L2_LAC_OC.x.nc|.L2.SST.x.nc|.L2.OC.x.nc",
         replacement = paste0("_", var_name, "_", res_l2, "km_L3b_tmp.nc")
       ),
       ofile_l3bin = str_replace(
