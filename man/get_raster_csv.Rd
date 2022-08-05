@@ -12,8 +12,8 @@ get_raster_csv(
   var_name,
   n_cores = 1,
   raster_function = "median",
-  begin_day,
-  end_day
+  begin_day = NULL,
+  end_day = NULL
 )
 }
 \arguments{
