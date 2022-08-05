@@ -17,7 +17,7 @@
 #' @importFrom dplyr case_when group_by group_split rename mutate between filter
 #' @importFrom tidyr drop_na separate
 #' @importFrom purrr map map_int walk map_chr keep walk2 map2
-#' @importFrom stars read_stars st_apply write_stars st_set_dimensions
+#' @importFrom stars read_stars st_apply write_stars st_set_dimensions st_mosaic
 #' @importFrom furrr future_walk future_map furrr_options
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
@@ -71,7 +71,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% st_mosaic()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -104,7 +104,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>% st_mosaic()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -144,7 +144,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         future_map(list_files, ~ {
           p()
           Sys.sleep(.2)
-          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% merge()
+          read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>% st_mosaic()
         }, .options = furrr_options(seed = TRUE))
       })
       cat("Paso 2: Generando compuestos según función seleccionada...\n\n")
@@ -177,8 +177,8 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       future_map(list_files, ~ {
         p()
         Sys.sleep(.2)
-        read_stars(.$mapped_files, quiet = TRUE, sub = var_name, proxy = TRUE) %>%
-          merge()
+        read_stars(.$mapped_files, quiet = TRUE, sub = var_name) %>%
+          st_mosaic()
       }, .options = furrr_options(seed = TRUE))
     })
     cat("Transformando imágenes L3 a data.frames...\n\n")
