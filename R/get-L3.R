@@ -81,13 +81,13 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     file_move(path = old_name, new_path = new_name)
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
-    files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    files_remove <- dir_ls(path = dir_input, regexp = "OC.x.nc$|OC.NRT.nc$", recurse = TRUE)
   } else {
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$|OC.NRT.nc$", recurse = TRUE)
     old_name <- basename(nc_full_path_tmp)
     new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
     file_move(path = old_name, new_path = new_name)
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$", recurse = TRUE)
+    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = "OC.x.nc$|OC.NRT.nc$", recurse = TRUE)
     nc_files_tmp <- basename(nc_full_path_tmp)
     files_remove <- dir_ls(path = dir_input, regexp = "SST.x.nc$|SST.NRT.x.nc$", recurse = TRUE)
   }
@@ -103,7 +103,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       infile_l2bin = .,
       ofile_l2bin = str_replace(
         string = infile_l2bin,
-        pattern = ".L2_LAC_OC.x.nc|.L2.SST.x.nc|.L2.OC.x.nc",
+        pattern = ".L2_LAC_OC.x.nc|.L2.SST.x.nc|.L2.OC.x.nc|L2.OC.NRT.nc$",
         replacement = paste0("_", var_name, "_", res_l2, "km_L3b_tmp.nc")
       ),
       ofile_l3bin = str_replace(
@@ -205,7 +205,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
   ## movimiento de archivos
-  files_l2 <- dir_ls(path = dir_output, regexp = ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$|.L2.OC.x.nc$", recurse = FALSE)
+  files_l2 <- dir_ls(path = dir_output, regexp = ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$|.L2.OC.x.nc$|.L2.OC.NRT.nc$", recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = ".txt$", recurse = FALSE)
   cat("Moviendo archivos a sus respectivos directorios...\n\n")
