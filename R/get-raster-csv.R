@@ -17,7 +17,8 @@
 #' @importFrom dplyr case_when group_by group_split rename mutate between filter
 #' @importFrom tidyr drop_na
 #' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep
-#' @importFrom stars read_stars st_apply write_stars st_set_dimensions st_mosaic
+#' @importFrom stars read_stars write_stars  st_apply st_as_stars
+#' @importFrom raster stack
 #' @importFrom furrr future_walk future_map furrr_options
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
@@ -62,7 +63,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
   if (result_type == "raster") {
     #### fn para obtener un raster según función seleccionada
     get_raster <- function(files, file_out) {
-      stack <- raster::stack(files, varname = var_name) %>% stars::st_as_stars()
+      stack <- stack(files, varname = var_name) %>% st_as_stars()
       stack <- st_apply(X = stack, MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
       write_stars(obj = stack, dsn = file_out)
     }
@@ -143,7 +144,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
   if (result_type == "data_frame") {
     #### fn para obtener un data_frame según función seleccionada
     get_data_frame <- function(files, dates, names_out) {
-      stars_df_list <- purrr::map(files, ~ stars::read_stars(., sub = var_name, quiet = TRUE) %>%
+      stars_df_list <- map(files, ~ read_stars(., sub = var_name, quiet = TRUE) %>%
         setNames(var_name) %>%
         as.data.frame() %>%
         drop_na(all_of(var_name)))

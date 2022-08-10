@@ -11,7 +11,7 @@ get_raster_csv(
   result_type,
   var_name,
   n_cores = 1,
-  raster_function = "median",
+  stat_function = "median",
   begin_day = NULL,
   end_day = NULL
 )
@@ -23,13 +23,13 @@ get_raster_csv(
 
 \item{season}{temporalidad para la generación de imágenes en formato raster. Opciones "year", "month", "week"}
 
-\item{result_type}{tipo de salida requerida. Si result_type == "raster", se generaran imágenes raster según la estacionalidad y función para los compuestos definidos. Si result_type =="csv", se generar archivos año/mes en fomato csv}
+\item{result_type}{tipo de salida requerida. Si result_type == "raster", se generaran imágenes raster según la estacionalidad y función para los compuestos definidos. Si result_type == "data_frame", se generar archivos año/mes en fomato .parquet}
 
 \item{var_name}{vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")}
 
 \item{n_cores}{vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1}
 
-\item{raster_function}{función estadística para generar los compuestos ("median", "mean", etc).Por defecto, "median"}
+\item{stat_function}{función estadística para generar los compuestos ("median", "mean", etc).Por defecto, "median"}
 
 \item{begin_day}{fecha inicio (formato aaaa-mm-dd)}
 
@@ -48,12 +48,12 @@ Función para generar imágenes raster o archivos csv a partir de imágenes sate
 dir_input <- "/dir/to/input/"
 dir_output <- "/dir/to/output/"
 season <- "month"
-raster_function <- "median"
+stat_function <- "median"
 var_name <- "chlor_a"
 result_type <- "raster"
 n_cores <- 4
 fecha1 <- "2022-04-18"
 fecha2 <- "2022-04-24"
-get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
+get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, n_cores = n_cores, result_type = "raster")
 }
 }
