@@ -50,37 +50,37 @@
 #' width <- 9
 #' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, heigth = heigth, width = width)
 #' }
-get_clim <- function(dir_input, dir_output, season, raster_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8,  width = 6) {
+get_clim <- function(dir_input, dir_output, season, raster_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6) {
   tic(msg = "Duración total análisis")
   all_tif <- tibble(
-  full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
-  archivo = basename(full_path)
-) %>%
-  mutate(week = case_when(season == "week" ~ str_extract(archivo, pattern = "w\\d+"))) %>%
-  separate(archivo,
-    into = c("year", "month_num", "month"), sep = "_",
-    remove = FALSE, extra = "drop"
-  )
+    full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
+    archivo = basename(full_path)
+  ) %>%
+    mutate(week = case_when(season == "week" ~ str_extract(archivo, pattern = "w\\d+"))) %>%
+    separate(archivo,
+      into = c("year", "month_num", "month"), sep = "_",
+      remove = FALSE, extra = "drop"
+    )
   if (season == "year") {
-  #chequear todos los setNames, parece que no hace lo que debe...debería ser algo como setNames(map(.,~unique(.[["tipo"]])))
-  all_tif_split <- all_tif %>%
-    group_by(year) %>%
-    group_split() %>%
-  setNames(unique(all_tif$year))
-}
+    # chequear todos los setNames, parece que no hace lo que debe...debería ser algo como setNames(map(.,~unique(.[["tipo"]])))
+    all_tif_split <- all_tif %>%
+      group_by(year) %>%
+      group_split() %>%
+      setNames(unique(all_tif$year))
+  }
   if (season == "month") {
-  all_tif_split <- all_tif %>%
-    group_by(month) %>%
-    group_split() %>%
-  setNames(unique(all_tif$month))
-}
-  #####AGREGAR IF POR NUMERO DE ARCHIVOS#####
+    all_tif_split <- all_tif %>%
+      group_by(month) %>%
+      group_split() %>%
+      setNames(unique(all_tif$month))
+  }
+  ##### AGREGAR IF POR NUMERO DE ARCHIVOS#####
   if (season == "week") {
-  all_tif_split <- all_tif %>%
-    group_by(week) %>%
-    group_split() %>%
-    setNames(unique(all_tif$week))
-}
+    all_tif_split <- all_tif %>%
+      group_by(week) %>%
+      group_split() %>%
+      setNames(unique(all_tif$week))
+  }
   cat("\n\n Calculando climatologías...\n\n")
   cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
   cl <- makeForkCluster(n_cores)
@@ -94,28 +94,31 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
     }, .options = furrr_options(seed = TRUE))
   })
   cat("Paso 2: Generando climatologías según función seleccionada...\n\n")
-      list_raster <- with_progress({
-      p <- progressor(steps = length(list_stack))
-      future_map(list_stack, ~ {
-        p()
-        Sys.sleep(.2)
-        st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
-      }, .options = furrr_options(seed = TRUE))
-    })
+  list_raster <- with_progress({
+    p <- progressor(steps = length(list_stack))
+    future_map(list_stack, ~ {
+      p()
+      Sys.sleep(.2)
+      st_apply(X = ., MARGIN = 1:2, function(x) do.call(raster_function, list(x, na.rm = TRUE)))
+    }, .options = furrr_options(seed = TRUE))
+  })
   stopCluster(cl)
   rm(cl)
   # plot climatologia
   # config gral
   shp <- read_sf(shp_file) %>% st_geometry()
-  df <- list_raster %>% map(., ~ as.data.frame(., XY = TRUE)) %>% bind_rows(.id = "season")
+  df <- list_raster %>%
+    map(., ~ as.data.frame(., XY = TRUE)) %>%
+    bind_rows(.id = "season")
   if (season == "week") {
     df <- df %>% mutate(season = str_replace(season, pattern = "w", replacement = "semana "))
   }
-  if (season == "month" ) {
+  if (season == "month") {
     months <- names(list_raster)
-    df <- df %>% mutate(season = str_to_sentence(season)) %>%
-  mutate(across(season, factor, levels = str_to_sentence(months)))
-    }
+    df <- df %>%
+      mutate(season = str_to_sentence(season)) %>%
+      mutate(across(season, factor, levels = str_to_sentence(months)))
+  }
   cat("\n\n Generando gráfico...\n\n")
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
@@ -207,12 +210,12 @@ get_clim <- function(dir_input, dir_output, season, raster_function, var_name, s
   }
   cat("\n\n Exportando resultados...\n\n")
   dir_create(dir_output)
-  #export png y tif de la climatología
-  filename <-  paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", raster_function)
-  ggsave(filename =  paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
-  #export el stack
-  #coarse each layer to raster
-  list <- map(list_raster, ~ as(.,"Raster"))
+  # export png y tif de la climatología
+  filename <- paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", raster_function)
+  ggsave(filename = paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = heigth, width = width)
+  # export el stack
+  # coarse each layer to raster
+  list <- map(list_raster, ~ as(., "Raster"))
   stack <- stack(list) %>% st_as_stars()
   write_stars(obj = stack, dsn = paste0(filename, ".tif"))
   save(df, plot, file = paste0(dir_output, "plot_data_", var_name, "_", raster_function, ".RData"))
