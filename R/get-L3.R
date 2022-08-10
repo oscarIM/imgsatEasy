@@ -56,8 +56,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     if (length(list_tar_tmp) <= 1) {
       walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
     } else {
-      nc_need <- length(list_tar_tmp)
-      cl <- parallel::makeForkCluster(nc_need)
+      cl <- parallel::makeForkCluster(n_cores)
       plan(cluster, workers = cl)
       future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
       parallel::stopCluster(cl)
