@@ -217,13 +217,13 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   cat("\n\n Exportando resultados...\n\n")
   dir_create(dir_output)
   # export png y tif de la climatología
-  filename <- paste0(dir_output, name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", stat_function)
+  filename <- paste0(dir_output, "/",name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", stat_function)
   ggsave(filename = paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = height, width = width)
   # export el stack
   # coarse each layer to raster
   list <- map(list_raster, ~ as(., "Raster"))
   stack <- stack(list) %>% st_as_stars()
   write_stars(obj = stack, dsn = paste0(filename, ".tif"))
-  save(df, plot, file = paste0(dir_output, "plot_data_", var_name, "_", stat_function, ".RData"))
+  save(df, plot, file = paste0(dir_output, "/plot_data_", var_name, "_", stat_function, ".RData"))
   toc()
 }
