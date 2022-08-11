@@ -8,7 +8,7 @@ get_clim(
   dir_input,
   dir_output,
   season,
-  raster_function,
+  stat_function,
   var_name,
   shp_file,
   n_col,
@@ -17,7 +17,9 @@ get_clim(
   n_cores = 1,
   res = 300,
   height = 8,
-  width = 6
+  width = 6,
+  xlim,
+  ylim
 )
 }
 \arguments{
@@ -27,7 +29,7 @@ get_clim(
 
 \item{season}{temporalidad para la generación de imágenes en formato raster("mes", o "year")}
 
-\item{raster_function}{función estadística para generar las imágenes raster ("median" o "mean")}
+\item{stat_function}{función estadística para generar las imágenes raster ("median" o "mean")}
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
@@ -44,6 +46,10 @@ get_clim(
 \item{height}{altura para la imágen png de la climatología}
 
 \item{width}{amplitud para la imágen png de la climatología}
+
+\item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
+
+\item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
 }
 \value{
 imágenes png y tif de climatologías y Rdata
@@ -56,15 +62,15 @@ Función para generar climatología y exportarla (formato png) para una variable
 dir_input <- "/dir/to/input/"
 dir_output <- "/dir/to/ouput/"
 season <- "month"
-raster_function <- "median"
+stat_function <- "median"
 var_name <- "chlor_a"
 n_col <- 3
 n_row <- 4
 name_output <- "climatologia_chlor_a.png"
 shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/Golfo_Arauco_prj2.shp"
 res <- 300
-heigth <- 7
+  height <- 7
 width <- 9
-get_clim(dir_input = dir_input, dir_output = dir_output, season = season, raster_function = raster_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, heigth = heigth, width = width)
+get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res,   height =   height, width = width)
 }
 }
