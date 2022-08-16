@@ -18,14 +18,14 @@ NULL
 #' @keywords internal
 #' @param files an input file
 move_files <- function(files) {
-  l2_pattern <- ".L2_LAC_OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
+  l2_pattern <- ".OC.NRT.nc$|.OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
   l3_pattern <- "L3mapped.nc$"
   logfiles_pattern <- ".*txt"
   df <- tibble(
     file = files,
     date = case_when(
       var_name == "sst" ~ as_date(path_file(files), format = "%Y%m%d"),
-      TRUE ~ as_date(path_file(files), format = "%Y%j")
+      TRUE ~ as_date(path_file(files), format = "%Y%m%d")
     ),
     year = year(date),
     month = month(date),

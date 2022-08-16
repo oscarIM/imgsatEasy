@@ -141,29 +141,25 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_bins <- map(names_bins, ~ paste0(dir_input, .))
   # AUX
   seadas_l2bin <- function(infile, ofile) {
-    {
       flaguse <- case_when(
-        var_name == "sst" ~ "LAND,HISOLZEN",
+      var_name == "sst" ~ "LAND,HISOLZEN",
         TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
+
   # AUX
   seadas_l3bin <- function(infile, ofile) {
-    {
       system2(command = "chmod", args = c("+x", seadas_bins[2]))
       system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
   # AUX#
   seadas_l3mapgen <- function(infile, ofile) {
-    {
+
       system2(command = "chmod", args = c("+x", seadas_bins[3]))
       system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
-  }
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l2bin...\n\n")
