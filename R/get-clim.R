@@ -23,7 +23,6 @@
 #' @importFrom purrr map
 #' @importFrom tidyr separate pivot_longer
 #' @importFrom sf read_sf st_geometry
-#' @importFrom raster stack
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
 #' @importFrom RColorBrewer brewer.pal
@@ -33,13 +32,12 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom progressr with_progress progressor
 #' @importFrom furrr future_map furrr_options
-#' @importFrom methods as
 #' @return imágenes png y tif de climatologías y Rdata
 #' @export get_clim
 #' @examples
 #' \dontrun{
-#' dir_input <- "/dir/to/input/"
-#' dir_output <- "/dir/to/ouput/"
+#' dir_input <- "/dir/to/input"
+#' dir_output <- "/dir/to/ouput"
 #' season <- "month"
 #' stat_function <- "median"
 #' var_name <- "chlor_a"
@@ -48,9 +46,9 @@
 #' name_output <- "climatologia_chlor_a.png"
 #' shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/Golfo_Arauco_prj2.shp"
 #' res <- 300
-#'   height <- 7
+#' height <- 7
 #' width <- 9
-#' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res,   height =   height, width = width)
+#' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, height = height, width = width)
 #' }
 get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6, xlim, ylim) {
   tic(msg = "Duración total análisis")
@@ -67,55 +65,57 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     all_tif_split <- all_tif %>%
       group_by(year) %>%
       group_split() %>%
-      setNames(map(.,~unique(.[["year"]])))
+      setNames(map(., ~ unique(.[["year"]])))
   }
   if (season == "month") {
     all_tif_split <- all_tif %>%
       group_by(month) %>%
       group_split() %>%
-    setNames(map(.,~unique(.[["month"]])))
+      setNames(map(., ~ unique(.[["month"]])))
   }
   ##### AGREGAR IF POR NUMERO DE ARCHIVOS#####
   if (season == "week") {
     all_tif_split <- all_tif %>%
       group_by(week) %>%
       group_split() %>%
-      setNames(map(.,~unique(.[["week"]])))
+      setNames(map(., ~ unique(.[["week"]])))
   }
   cat("\n\n Calculando climatologías...\n\n")
   cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
+  ## generar stacks
+  full_path_list <- purrr::map(all_tif_split, ~ pull(., "full_path"))
   list_stack <- with_progress({
-    p <- progressor(steps = length(all_tif_split))
-    future_map(all_tif_split, ~ {
+    p <- progressor(steps = length(full_path_list))
+    future_map(full_path_list, ~ {
       p()
       Sys.sleep(.2)
-      read_stars(.$full_path, quiet = TRUE) %>% merge()
+      # read_stars(.$full_path, quiet = TRUE) %>% merge()
+      stack(.) %>%
+        st_as_stars() %>%
+        setNames(var_name)
     }, .options = furrr_options(seed = TRUE))
   })
   cat("Paso 2: Generando climatologías según función seleccionada...\n\n")
-  list_raster <- with_progress({
+  list_df <- with_progress({
     p <- progressor(steps = length(list_stack))
     future_map(list_stack, ~ {
       p()
       Sys.sleep(.2)
-      st_apply(X = ., MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
+      st_apply(X = ., MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>% as.data.frame(xy = TRUE)
     }, .options = furrr_options(seed = TRUE))
   })
   stopCluster(cl)
   rm(cl)
-  # plot climatologia
+  df <- bind_rows(list_df, .id = "season")
+  # plot climatologia: Dentro de cada if aplicar filtro para eliminar puntos que esten dentro del shp
   # config gral
   shp <- read_sf(shp_file) %>% st_geometry()
-  df <- list_raster %>%
-    map(., ~ as.data.frame(., XY = TRUE)) %>%
-    bind_rows(.id = "season")
   if (season == "week") {
     df <- df %>% mutate(season = str_replace(season, pattern = "w", replacement = "semana "))
   }
   if (season == "month") {
-    months <- names(list_raster)
     months_ordered <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
     df <- df %>%
       mutate(season = str_to_sentence(season)) %>%
@@ -124,7 +124,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   cat("\n\n Generando gráfico...\n\n")
   if (var_name == "chlor_a") {
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = log10(X))) +
+      geom_raster(aes(x, y, fill = log10(chlor_a))) +
       scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
       scale_x_longitude(ticks = 5) +
       scale_y_latitude(ticks = 5) +
@@ -146,7 +146,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     blues <- rev(brewer.pal(9, "YlGnBu"))
     reds <- brewer.pal(9, "YlOrRd")
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = X)) +
+      geom_raster(aes(x, y, fill = sst)) +
       scale_fill_gradientn(colours = c(blues, reds), na.value = "white") +
       scale_x_longitude(ticks = 5) +
       scale_y_latitude(ticks = 5) +
@@ -163,7 +163,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       theme_bw()
   }
   if (var_name == "Rrs_645") {
-    df <- df %>% mutate(valor_corrected = X * 158.9418)
+    df <- df %>% mutate(valor_corrected = Rrs_645 * 158.9418)
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor_corrected)) +
       scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
@@ -190,7 +190,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   }
   if (var_name == "nflh") {
     plot <- ggplot(df) +
-      geom_raster(aes(x, y, fill = X)) +
+      geom_raster(aes(x, y, fill = nflh)) +
       scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value = "white") +
       scale_x_longitude(ticks = 5) +
       scale_y_latitude(ticks = 5) +
@@ -217,7 +217,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   cat("\n\n Exportando resultados...\n\n")
   dir_create(dir_output)
   # export png y tif de la climatología
-  filename <- paste0(dir_output, "/",name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", stat_function)
+  filename <- paste0(dir_output, "/", name_output, "_", min(all_tif$year), "_", max(all_tif$year), "_", stat_function)
   ggsave(filename = paste0(filename, ".png"), plot = plot, device = "png", units = "in", dpi = res, height = height, width = width)
   # export el stack
   # coarse each layer to raster

@@ -10,7 +10,7 @@
 #' @param custom_time se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
-#' @return imágenes raster o archivos csv
+#' @return imágenes raster o archivos parquet
 #' @importFrom fs dir_ls dir_create path_wd path_file fs_path
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day
@@ -153,7 +153,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       rm(df)
       rm(stars_df_list)
     }
-    dir <- dir_create(path = paste0(dir_output, "/all_csv")) %>% fs_path()
+    dir <- dir_create(path = paste0(dir_output, "/all_dataframe")) %>% fs_path()
     cat("Generando y exportanto data_frames mensuales desde imágenes L3...\n\n")
     list_files <- files %>%
       group_by(year, month_name) %>%

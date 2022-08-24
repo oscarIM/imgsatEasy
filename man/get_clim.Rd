@@ -59,8 +59,8 @@ Función para generar climatología y exportarla (formato png) para una variable
 }
 \examples{
 \dontrun{
-dir_input <- "/dir/to/input/"
-dir_output <- "/dir/to/ouput/"
+dir_input <- "/dir/to/input"
+dir_output <- "/dir/to/ouput"
 season <- "month"
 stat_function <- "median"
 var_name <- "chlor_a"
@@ -69,8 +69,8 @@ n_row <- 4
 name_output <- "climatologia_chlor_a.png"
 shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/Golfo_Arauco_prj2.shp"
 res <- 300
-  height <- 7
+height <- 7
 width <- 9
-get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res,   height =   height, width = width)
+get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, height = height, width = width)
 }
 }

@@ -38,7 +38,7 @@ get_raster_csv(
 \item{custom_time}{se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes}
 }
 \value{
-imágenes raster o archivos csv
+imágenes raster o archivos parquet
 }
 \description{
 Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
