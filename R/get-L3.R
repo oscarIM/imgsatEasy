@@ -30,7 +30,7 @@
 #' @export get_L3
 #' @examples
 #' \dontrun{
-#' dir_input <- "/dir/to/tar_files/"
+#' dir_input <- "/dir/to/tar_files"
 #' dir_output <- paste0(dir_input, "/", "output")
 #' dir_ocssw <- "/dir/to/ocssw"
 #' var_name <- "chlor_a"
@@ -143,7 +143,8 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_l2bin <- function(infile, ofile) {
       flaguse <- case_when(
       var_name == "sst" ~ "LAND,HISOLZEN",
-        TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
+      TRUE ~"LAND,HISOLZEN"
+        #TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
