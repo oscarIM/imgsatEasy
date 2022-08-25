@@ -55,7 +55,7 @@ Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde ht
 }
 \examples{
 \dontrun{
-dir_input <- "/dir/to/tar_files/"
+dir_input <- "/dir/to/tar_files"
 dir_output <- paste0(dir_input, "/", "output")
 dir_ocssw <- "/dir/to/ocssw"
 var_name <- "chlor_a"

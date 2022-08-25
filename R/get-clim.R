@@ -18,11 +18,12 @@
 #' @importFrom fs dir_ls dir_create dir_exists
 #' @importFrom stars st_as_stars write_stars read_stars st_apply
 #' @importFrom raster stack
+#' @importFrom purrr map
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr mutate across group_split group_by case_when bind_rows
 #' @importFrom purrr map
 #' @importFrom tidyr separate pivot_longer
-#' @importFrom sf read_sf st_geometry
+#' @importFrom sf read_sf st_geometry st_cast st_union st_as_sf st_intersects sf_use_s2
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
 #' @importFrom RColorBrewer brewer.pal
@@ -32,6 +33,7 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom progressr with_progress progressor
 #' @importFrom furrr future_map furrr_options
+#' @importFrom methods as
 #' @return imágenes png y tif de climatologías y Rdata
 #' @export get_clim
 #' @examples
@@ -82,10 +84,10 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   }
   cat("\n\n Calculando climatologías...\n\n")
   cat("Paso 1: Generando stacks según estacionalidad seleccionada...\n\n")
-  cl <- makeForkCluster(n_cores)
-  plan(cluster, workers = cl)
   ## generar stacks
   full_path_list <- purrr::map(all_tif_split, ~ pull(., "full_path"))
+  cl <- makeForkCluster(n_cores)
+  plan(cluster, workers = cl)
   list_stack <- with_progress({
     p <- progressor(steps = length(full_path_list))
     future_map(full_path_list, ~ {
@@ -98,20 +100,33 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     }, .options = furrr_options(seed = TRUE))
   })
   cat("Paso 2: Generando climatologías según función seleccionada...\n\n")
-  list_df <- with_progress({
+  list_raster <- with_progress({
     p <- progressor(steps = length(list_stack))
     future_map(list_stack, ~ {
       p()
       Sys.sleep(.2)
-      st_apply(X = ., MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>% as.data.frame(xy = TRUE)
+      st_apply(X = ., MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
     }, .options = furrr_options(seed = TRUE))
   })
+  list_df <- map(list_raster, ~ as.data.frame(., xy = TRUE))
   stopCluster(cl)
   rm(cl)
   df <- bind_rows(list_df, .id = "season")
+  rm(list_df)
+  rm(list_stack)
   # plot climatologia: Dentro de cada if aplicar filtro para eliminar puntos que esten dentro del shp
-  # config gral
+  sf_use_s2(FALSE)
   shp <- read_sf(shp_file) %>% st_geometry()
+  shp_filter <- shp %>%
+    st_cast() %>%
+    st_union()
+  df_sf <- st_as_sf(x = df, coords = c("x", "y"), crs = 4326)
+  filtred_data <- st_intersects(df_sf, shp_filter, sparse = FALSE) %>% as.data.frame()
+  df <- df %>%
+    mutate(flag = filtred_data$V1) %>%
+    filter(flag == "FALSE")
+  rm(filtred_data)
+  rm(df_sf)
   if (season == "week") {
     df <- df %>% mutate(season = str_replace(season, pattern = "w", replacement = "semana "))
   }
@@ -179,7 +194,8 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
           " (",
           "mW ",
           cm^-2,
-          um^-1, sr^-1,
+          um^-1,
+          sr^-1,
           ")"
         )),
         title.position = "right",
