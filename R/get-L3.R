@@ -137,7 +137,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   }
   # escribir los scripts
   names_bins <- paste0(".", names(seadas_bins))
-  walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/" .y)))
+  walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
   # AUX
   seadas_l2bin <- function(infile, ofile) {
