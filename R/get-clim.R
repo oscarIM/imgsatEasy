@@ -14,6 +14,8 @@
 #' @param width amplitud para la imágen png de la climatología
 #' @param xlim vector numérico tamaño 2 para los limites de x en el plot
 #' @param ylim vector numérico tamaño 2 para los limites de y en el plot
+#' @param ticks_x vector numérico tamaño 1 indicando ticks en el eje x del plot
+#' @param ticks_y vector numérico tamaño 1 indicando ticks en el eje y del plot
 #' @import ggplot2
 #' @importFrom fs dir_ls dir_create dir_exists
 #' @importFrom stars st_as_stars write_stars read_stars st_apply
@@ -52,7 +54,7 @@
 #' width <- 9
 #' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, height = height, width = width)
 #' }
-get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6, xlim, ylim) {
+get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6, xlim, ylim, ticks_x, ticks_y) {
   tic(msg = "Duración total análisis")
   all_tif <- tibble(
     full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
@@ -141,8 +143,8 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = log10(chlor_a))) +
       scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
-      scale_x_longitude(ticks = 5) +
-      scale_y_latitude(ticks = 5) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
@@ -163,8 +165,8 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = sst)) +
       scale_fill_gradientn(colours = c(blues, reds), na.value = "white") +
-      scale_x_longitude(ticks = 5) +
-      scale_y_latitude(ticks = 5) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
@@ -182,8 +184,8 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = valor_corrected)) +
       scale_fill_gradientn(colours = oce.colorsJet(120), na.value = "white") +
-      scale_x_longitude(ticks = 5) +
-      scale_y_latitude(ticks = 5) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
@@ -208,8 +210,8 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
     plot <- ggplot(df) +
       geom_raster(aes(x, y, fill = nflh)) +
       scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value = "white") +
-      scale_x_longitude(ticks = 5) +
-      scale_y_latitude(ticks = 5) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_x) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
