@@ -93,7 +93,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       files_remove <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
     }
     file_delete(files_remove)
-    # mover todo a la carpeta output
+    # mover todo a la carpeta output: ELIMINAR Y SOLO MOVER AL FINAL LOS RESULTADOS
     dir_create(path = dir_output)
     walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
     dir_delete(path = paste0(dir_input, "/nc_files"))
@@ -105,7 +105,6 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     cat("Moviendo archivos L2 formateados..\n\n")
     dir_create(path = dir_output)
     walk(nc_full_path_tmp, ~ file_copy(path = ., new_path = dir_output, overwrite = TRUE))
-    file_delete(nc_full_path_tmp)
   }
   setwd(dir_output)
   # crear dataframe
