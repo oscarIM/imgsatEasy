@@ -45,7 +45,7 @@
 #' sort_files <- FALSE
 #' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract = need_extract, sort_files = sort_files)
 #' }
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract = TRUE, sort_files = FALSE) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$")
   patterns_oc <- paste(oc, collapse = "|")
@@ -54,10 +54,11 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   patterns_l2 <- c(oc, sst)
   patterns_l2 <- paste0(patterns_l2, collapse = "|")
   tic(msg = "Duración total análisis")
-  if (need_extract) {
+  if (need_extract_and_format) {
     setwd(dir_input)
     cat("Descomprimiendo archivos...\n\n")
     list_tar_tmp <- dir_ls(regexp = "*.tar")
+    ## chequar si length list_tar_tmp == 0, indica error
     ex_dir <- str_remove(list_tar_tmp, pattern = ".tar")
     if (length(list_tar_tmp) <= 1) {
       walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
@@ -74,33 +75,38 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     setwd(input_folder)
     Sys.sleep(1)
     cat("Formateando archivos...\n\n")
+    if (var_name == "sst") {
+      nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
+      old_name <- basename(nc_full_path_tmp)
+      new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
+      file_move(path = old_name, new_path = new_name)
+      nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
+      nc_files_tmp <- basename(nc_full_path_tmp)
+      files_remove <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
+    } else {
+      nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
+      old_name <- basename(nc_full_path_tmp)
+      new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
+      file_move(path = old_name, new_path = new_name)
+      nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
+      nc_files_tmp <- basename(nc_full_path_tmp)
+      files_remove <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
+    }
+    file_delete(files_remove)
+    # mover todo a la carpeta output
+    dir_create(path = dir_output)
+    walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
+    dir_delete(path = paste0(dir_input, "/nc_files"))
   } else {
     setwd(dir_input)
+    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_l2, recurse = TRUE)
+    ## chequar si length nc_full_path_tmp == 0, indica error
     Sys.sleep(1)
-    cat("Formateando archivos...\n\n")
+    cat("Moviendo archivos L2 formateados..\n\n")
+    dir_create(path = dir_output)
+    walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
+    file_delete(nc_full_path_tmp)
   }
-  if (var_name == "sst") {
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
-    old_name <- basename(nc_full_path_tmp)
-    new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
-    file_move(path = old_name, new_path = new_name)
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
-    nc_files_tmp <- basename(nc_full_path_tmp)
-    files_remove <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
-  } else {
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
-    old_name <- basename(nc_full_path_tmp)
-    new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
-    file_move(path = old_name, new_path = new_name)
-    nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_oc, recurse = TRUE)
-    nc_files_tmp <- basename(nc_full_path_tmp)
-    files_remove <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
-  }
-  file_delete(files_remove)
-  # mover todo a la carpeta output
-  dir_create(path = dir_output)
-  walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
-  dir_delete(path = paste0(dir_input, "/nc_files"))
   setwd(dir_output)
   # crear dataframe
   files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
@@ -122,7 +128,6 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
         replacement = "L3mapped.nc"
       )
     )
-
   rm(list = ls(pattern = "tmp"))
   # correr l2bin-l3mapgen
   cat("Corriendo wrappers de seadas...\n\n")
@@ -141,25 +146,31 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
   # AUX
   seadas_l2bin <- function(infile, ofile) {
+    {
       flaguse <- case_when(
-      var_name == "sst" ~ "LAND,HISOLZEN,ATMFAIL",
-      TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
+        var_name == "sst" ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT",
+        # "sst" ~ "LAND,HISOLZEN",
+        TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
+  }
 
   # AUX
   seadas_l3bin <- function(infile, ofile) {
+    {
       system2(command = "chmod", args = c("+x", seadas_bins[2]))
       system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netCDF4", "off"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
+  }
   # AUX#
   seadas_l3mapgen <- function(infile, ofile) {
-
+    {
       system2(command = "chmod", args = c("+x", seadas_bins[3]))
       system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
+  }
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
   cat("Corriendo l2bin...\n\n")
