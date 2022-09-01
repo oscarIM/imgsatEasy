@@ -14,7 +14,7 @@
 #' @param need_extract mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @param sort_files crearr sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE
 #' @return imágenes L3
-#' @importFrom fs dir_ls dir_create file_move dir_delete file_delete path_file
+#' @importFrom fs dir_ls dir_create file_move dir_delete file_delete path_file file_copy
 #' @importFrom readr read_lines write_lines
 #' @importFrom dplyr distinct pull filter
 #' @importFrom lubridate as_date year month
@@ -104,7 +104,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     Sys.sleep(1)
     cat("Moviendo archivos L2 formateados..\n\n")
     dir_create(path = dir_output)
-    walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
+    walk(nc_full_path_tmp, ~ file_copy(path = ., new_path = dir_output, overwrite = TRUE))
     file_delete(nc_full_path_tmp)
   }
   setwd(dir_output)
