@@ -147,8 +147,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_l2bin <- function(infile, ofile) {
     {
       flaguse <- case_when(
-        var_name == "sst" ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT",
-        # "sst" ~ "LAND,HISOLZEN",
+        var_name == "sst" ~ "LAND,HISOLZEN",
         TRUE ~ "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
       )
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
