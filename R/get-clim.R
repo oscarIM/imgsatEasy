@@ -211,7 +211,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       geom_raster(aes(x, y, fill = nflh)) +
       scale_fill_gradientn(colours = oce::oce.colorsViridis(120), na.value = "white") +
       scale_x_longitude(ticks = ticks_x) +
-      scale_y_latitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
       geom_sf(data = shp, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
