@@ -16,7 +16,8 @@ get_L3(
   south,
   west,
   east,
-  need_extract = TRUE,
+  flaguse = "LAND,HISOLZEN",
+  need_extract_and_format = TRUE,
   sort_files = FALSE
 )
 }
@@ -43,9 +44,9 @@ get_L3(
 
 \item{east}{latitud este para la generación de las imágenes L3}
 
-\item{need_extract}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
-
 \item{sort_files}{crearr sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
+
+\item{need_extract}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
 }
 \value{
 imágenes L3
@@ -66,8 +67,9 @@ north <- -36.77544
 south <- -37.29073
 west <- -73.67165
 east <- -73.11573
-need_extract <- TRUE
+flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,NAVWARN,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
+need_extract_and_format <- FALSE
 sort_files <- FALSE
-get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract = need_extract, sort_files = sort_files)
+get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format  = need_extract_and_format, sort_files = sort_files)
 }
 }

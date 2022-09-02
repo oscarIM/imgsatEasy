@@ -19,7 +19,9 @@ get_clim(
   height = 8,
   width = 6,
   xlim,
-  ylim
+  ylim,
+  ticks_x,
+  ticks_y
 )
 }
 \arguments{
@@ -50,6 +52,10 @@ get_clim(
 \item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
 
 \item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
+
+\item{ticks_x}{vector numérico tamaño 1 indicando ticks en el eje x del plot}
+
+\item{ticks_y}{vector numérico tamaño 1 indicando ticks en el eje y del plot}
 }
 \value{
 imágenes png y tif de climatologías y Rdata
