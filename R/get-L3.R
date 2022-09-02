@@ -94,7 +94,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
       files_remove <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
     }
     file_delete(files_remove)
-    # mover todo a la carpeta output: ELIMINAR Y SOLO MOVER AL FINAL LOS RESULTADOS
+    # mover todo a la carpeta output: ELIMINAR Y SOLO MOVER AL FINAL LOS RESULTADOS. NO MOVER NADA A OUTPUT, PROCESAR TODO EN LA MISMA CARPETA Y AL FINAL MOVER TODO.
     dir_create(path = dir_output)
     walk(nc_full_path_tmp, ~ file_move(path = ., new_path = dir_output))
     dir_delete(path = paste0(dir_input, "/nc_files"))
@@ -217,7 +217,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
-  ## movimiento de archivos
+  ## movimiento de archivos. ACA CREAR CARPETA OUTPUT Y MOVER TODO
   files_l2 <- dir_ls(path = dir_output, regexp = patterns_l2, recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = ".txt$", recurse = FALSE)
