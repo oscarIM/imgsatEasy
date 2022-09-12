@@ -147,8 +147,9 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # AUX
   seadas_l2bin <- function(infile, ofile) {
     {
+      #area_weighting == 1
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
-      system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0", north, south, east, west, 3))
+      system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0", north, south, east, west, 1))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   }
 
