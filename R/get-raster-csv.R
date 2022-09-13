@@ -96,19 +96,31 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         group_split()
       name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", var_name, "_", stat_function, ".tif"))
       files <- map(list_files, ~ pull(., "mapped_files"))
-      cl <- makeForkCluster(n_cores)
-      plan(cluster, workers = cl)
-      with_progress({
-        p <- progressor(steps = length(files))
-        future_walk2(files, name_out, ~ {
-          p()
-          Sys.sleep(.2)
-          get_raster(files = .x, file_out = .y)
-        }, .options = furrr_options(seed = TRUE))
-      })
-      stopCluster(cl)
-      rm(cl)
-      cat("Fin...\n\n")
+      if (n_cores >= 2) {
+        cl <- makeForkCluster(n_cores)
+        plan(cluster, workers = cl)
+        with_progress({
+          p <- progressor(steps = length(files))
+          future_walk2(files, name_out, ~ {
+            p()
+            Sys.sleep(.2)
+            get_raster(files = .x, file_out = .y)
+          }, .options = furrr_options(seed = TRUE))
+        })
+        stopCluster(cl)
+        rm(cl)
+        cat("Fin...\n\n")
+      }
+      if (n_cores == 1) {
+        with_progress({
+          p <- progressor(steps = length(files))
+          walk2(files, name_out, ~ {
+            p()
+            Sys.sleep(.2)
+            get_raster(files = .x, file_out = .y)
+          })
+        })
+      }
     }
     if (season == "week") {
       # arreglar
