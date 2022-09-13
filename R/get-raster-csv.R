@@ -144,7 +144,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
   if (result_type == "data_frame") {
     #### fn para obtener un data_frame según función seleccionada
     get_data_frame <- function(files, dates, names_out) {
-      stars_df_list <- map(files, ~ read_stars(., sub = var_name, quiet = TRUE) %>%
+      stars_df_list <- map(files, ~ read_stars(., sub = var_name, quiet = TRUE, proxy = TRUE) %>%
         setNames(var_name) %>%
         as.data.frame() %>%
         drop_na(all_of(var_name)))
