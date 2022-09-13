@@ -149,7 +149,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
         as.data.frame() %>%
         drop_na(all_of(var_name)))
       df <- map2(stars_df_list, dates, ~ mutate(.data = .x, date = .y)) %>% bind_rows()
-      write_parquet(x = df, sink = names_out, chunk_size = 100000000)
+      write_parquet(x = df, sink = names_out, chunk_size = 10000000)
       rm(df)
       rm(stars_df_list)
     }
