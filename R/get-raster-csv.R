@@ -66,7 +66,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       #stack <- stack(files, varname = var_name) %>% st_as_stars()
       stack <- stack(files, varname = var_name)
       #stack <- st_apply(X = stack, MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
-      stack <- raster::calc(stack, fun = median, na.rm = T) %>% st_as_stars()
+      stack <- raster::calc(stack, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>% st_as_stars()
       write_stars(obj = stack, dsn = file_out)
     }
     dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
