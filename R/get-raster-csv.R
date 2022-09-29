@@ -18,7 +18,7 @@
 #' @importFrom tidyr drop_na
 #' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep
 #' @importFrom stars read_stars write_stars  st_apply st_as_stars
-#' @importFrom raster stack
+#' @importFrom raster stack calc
 #' @importFrom furrr future_walk future_map furrr_options
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
@@ -63,8 +63,10 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
   if (result_type == "raster") {
     #### fn para obtener un raster según función seleccionada
     get_raster <- function(files, file_out) {
-      stack <- stack(files, varname = var_name) %>% st_as_stars()
-      stack <- st_apply(X = stack, MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
+      #stack <- stack(files, varname = var_name) %>% st_as_stars()
+      stack <- stack(files, varname = var_name)
+      #stack <- st_apply(X = stack, MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
+      stack <- raster::calc(stack, fun = median, na.rm = T) %>% st_as_stars()
       write_stars(obj = stack, dsn = file_out)
     }
     dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
