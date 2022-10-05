@@ -162,7 +162,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       stack_avg <- raster::stack(files, varname = var_name)
       df <- raster::calc(stack_avg, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>%
         setNames(var_name) %>%
-        as.data.frame(xy = TRUE) %>%
+        raster::as.data.frame(xy = TRUE) %>%
         drop_na(all_of(var_name))
       df <- df %>% mutate(date = unique(dates))
       tmp_name <- paste0(unique(dates), "_", stat_function, "_tmp.parquet")
