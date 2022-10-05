@@ -159,8 +159,8 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
     dir <- dir_create(path = paste0(dir_output, "/all_dataframe")) %>% fs_path()
     ####funciones necesarias: get_data_frame_init y get_data_frame_fin##########
     get_data_frame_init <- function(files, dates, dir) {
-      stack_avg <- stack(files, varname = var_name)
-      df <- calc(stack_avg, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>%
+      stack_avg <- raster::stack(files, varname = var_name)
+      df <- raster::calc(stack_avg, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>%
         setNames(var_name) %>%
         as.data.frame(xy = TRUE) %>%
         drop_na(all_of(var_name))
