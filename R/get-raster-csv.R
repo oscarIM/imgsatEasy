@@ -11,20 +11,20 @@
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
 #' @return imágenes raster o archivos parquet
-#' @importFrom fs dir_ls dir_create path_wd path_file fs_path
+#' @importFrom fs dir_ls dir_create path_wd path_file fs_path file_delete
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day
 #' @importFrom dplyr case_when group_by group_split rename mutate between filter
 #' @importFrom tidyr drop_na
-#' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep
-#' @importFrom stars read_stars write_stars  st_apply st_as_stars
+#' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep pull
+#' @importFrom stars write_stars st_as_stars
 #' @importFrom raster stack calc
-#' @importFrom furrr future_walk future_map furrr_options
+#' @importFrom furrr future_walk future_map furrr_options future_walk2
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom tictoc tic toc
 #' @importFrom progressr with_progress progressor
-#' @importFrom arrow write_parquet
+#' @importFrom arrow write_parquet read_parquet collect
 #' @export get_raster_csv
 #' @examples
 #' \dontrun{
@@ -42,9 +42,9 @@
 get_raster_csv <- function(dir_input, dir_output, season = "month", result_type, var_name, n_cores = 1, stat_function = "median", begin_day = NULL, end_day = NULL) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
-  setwd(dir_input)
+  # setwd(dir_input)
   cat("Leyendo imágenes L3... \n\n")
-  files <- dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = TRUE) %>%
+  files <- dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = FALSE) %>%
     tibble(
       mapped_files = .,
       date = case_when(
@@ -57,19 +57,19 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
       week_name = paste0("w", sprintf("%02d", week(date)))
     )
   if (custom_time) {
-    files <- files %>% filter(between(date, as_date(begin_day), as_date(end_day)))
+    files <- files %>%
+      filter(between(date, as_date(begin_day), as_date(end_day)))
   }
   #### definir la lista y los nombres de salida según temporalidad seleccionada
   if (result_type == "raster") {
-    #### fn para obtener un raster según función seleccionada
+    dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
+    ####fn para obtener un raster según función seleccionada###################
     get_raster <- function(files, file_out) {
-      #stack <- stack(files, varname = var_name) %>% st_as_stars()
       stack <- stack(files, varname = var_name)
-      #stack <- st_apply(X = stack, MARGIN = 1:2, function(x) do.call(stat_function, list(x, na.rm = TRUE)))
       stack <- raster::calc(stack, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>% st_as_stars()
       write_stars(obj = stack, dsn = file_out)
     }
-    dir <- dir_create(path = paste0(dir_output, "/all_rasters")) %>% fs_path()
+    ############################################################################
     if (season == "year") {
       cat("Generando y exportando rasters según estacionalidad y función estadística seleccionada...\n\n")
       list_files <- files %>%
@@ -156,35 +156,99 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
     }
   }
   if (result_type == "data_frame") {
-    #### fn para obtener un data_frame según función seleccionada
-    get_data_frame <- function(files, dates, names_out) {
-      stars_df_list <- map(files, ~ read_stars(., sub = var_name, quiet = TRUE, proxy = TRUE) %>%
-        setNames(var_name) %>%
-        as.data.frame() %>%
-        drop_na(all_of(var_name)))
-      df <- map2(stars_df_list, dates, ~ mutate(.data = .x, date = .y)) %>% bind_rows()
-      write_parquet(x = df, sink = names_out, chunk_size = 10000000)
-      rm(df)
-      rm(stars_df_list)
-    }
     dir <- dir_create(path = paste0(dir_output, "/all_dataframe")) %>% fs_path()
-    cat("Generando y exportanto data_frames mensuales desde imágenes L3...\n\n")
+    ####funciones necesarias: get_data_frame_init y get_data_frame_fin##########
+    get_data_frame_init <- function(files, dates, dir) {
+      stack_avg <- stack(files, varname = var_name)
+      df <- calc(stack_avg, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>%
+        setNames(var_name) %>%
+        as.data.frame(xy = TRUE) %>%
+        drop_na(all_of(var_name))
+      df <- df %>% mutate(date = unique(dates))
+      tmp_name <- paste0(unique(dates), "_", stat_function, "_tmp.parquet")
+      out <- paste0(dir, "/", tmp_name)
+      write_parquet(x = df, sink = out)
+      rm(list = c("stack_avg", "df", "tmp_name", "out"))
+    }
+    get_data_frame_fin <- function(files) {
+      df <- map(files, ~ read_parquet(.)) %>%
+        bind_rows() %>%
+        mutate(
+          year = year(date),
+          month = month(date),
+          month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE))
+        ) %>%
+        collect()
+      tmp_name <- paste0(unique(df$year), "_", unique(df$month_name), ".parquet")
+      out <- paste0(dir, "/", tmp_name)
+      write_parquet(x = df, sink = out)
+      rm(list = c("df", "tmp_name", "out"))
+    }
+    ############################################################################
+    ##### PRIMER PASO####
     list_files <- files %>%
-      group_by(year, month_name) %>%
+      group_by(date) %>%
       group_split()
     files <- map(list_files, ~ pull(., "mapped_files"))
     dates <- map(list_files, ~ pull(., "date"))
-    name_out <- map_chr(list_files, ~ paste0(dir, "/", unique(.["year"]), "_", unique(.["month_name"]), "_", var_name, "_", stat_function, ".parquet"))
+    cat("Generando dataframes mensuales...\n\n")
+    cat("Etapa 1: Generación dataframes diarios...\n\n")
+    cl <- makeForkCluster(n_cores)
+    plan(cluster, workers = cl)
+    tic(msg = "Duración etapa 1")
     with_progress({
       p <- progressor(steps = length(files))
-      pwalk(.l = list(files, dates, name_out), ~ {
+      future_walk2(files, dates, ~ {
         p()
         Sys.sleep(.2)
-        get_data_frame(files = ..1, dates = ..2, names_out = ..3)
+        get_data_frame_init(files = .x, dates = .y, dir = dir)
+      }, .options = furrr_options(seed = TRUE))
+    })
+    toc()
+    stopCluster(cl)
+    rm(cl)
+    cat("Etapa 2: Generando archivos mensuales y exportando...\n\n")
+    #### Agrupando archivos por temporalidad seleccionada####
+    files <- dir_ls(path = dir, regexp = "_tmp.parquet$", recurse = FALSE) %>%
+      tibble(
+        data_frame_files = .,
+        date = as_date(path_file(data_frame_files), format = "%Y-%m-%d"),
+        year = year(date),
+        day = day(date),
+        month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE)),
+        week_name = paste0("w", sprintf("%02d", week(date)))
+      )
+    list_files <- files %>%
+      group_by(year, month_name) %>%
+      group_split() %>%
+      map(., ~ pull(., "data_frame_files"))
+    # cl <- makeForkCluster(n_cores)
+    # plan(cluster, workers = cl)
+    tic(msg = "Duración etapa 2")
+    ## version multicore##
+    # with_progress({
+    #  p <- progressor(steps = length(list_files))
+    #  future_walk(list_files, ~ {
+    #    p()
+    #    Sys.sleep(.2)
+    #    get_data_frame_fin(files = .)
+    #    },.options = furrr_options(seed = TRUE))
+    #  })
+    # stopCluster(cl)
+    # rm(cl)
+    ## version 1 core
+    with_progress({
+      p <- progressor(steps = length(list_files))
+      walk(list_files, ~ {
+        p()
+        Sys.sleep(.2)
+        get_data_frame_fin(files = .)
       })
     })
-    cat("Fin...\n\n")
+    toc()
+    walk(list_files, ~ file_delete(.))
   }
   setwd(current_wd)
   toc()
+  cat("Fin...\n\n")
 }
