@@ -14,9 +14,9 @@
 #' @importFrom fs dir_ls dir_create path_wd path_file fs_path file_delete
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day
-#' @importFrom dplyr case_when group_by group_split rename mutate between filter
+#' @importFrom dplyr case_when group_by group_split rename mutate between filter pull
 #' @importFrom tidyr drop_na
-#' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep pull
+#' @importFrom purrr map map_int walk map_chr keep walk2 map2 pwalk keep
 #' @importFrom stars write_stars st_as_stars
 #' @importFrom raster stack calc
 #' @importFrom furrr future_walk future_map furrr_options future_walk2
@@ -24,7 +24,7 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom tictoc tic toc
 #' @importFrom progressr with_progress progressor
-#' @importFrom arrow write_parquet read_parquet collect
+#' @importFrom arrow write_parquet read_parquet
 #' @export get_raster_csv
 #' @examples
 #' \dontrun{
@@ -177,8 +177,7 @@ get_raster_csv <- function(dir_input, dir_output, season = "month", result_type,
           year = year(date),
           month = month(date),
           month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE))
-        ) %>%
-        collect()
+        )
       tmp_name <- paste0(unique(df$year), "_", unique(df$month_name), ".parquet")
       out <- paste0(dir, "/", tmp_name)
       write_parquet(x = df, sink = out)
