@@ -7,6 +7,7 @@
 #' @param custom_time se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
+#' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
 #' @return imágenes raster o archivos parquet
 #' @importFrom fs dir_ls dir_create path_wd path_file fs_path file_delete
 #' @importFrom tibble tibble
@@ -33,7 +34,7 @@
 #' fecha2 <- "2022-04-24"
 #' get_dataframe(dir_input = dir_input, dir_output = dir_output, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "median", begin_day = NULL, end_day = NULL) {
+get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "median", begin_day = NULL, end_day = NULL, n_cores = 1) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
