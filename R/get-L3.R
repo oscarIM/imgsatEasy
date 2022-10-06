@@ -44,7 +44,7 @@
 #' flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,NAVWARN,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
 #' need_extract_and_format <- FALSE
 #' sort_files <- FALSE
-#' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format  = need_extract_and_format, sort_files = sort_files)
+#' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files)
 #' }
 get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse = "LAND,HISOLZEN", need_extract_and_format = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
@@ -147,7 +147,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   # AUX
   seadas_l2bin <- function(infile, ofile) {
     {
-      #area_weighting == 1
+      # area_weighting == 1
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "day", var_name, res_l2, "off", flaguse, "0", north, south, east, west, 1))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
