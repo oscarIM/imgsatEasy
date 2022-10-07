@@ -1,5 +1,5 @@
 #' @title get_dataframe
-#' @description Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
+#' @description Función para generar dataframes en formato .parquet a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio de destino
 #' @param stat_function función estadística para generar los compuestos diarios ("median", "mean", etc).Por defecto, "median"
@@ -8,7 +8,7 @@
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
-#' @return imágenes raster o archivos parquet
+#' @return archivos parquet
 #' @importFrom fs dir_ls dir_create path_wd path_file fs_path file_delete
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day

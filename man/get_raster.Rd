@@ -21,7 +21,7 @@ get_raster(
 
 \item{dir_output}{directorio de destino}
 
-\item{season}{temporalidad para la generación de imágenes en formato raster. Opciones "year", "month", "week"}
+\item{season}{temporalidad para la generación de imágenes en formato ráster. Opciones "year", "month", "week"}
 
 \item{var_name}{vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")}
 
@@ -36,10 +36,10 @@ get_raster(
 \item{end_day}{fecha de termino (formato aaaa-mm-dd)}
 }
 \value{
-imágenes raster o archivos parquet
+imágenes ráster
 }
 \description{
-Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
+Función para generar imágenes ráster a partir de imágenes satelitales L3
 }
 \examples{
 \dontrun{

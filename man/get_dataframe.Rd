@@ -33,10 +33,10 @@ get_dataframe(
 \item{n_cores}{vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1}
 }
 \value{
-imágenes raster o archivos parquet
+archivos parquet
 }
 \description{
-Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
+Función para generar dataframes en formato .parquet a partir de imágenes satelitales L3
 }
 \examples{
 \dontrun{

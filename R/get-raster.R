@@ -1,15 +1,15 @@
 #' @title get_raster
-#' @description Función para generar imágenes raster o archivos csv a partir de imágenes satelitales L3
+#' @description Función para generar imágenes ráster a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio de destino
-#' @param season temporalidad para la generación de imágenes en formato raster. Opciones "year", "month", "week"
+#' @param season temporalidad para la generación de imágenes en formato ráster. Opciones "year", "month", "week"
 #' @param stat_function función estadística para generar los compuestos ("median", "mean", etc).Por defecto, "median"
 #' @param var_name vector de tamaño 1 con el nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh")
 #' @param n_cores vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1
 #' @param custom_time se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes
 #' @param begin_day fecha inicio (formato aaaa-mm-dd)
 #' @param end_day fecha de termino (formato aaaa-mm-dd)
-#' @return imágenes raster o archivos parquet
+#' @return imágenes ráster
 #' @importFrom fs dir_ls dir_create path_wd path_file fs_path
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day
