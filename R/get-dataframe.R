@@ -146,4 +146,5 @@ get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "medi
   walk(list_files, ~ file_delete(.))
   toc()
   cat("Fin... \n\n")
+  toc()
 }
