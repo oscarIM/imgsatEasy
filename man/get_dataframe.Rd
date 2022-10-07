@@ -9,8 +9,10 @@ get_dataframe(
   dir_output,
   var_name,
   stat_function = "median",
+  custom_time = FALSE,
   begin_day = NULL,
-  end_day = NULL
+  end_day = NULL,
+  n_cores = 1
 )
 }
 \arguments{
@@ -22,11 +24,13 @@ get_dataframe(
 
 \item{stat_function}{función estadística para generar los compuestos diarios ("median", "mean", etc).Por defecto, "median"}
 
+\item{custom_time}{se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes}
+
 \item{begin_day}{fecha inicio (formato aaaa-mm-dd)}
 
 \item{end_day}{fecha de termino (formato aaaa-mm-dd)}
 
-\item{custom_time}{se necesita un intervalo particular de tiempo?. TRUE/FALSE. Si TRUE hay que indicar begin_day y end_day. Si FALSE, se considerara el intervalo de tiempo comprendido por todas las imágenes}
+\item{n_cores}{vector tamaño 1 que indique el numero de núcleos a usar. Por defecto, n_cores = 1}
 }
 \value{
 imágenes raster o archivos parquet

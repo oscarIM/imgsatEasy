@@ -14,7 +14,7 @@
 #' @importFrom tibble tibble
 #' @importFrom lubridate as_date year month week day
 #' @importFrom dplyr case_when group_by group_split rename mutate between filter pull
-#' @importFrom purrr map map_int walk2 keep
+#' @importFrom purrr map map_int walk2 keep map_chr
 #' @importFrom stars write_stars st_as_stars
 #' @importFrom raster stack calc
 #' @importFrom furrr furrr_options future_walk2

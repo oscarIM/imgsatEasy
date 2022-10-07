@@ -70,6 +70,6 @@ east <- -73.11573
 flaguse <- "ATMFAIL,LAND,HILT,HISATZEN,NAVWARN,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT"
 need_extract_and_format <- FALSE
 sort_files <- FALSE
-get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format  = need_extract_and_format, sort_files = sort_files)
+get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files)
 }
 }
