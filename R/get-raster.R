@@ -36,7 +36,7 @@
 #' fecha2 <- "2022-04-24"
 #' get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cores = 1, stat_function = "median", begin_day = NULL, end_day = NULL) {
+get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cores = 1, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
@@ -150,5 +150,6 @@ get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cor
     rm(cl)
     cat("Fin...\n\n")
   }
+  setwd(current_wd)
   toc()
 }

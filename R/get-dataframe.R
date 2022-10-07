@@ -34,7 +34,7 @@
 #' fecha2 <- "2022-04-24"
 #' get_dataframe(dir_input = dir_input, dir_output = dir_output, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "median", begin_day = NULL, end_day = NULL, n_cores = 1) {
+get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL, n_cores = 1) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
@@ -146,5 +146,6 @@ get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "medi
   walk(list_files, ~ file_delete(.))
   toc()
   cat("Fin... \n\n")
+  setwd(current_wd)
   toc()
 }
