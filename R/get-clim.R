@@ -245,4 +245,5 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   write_stars(obj = stack, dsn = paste0(filename, ".tif"))
   save(df, plot, file = paste0(dir_output, "/plot_data_", var_name, "_", stat_function, ".RData"))
   toc()
+  rm(list = ls())
 }
