@@ -55,7 +55,26 @@
 #' get_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_row = n_row, name_output = name_output, res = res, height = height, width = width)
 #' }
 get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6, xlim, ylim, ticks_x, ticks_y) {
-  tic(msg = "Duración total análisis")
+#agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
+  #* Establish a new 'ArgCheck' object
+  Check <- ArgumentCheck::newArgCheck()
+  #* Add an error if height < 0
+  if (height < 0)
+    ArgumentCheck::addError(
+      msg = "'height' must be >= 0",
+      argcheck = Check
+    )
+
+  #* Add an error if radius < 0
+  if (radius < 0)
+    ArgumentCheck::addError(
+      msg = "'radius' must be >= 0",
+      argcheck = Check
+    )
+
+  #* Return errors and warnings (if any)
+  ArgumentCheck::finishArgCheck(Check)
+    tic(msg = "Duración total análisis")
   all_tif <- tibble(
     full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
     archivo = basename(full_path)
@@ -245,5 +264,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   write_stars(obj = stack, dsn = paste0(filename, ".tif"))
   save(df, plot, file = paste0(dir_output, "/plot_data_", var_name, "_", stat_function, ".RData"))
   toc()
-  rm(list = ls())
+  rm(df)
+  rm(plot)
+  rm(shp)
 }
