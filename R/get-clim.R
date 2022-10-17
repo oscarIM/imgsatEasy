@@ -57,23 +57,23 @@
 get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, n_row, name_output, n_cores = 1, res = 300, height = 8, width = 6, xlim, ylim, ticks_x, ticks_y) {
 #agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
   #* Establish a new 'ArgCheck' object
-  Check <- ArgumentCheck::newArgCheck()
+  #Check <- ArgumentCheck::newArgCheck()
   #* Add an error if height < 0
-  if (height < 0)
-    ArgumentCheck::addError(
-      msg = "'height' must be >= 0",
-      argcheck = Check
-    )
+  #if (height < 0)
+  #  ArgumentCheck::addError(
+  #    msg = "'height' must be >= 0",
+  #    argcheck = Check
+  #  )
 
   #* Add an error if radius < 0
-  if (radius < 0)
-    ArgumentCheck::addError(
-      msg = "'radius' must be >= 0",
-      argcheck = Check
-    )
+  #if (radius < 0)
+  #  ArgumentCheck::addError(
+  #    msg = "'radius' must be >= 0",
+  #    argcheck = Check
+  #  )
 
   #* Return errors and warnings (if any)
-  ArgumentCheck::finishArgCheck(Check)
+  #ArgumentCheck::finishArgCheck(Check)
     tic(msg = "Duración total análisis")
   all_tif <- tibble(
     full_path = dir_ls(path = dir_input, regexp = ".tif$", recurse = T),
