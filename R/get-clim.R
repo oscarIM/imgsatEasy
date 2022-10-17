@@ -116,19 +116,20 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   df <- bind_rows(list_df, .id = "season")
   rm(list_df)
   rm(list_stack)
-  # plot climatologia: Dentro de cada if aplicar filtro para eliminar puntos que esten dentro del shp
+  # plot climatologia:
   sf_use_s2(FALSE)
   shp <- read_sf(shp_file) %>% st_geometry()
-  shp_filter <- shp %>%
-    st_cast() %>%
-    st_union()
-  df_sf <- st_as_sf(x = df, coords = c("x", "y"), crs = 4326)
-  filtred_data <- st_intersects(df_sf, shp_filter, sparse = FALSE) %>% as.data.frame()
-  df <- df %>%
-    mutate(flag = filtred_data$V1) %>%
-    filter(flag == "FALSE")
-  rm(filtred_data)
-  rm(df_sf)
+  #shp_filter <- shp %>%
+  #  st_cast() %>%
+  #  st_union()
+  #revisar en que parte se cae el ALGO
+  #df_sf <- st_as_sf(x = df, coords = c("x", "y"), crs = 4326)
+  #filtred_data <- st_intersects(df_sf, shp_filter, sparse = FALSE) %>% as.data.frame()
+  #df <- df %>%
+  #  mutate(flag = filtred_data$V1) %>%
+  #  filter(flag == "FALSE")
+  #rm(filtred_data)
+  #rm(df_sf)
   if (season == "week") {
     df <- df %>% mutate(season = str_replace(season, pattern = "w", replacement = "semana "))
   }
