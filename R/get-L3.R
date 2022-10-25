@@ -48,7 +48,7 @@
 #' }
 get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse = "LAND,HISOLZEN", need_extract_and_format = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
-  oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc")
+  oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
   sst <- c(".SST.x.nc$", ".SST.NRT.x.nc$")
   patterns_sst <- paste(sst, collapse = "|")
