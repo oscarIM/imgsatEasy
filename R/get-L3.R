@@ -48,6 +48,7 @@
 #' }
 get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse = "LAND,HISOLZEN", need_extract_and_format = TRUE, sort_files = FALSE) {
   # agregar control de flujo por errores
+  current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
   sst <- c(".SST.x.nc$", ".SST.NRT.x.nc$")
@@ -240,7 +241,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
   }
-  setwd(dir_input)
+  setwd(current_wd)
   cat("Fin \n\n")
   toc()
 }

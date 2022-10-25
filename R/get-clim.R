@@ -131,14 +131,17 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   })
   stopCluster(cl)
   rm(cl)
+  sf_use_s2(FALSE)
+  shp_sf <- read_sf(shp_file) %>% st_geometry()
+  #######
+  shp_sp <- as_Spatial(shp_sf)
   list_raster <- map(list_raster, ~ raster::mask(., shp, inverse = TRUE))
   list_df <- map(list_raster, ~ as.data.frame(., xy = TRUE))
   df <- bind_rows(list_df, .id = "season")
   rm(list_df)
   rm(list_stack)
   # plot climatologia:
-  sf_use_s2(FALSE)
-  shp <- read_sf(shp_file) %>% st_geometry()
+
   #shp_filter <- shp %>%
   #  st_cast() %>%
   #  st_union()
