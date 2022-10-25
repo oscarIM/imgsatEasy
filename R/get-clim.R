@@ -25,7 +25,7 @@
 #' @importFrom dplyr mutate across group_split group_by case_when bind_rows
 #' @importFrom purrr map
 #' @importFrom tidyr separate pivot_longer
-#' @importFrom sf read_sf st_geometry st_cast st_union st_as_sf st_intersects sf_use_s2
+#' @importFrom sf read_sf st_geometry st_cast st_union st_as_sf st_intersects sf_use_s2 as_Spatial
 #' @importFrom oce oce.colorsJet oce.colorsViridis
 #' @importFrom metR scale_x_longitude scale_y_latitude
 #' @importFrom RColorBrewer brewer.pal
@@ -135,13 +135,12 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
   shp_sf <- read_sf(shp_file) %>% st_geometry()
   #######
   shp_sp <- as_Spatial(shp_sf)
-  list_raster <- map(list_raster, ~ raster::mask(., shp, inverse = TRUE))
+  list_raster <- map(list_raster, ~ raster::mask(., shp_sp, inverse = TRUE))
   list_df <- map(list_raster, ~ as.data.frame(., xy = TRUE))
   df <- bind_rows(list_df, .id = "season")
   rm(list_df)
   rm(list_stack)
   # plot climatologia:
-
   #shp_filter <- shp %>%
   #  st_cast() %>%
   #  st_union()
@@ -170,7 +169,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
-      geom_sf(data = shp, fill = "grey80", col = "black") +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
@@ -192,7 +191,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
-      geom_sf(data = shp, fill = "grey80", col = "black") +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
@@ -211,7 +210,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
-      geom_sf(data = shp, fill = "grey80", col = "black") +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
@@ -237,7 +236,7 @@ get_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       coord_equal() +
-      geom_sf(data = shp, fill = "grey80", col = "black") +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       facet_wrap(~season, ncol = n_col, nrow = n_row, scales = "fixed") +
       guides(fill = guide_colorbar(
