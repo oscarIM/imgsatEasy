@@ -182,7 +182,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   toc()
   stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
-  l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc", recurse = TRUE)
+  l2binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc$", recurse = TRUE)
   files_to_l3bin <- files_df %>% filter(ofile_l2bin %in% l2binned_files)
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
@@ -199,7 +199,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   toc()
   stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
-  l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc", recurse = TRUE)
+  l3binned_files <- dir_ls(path = dir_output, regexp = "_L3m_tmp.nc$", recurse = TRUE)
   files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
   cl <- makeForkCluster(n_cores)
   plan(cluster, workers = cl)
