@@ -23,7 +23,6 @@
 #' @importFrom purrr map
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr mutate across group_split group_by case_when bind_rows
-#' @importFrom purrr map
 #' @importFrom tidyr separate pivot_longer
 #' @importFrom sf read_sf st_geometry st_cast st_union st_as_sf st_intersects sf_use_s2 as_Spatial
 #' @importFrom oce oce.colorsJet oce.colorsViridis
