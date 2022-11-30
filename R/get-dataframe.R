@@ -43,8 +43,8 @@ get_dataframe <- function(dir_input, dir_output, var_name, stat_function = "medi
     tibble(
       mapped_files = .,
       date = case_when(
-        var_name == "sst" ~ as_date(path_file(mapped_files), format = "%Y%m%d"),
-        TRUE ~ as_date(path_file(mapped_files), format = "%Y%m%d")
+        var_name == "sst" ~ as.Date(path_file(mapped_files), format = "%Y%m%d"),
+        TRUE ~ as.Date(path_file(mapped_files), format = "%Y%m%d")
       ),
       year = year(date),
       day = day(date),
