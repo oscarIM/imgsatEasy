@@ -41,19 +41,32 @@ get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cor
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
   cat("Leyendo imágenes L3... \n\n")
+#  files <- dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = FALSE) %>%
+#    tibble(
+#      mapped_files = .,
+#      date = case_when(
+#        var_name == "sst" ~ as_date(path_file(mapped_files), format = "%Y%m%d"),
+#        TRUE ~ as_date(path_file(mapped_files), format = "%Y%m%d")
+#      ),
+#      year = year(date),
+#      day = day(date),
+#      month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE)),
+#      week_name = paste0("w", sprintf("%02d", week(date)))
+#    )
   files <- dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = FALSE) %>%
-    tibble(
-      mapped_files = .,
-      date = case_when(
-        var_name == "sst" ~ as_date(path_file(mapped_files), format = "%Y%m%d"),
-        TRUE ~ as_date(path_file(mapped_files), format = "%Y%m%d")
-      ),
-      year = year(date),
-      day = day(date),
-      month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE)),
-      week_name = paste0("w", sprintf("%02d", week(date)))
-    )
-  if (custom_time) {
+       tibble(
+          mapped_files = .,
+          date = case_when(
+            var_name == "sst" ~ as.Date(path_file(mapped_files), format = "%Y%m%d"),
+            TRUE ~ as.Date(path_file(mapped_files), format = "%Y%m%d")
+          ),
+          year = year(date),
+          day = day(date),
+          month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE)),
+          week_name = paste0("w", sprintf("%02d", week(date)))
+        )
+
+   if (custom_time) {
     files <- files %>%
       filter(between(date, as_date(begin_day), as_date(end_day)))
   }
