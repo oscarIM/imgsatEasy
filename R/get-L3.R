@@ -165,7 +165,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_l3mapgen <- function(infile, ofile) {
     {
       system2(command = "chmod", args = c("+x", seadas_bins[3]))
-      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "nearest", north, south, west, east, "true", "false"))
+      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   }
   cl <- makeForkCluster(n_cores)
