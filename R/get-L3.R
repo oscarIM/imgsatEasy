@@ -46,7 +46,7 @@
 #' sort_files <- FALSE
 #' get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files)
 #' }
-get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse = "LAND,HISOLZEN", need_extract_and_format = TRUE, sort_files = FALSE) {
+get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse = "LAND,HISOLZEN", need_extract_and_format = TRUE, sort_files = FALSE,fudge) {
   # agregar control de flujo por errores
   current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
@@ -165,7 +165,7 @@ get_L3 <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_
   seadas_l3mapgen <- function(infile, ofile) {
     {
       system2(command = "chmod", args = c("+x", seadas_bins[3]))
-      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false"))
+      system2(command = seadas_bins[3], args = c(infile, ofile, var_name, "netcdf4", res_l3, "smi", "area", north, south, west, east, "true", "false", fudge))
     } %>% possibly(., otherwise = "Error en archivo de entrada")
   }
   cl <- makeForkCluster(n_cores)
