@@ -131,7 +131,7 @@ getL3_new <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, r
     filter(between(date, as_date(begin_day), as_date(end_day)))
   cat(files_df$infile_l2bin, file = "infile.txt", sep = "\n")
   outfile_l2bin <- paste0(period_name, "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
-  outfile_mapgen <- paste0(period_name, "_", var_name, "_", res_l2, "km_mapped.nc")
+  outfile_mapgen <- paste0(period_name, "_", var_name, "_", res_l2, "km_L3mapped.nc")
   rm(list = ls(pattern = "tmp"))
   # correr l2bin-l3mapgen
   cat("Corriendo wrappers de seadas...\n\n")
