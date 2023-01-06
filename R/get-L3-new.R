@@ -88,7 +88,7 @@ getL3_new <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, r
     setwd(input_folder)
     Sys.sleep(1)
     cat("Formateando archivos...\n\n")
-     if (var_name == "sst") {
+    if (var_name == "sst") {
       nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_sst, recurse = TRUE)
       old_name <- basename(nc_full_path_tmp)
       new_name <- str_replace(old_name, "^\\D+(\\d)", "\\1")
@@ -112,31 +112,31 @@ getL3_new <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, r
   } else {
     setwd(dir_input)
     nc_full_path_tmp <- dir_ls(path = dir_input, regexp = patterns_l2, recurse = TRUE)
-     Sys.sleep(1)
+    Sys.sleep(1)
     cat("Moviendo archivos L2 formateados..\n\n")
     dir_create(path = dir_output)
     walk(nc_full_path_tmp, ~ file_copy(path = ., new_path = dir_output, overwrite = TRUE))
   }
   setwd(dir_output)
   # crear infile_list
-    files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
+  files_df <- dir_ls(path = dir_output, regexp = ".nc$") %>%
     tibble(
-      infile_l2bin = .) %>%
+      infile_l2bin = .
+    ) %>%
     mutate(date = case_when(
       var_name == "sst" ~ as.Date(path_file(infile_l2bin), format = "%Y%m%d"),
       TRUE ~ as.Date(path_file(infile_l2bin), format = "%Y%m%d")
     ))
-    files_df <- files_df %>%
-      filter(between(date, as_date(begin_day), as_date(end_day)))
-    cat(files_df$infile_l2bin, file = "infile.txt", sep = "\n")
-    outfile_l2bin <- paste0(period_name, "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
-    outfile_mapgen <- paste0(period_name, "_", var_name, "_", res_l2, "km_mapped.nc")
+  files_df <- files_df %>%
+    filter(between(date, as_date(begin_day), as_date(end_day)))
+  cat(files_df$infile_l2bin, file = "infile.txt", sep = "\n")
+  outfile_l2bin <- paste0(period_name, "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
+  outfile_mapgen <- paste0(period_name, "_", var_name, "_", res_l2, "km_mapped.nc")
   rm(list = ls(pattern = "tmp"))
   # correr l2bin-l3mapgen
   cat("Corriendo wrappers de seadas...\n\n")
   Sys.sleep(1)
   # rutas temporales solo para probar la funcion, despues estaran dentro del programa
-
   if (var_name == "sst") {
     seadas_bins <- dir_ls(path = system.file("exec", package = "imgsatEasy"))[-1]
   } else {
@@ -152,56 +152,53 @@ getL3_new <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, r
   names_bins <- paste0(".", names(seadas_bins))
   walk2(seadas_bins, names_bins, ~ write_lines(.x, file = paste0(dir_input, "/", .y)))
   seadas_bins <- map(names_bins, ~ paste0(dir_input, "/", .))
-# AUX#
-if(var_name == "sst") {
-seadas_l2bin <- function(infile, ofile) {
+  # AUX#
+  if (var_name == "sst") {
+    seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 0, north, south, east, west, area_weighting, "qual_sst", "SST"))
-  }
+    }
   } else {
-seadas_l2bin <- function(infile, ofile) {
+    seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
       system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 0, north, south, east, west, area_weighting))
-  }
-
-}
-# AUX#
-  seadas_l3mapgen <- function(infile, ofile) {
-    { system2(command = "chmod", args = c("+x", seadas_bins[2]))
-  system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge)) }
     }
-   tic(msg = "Duración l2bin")
+  }
+  # AUX#
+  seadas_l3mapgen <- function(infile, ofile) {{ system2(command = "chmod", args = c("+x", seadas_bins[2]))
+    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge)) }}
+  tic(msg = "Duración l2bin")
   seadas_l2bin(infile = "infile.txt", ofile = outfile_l2bin)
-  #with_progress({
+  # with_progress({
   #  p <- progressor(steps = length(files_df$infile_l2bin))
   #  future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ {
   #    p()
   #    Sys.sleep(.2)
   #    seadas_l2bin(infile = .x, ofile = .y)
   #  })
-  #})
+  # })
   toc()
-  #stopCluster(cl)
+  # stopCluster(cl)
   # filtrar solo los archivos para los cuales hubo resultados
-    # filtrar solo los archivos para los cuales hubo resultados
+  # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc$", recurse = TRUE)
-  #files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
-  #cl <- makeForkCluster(n_cores)
-  #plan(cluster, workers = cl)
-  #cat("Corriendo l3mapgen...\n\n")
+  # files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
+  # cl <- makeForkCluster(n_cores)
+  # plan(cluster, workers = cl)
+  # cat("Corriendo l3mapgen...\n\n")
   tic(msg = "Duración l3mapgen")
   seadas_l3mapgen(infile = l3binned_files, ofile = outfile_mapgen)
-  #with_progress({
+  # with_progress({
   #  p <- progressor(steps = length(files_to_l3mapgen$ofile_l3bin))
   #  future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ {
   #    p()
   #    Sys.sleep(.2)
   #    seadas_l3mapgen(infile = .x, ofile = .y)
   #  })
-  #})
+  # })
   toc()
-  #stopCluster(cl)
-  #rm(cl)
+  # stopCluster(cl)
+  # rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
   ## movimiento de archivos. ACA CREAR CARPETA OUTPUT Y MOVER TODO
