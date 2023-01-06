@@ -87,11 +87,11 @@ east <- -70
 flaguse <- "LAND,HISOLZEN"
 need_extract_and_format <- TRUE
 sort_files <- FALSE
-week_name <- "w_08"
+period_name <- "w_08"
 area_weighting <- 0
 fudge <- 2
 begin_day <- "2022-12-26"
 end_day <- "2022-12-28"
-get_L3(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files)
+getL3_new(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
 }
 }
