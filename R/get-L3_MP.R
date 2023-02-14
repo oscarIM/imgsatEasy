@@ -18,7 +18,7 @@
 #' @importFrom readr read_lines write_lines
 #' @importFrom dplyr filter rename mutate case_when group_by group_split
 #' @importFrom lubridate as_date year month
-#' @importFrom purrr map walk2 future_walk2
+#' @importFrom purrr map walk2
 #' @importFrom stringr str_detect str_replace
 #' @importFrom tibble tibble
 #' @importFrom furrr future_walk future_walk2
