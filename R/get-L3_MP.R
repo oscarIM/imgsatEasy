@@ -1,7 +1,3 @@
-###function to sort file in multiTime analisis)
-#directorio de los datos brutos fg 
-pacman::p_load(future, furrr, fs, parallel, stringr, dplyr, lubridate, purrr, readr, tictoc)
-
 #' @title getL3_MP
 #' @description Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
 #' @param dir_ocssw directory en donde estan los binarios ocssw (seadas)
