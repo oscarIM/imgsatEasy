@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 *_tmp.R
+*_old.R
 
