@@ -3,7 +3,6 @@
 export("%>%")
 export(getL3_1P)
 export(getL3_MP)
-export(get_L3)
 export(get_clim)
 export(get_dataframe)
 export(get_raster)
