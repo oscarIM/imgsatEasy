@@ -16,7 +16,7 @@
 #' @importFrom dplyr case_when group_by group_split rename mutate between filter pull
 #' @importFrom purrr map map_int walk2 keep map_chr
 #' @importFrom stars write_stars st_as_stars
-#' @importFrom raster stack calc
+#' @importFrom raster stack calc writeRaster
 #' @importFrom furrr furrr_options future_walk2
 #' @importFrom future plan cluster
 #' @importFrom parallel stopCluster makeForkCluster
