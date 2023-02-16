@@ -34,9 +34,9 @@
 #' custom_time <- FALSE
 #' fecha1 <- "2022-04-18"
 #' fecha2 <- "2022-04-24"
-#' get_raster_csv_ct(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
+#' get_raster(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cores = 1, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL) {
+get_raster <- function(dir_input, dir_output, season = "month", var_name, n_cores = 1, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
@@ -75,8 +75,9 @@ get_raster <- function(dir_input, dir_output, season = "months", var_name, n_cor
   #### fn para obtener un raster según función seleccionada#####################
   get_raster <- function(files, file_out) {
     stack <- raster::stack(files, varname = var_name)
-    stack <- raster::calc(stack, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE))) %>% st_as_stars()
-    write_stars(obj = stack, dsn = file_out)
+    stack <- raster::calc(stack, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE)))
+    writeRaster(stack, filename = file_out, format="GTiff", overwrite = TRUE)
+    #write_stars(obj = stack, dsn = file_out)
   }
   ##############################################################################
   if (season == "year") {
