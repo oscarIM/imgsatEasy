@@ -58,7 +58,7 @@ get_raster_new <- function(dir_input, dir_output, season = "month", var_name, n_
   get_raster <- function(files, file_out) {
     stack <- raster::stack(files, varname = var_name)
     stack <- raster::calc(stack, fun = function(x) do.call(stat_function, list(x, na.rm = TRUE)))
-    writeRaster(stack, filename = file_out, format = "GTiff", overwrite = TRUE)
+    raster::writeRaster(stack, filename = file_out, format = "GTiff", overwrite = TRUE)
     #write_stars(obj = stack, dsn = file_out)
   }
   ##############################################################################
