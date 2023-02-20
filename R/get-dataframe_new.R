@@ -13,7 +13,7 @@
 #' @importFrom dplyr case_when group_by group_split filter pull bind_rows mutate
 #' @importFrom tidyr drop_na
 #' @importFrom purrr map walk
-#' @importFrom raster stack calc clusterR endCluster
+#' @importFrom raster stack calc clusterR endCluster beginCluster
 #' @importFrom tictoc tic toc
 #' @importFrom arrow write_parquet read_parquet
 #' @export get_dataframe
@@ -122,7 +122,7 @@ get_dataframe <- function(dir_input, dir_output, type, var_name, stat_function =
       tmp <- df_input$mapped_files
       name <- paste0(unique(df_input$month_number),"_", unique(df_input$month_name), "_", min(df_input$year),"_",max(df_input$year))
       stack <- raster::stack(x = tmp, varname = var_name)
-      beginCluster(n_cores)
+      raster::beginCluster(n_cores)
       if (stat_function == "median") {
         tmp <- clusterR(stack, calc, args = list(fun = median, na.rm = TRUE))  
         }
