@@ -1,14 +1,14 @@
 #' @title get_wind_plot
 #' @description Función para obtener imágenes png de magnitud y velocidad de viento para datos del ERAS5 (formato .nc)
-#' @param nc_file nombre archivo entrada 
+#' @param nc_file nombre archivo entrada
 #' @param time_step parametro que indica la temporalidad de los datos de ERAS 5 (defecto = 1; cada una hora)
 #' @param week_number string que indica la semana a graficar
 #' @param name_plot string que indica el nombre de la imagen de salida
 #' @param height altura del plot
 #' @param width ancho del plot
 #' @param shp_file nombre del shp utilizado para la imagen final
-#' @param fecha_1 fecha de inicio del el plot
-#' @param fecha_2 fecha de termino del plot
+#' @param start_time fecha de inicio del el plot
+#' @param end_time fecha de termino del plot
 #' @import ggplot2
 #' @import sf
 #' @import dplyr
@@ -25,15 +25,15 @@
 #' nc_file <- "wind_20023_ene_w12c.nc"
 #' time_step <- 1
 #' week_number <- 12
-#' name_plot <- "wind_plot_semana_12_complete.png" 
+#' name_plot <- "wind_plot_semana_12_complete.png"
 #' height = 11
 #' width = 8
 #' shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/viento/Chile.shp"
-#' fecha_1 <- "2023-01-23"
-#' fecha_2 <- "2023-01-29"
-#'get_wind_plot(nc_file = nc_file,time_step = time_step, week_number = week_number,name_plot = name_plot, height = height, width = width,shp_file = shp_file, fecha_1 = fecha_1, fecha_2 = fecha_2)
+#' start_time <- "2023-01-23"
+#' end_time <- "2023-01-29"
+#'get_wind_plot(nc_file = nc_file,time_step = time_step, week_number = week_number,name_plot = name_plot, height = height, width = width,shp_file = shp_file, start_time = start_time, end_time = end_time)
 #' }
-get_wind_plot <- function(nc_file, time_step, week_number, name_plot, height, width, shp_file, fecha_1, fecha_2) {
+get_wind_plot <- function(nc_file, time_step, week_number, name_plot, height, width, shp_file, start_time, end_time) {
   sf_use_s2(FALSE)
   nc_data <- nc_open(nc_file)
   # get lon lat, time
@@ -75,13 +75,13 @@ get_wind_plot <- function(nc_file, time_step, week_number, name_plot, height, wi
       lat = as.numeric(lat)
     ) %>%
     drop_na() %>%
-    filter(between(date, as_date(fecha_1), as_date(fecha_2)))
+    filter(between(date, as_date(start_time), as_date(end_time)))
   # remove cosas
   rm(list = c(
     "v_vec_long", "u_vec_long", "time_range", "arrays_list", "fillvalues_list", "dims_list",
     "nc_data", "tunits"
   ))
-  
+
   speed_dir <- as_tibble(uv2ds(tmp$u, tmp$v))
   df <- bind_cols(tmp, speed_dir) %>%
     mutate(date = as_date(date))
@@ -171,21 +171,21 @@ get_wind_plot <- function(nc_file, time_step, week_number, name_plot, height, wi
       colours = alpha(oce.colorsJet(120), 0.7),
       na.value = "white",
       name = "Velocidad promedio (m/s)"
-    ) + 
+    ) +
     geom_sf(data = zona_sur, col = "white", fill = "gray70", lwd = 1) +
     coord_sf(xlim = c(-76, -70.5), ylim = c(-36.4, -38.7)) +
     geom_segment(
       data = gridded_wind,
       aes(x = lon, xend = lon + u / 20, y = lat, yend = lat + v / 20),
       arrow = arrow(length = unit(0.1, "cm")),
-      lineend = "round", 
+      lineend = "round",
       linejoin = "mitre",
       col = "black"
     ) +
     scale_x_longitude(ticks = 2) +
     scale_y_latitude(ticks = 0.5) +
     theme_bw() +
-    guides(fill = guide_colourbar(barwidth = 10, 
+    guides(fill = guide_colourbar(barwidth = 10,
                                   barheight = 0.5,
                                   title.position = "top")) +
     theme(axis.text = element_text(size = 11, colour = "black"),
