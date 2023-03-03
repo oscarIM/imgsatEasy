@@ -37,6 +37,7 @@
 #' }
 get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
                           end_time, dir_output = getwd(), name_outfile = "data.nc") {
+  setwd(dir_output)
   tic("Tiempo total descarga y transformación de datos")
   #### input checks ####
   if (missing(long_min)) {
@@ -61,7 +62,7 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
   area <- paste0(lat_max, "/", long_min, "/", lat_min, "/", long_max)
   dates <- seq.Date(from = lubridate::ymd(start_time), to = lubridate::ymd(end_time), by = "day")
   days <- as.character(lubridate::day(dates))
-  name_outfile <- paste0(start_time, "_", end_time, ".grib")
+  name_outfile <- paste0(start_time, "_", end_time, ".nc")
   #### request ####
   cat("Generando la socilitud de datos para el area y tiempo definidos... \n")
   request <- list(
