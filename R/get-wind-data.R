@@ -7,7 +7,7 @@
 #' @param start_time tiempo inicial para la descarga
 #' @param end_time tiempo dinal para la descarga
 #' @param dir_output directorio de descarga de los datos. Por defecto(getwd())
-#' @name_outfile nombre archivo a descargar
+#' @param name_outfile nombre archivo a descargar
 #' @return archivos .grib
 #' @importFrom lubridate day ymd
 #' @importFrom tictoc tic toc
