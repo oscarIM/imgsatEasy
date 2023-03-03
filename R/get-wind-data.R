@@ -36,7 +36,7 @@
 #' )
 #' }
 get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
-                          end_time, dir_output = getwd(), name_outfile = "download.grib") {
+                          end_time, dir_output = getwd(), name_outfile = "data.nc") {
   tic("Tiempo total descarga")
   #### input checks ####
   if (missing(long_min)) {
@@ -81,7 +81,7 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
     ),
     "area" = area,
     "format" = "grib",
-    "target" = name_outfile
+    "target" = "download.grib"
   )
   ####
   #### download####
@@ -97,4 +97,6 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
   cat("Descarga de datos finalizada...\n")
   ####
   toc()
+  #### transformación a nc
+  system(paste("cdo -f nc copy ", "download.grib", name_outfile, sep = (" ")))
 }
