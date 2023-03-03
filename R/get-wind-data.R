@@ -39,16 +39,16 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
                           end_time, dir_output = getwd(), name_outfile = "download.grib") {
   tic("Tiempo total descarga")
   #### input checks ####
-  if (missing(xmin)) {
+  if (missing(long_min)) {
     stop("se debe especificar long_min")
   }
-  if (missing(xmax)) {
+  if (missing(long_max)) {
     stop("se debe especificar long_max")
   }
-  if (missing(ymin)) {
+  if (missing(lat_min)) {
     stop("se debe especificar lat_min ")
   }
-  if (missing(ymax)) {
+  if (missing(lat_max)) {
     stop("se debe especificar lat_max ")
   }
   if (missing(start_time)) {
