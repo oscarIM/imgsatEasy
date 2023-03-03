@@ -11,7 +11,6 @@
 #' @return archivos .grib
 #' @importFrom lubridate day ymd
 #' @importFrom tictoc tic toc
-#' @importFrom ecmwfr wf_request
 #' @export get_wind_data
 #' @examples
 #' \dontrun{
@@ -58,14 +57,16 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
   if (missing(end_time)) {
     stop("se debe especificar end_time")
   }
-  ####
+  #### setting inputs for request ####
   lat_max <- ceiling(lat_max)
   long_max <- ceiling(long_max)
   lat_min <- floor(lat_min)
   long_min <- floor(long_min)
+
   area <- paste0(lat_max, "/", long_min, "/", lat_min, "/", long_max)
   dates <- seq.Date(from = lubridate::ymd(start_time), to = lubridate::ymd(end_time), by = "day")
   days <- as.character(lubridate::day(dates))
+  ####
   #### request ####
   cat("Generando la socilitud de datos para el area y tiempo definidos... \n")
   request <- list(
