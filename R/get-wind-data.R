@@ -100,6 +100,6 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
   #### transformación a nc
   cat("Transformación de grib a nc...\n")
   system(paste("cdo -f nc copy ", "tmp.grib", name_outfile, sep = (" ")))
-  rm("tmp.grib")
+  rm(paste0(dir_output,"/tmp.grib"))
   toc()
 }
