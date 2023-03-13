@@ -12,8 +12,8 @@ get_wind_plot(
   height,
   width,
   shp_file,
-  fecha_1,
-  fecha_2
+  start_time,
+  end_time
 )
 }
 \arguments{
@@ -31,9 +31,9 @@ get_wind_plot(
 
 \item{shp_file}{nombre del shp utilizado para la imagen final}
 
-\item{fecha_1}{fecha de inicio del el plot}
+\item{start_time}{fecha de inicio del el plot}
 
-\item{fecha_2}{fecha de termino del plot}
+\item{end_time}{fecha de termino del plot}
 }
 \value{
 imágenes png de velocidad y magnitud de viento
@@ -46,12 +46,12 @@ Función para obtener imágenes png de magnitud y velocidad de viento para datos
 nc_file <- "wind_20023_ene_w12c.nc"
 time_step <- 1
 week_number <- 12
-name_plot <- "wind_plot_semana_12_complete.png" 
+name_plot <- "wind_plot_semana_12_complete.png"
 height = 11
 width = 8
 shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/viento/Chile.shp"
-fecha_1 <- "2023-01-23"
-fecha_2 <- "2023-01-29"
-get_wind_plot(nc_file = nc_file,time_step = time_step, week_number = week_number,name_plot = name_plot, height = height, width = width,shp_file = shp_file, fecha_1 = fecha_1, fecha_2 = fecha_2)
+start_time <- "2023-01-23"
+end_time <- "2023-01-29"
+get_wind_plot(nc_file = nc_file,time_step = time_step, week_number = week_number,name_plot = name_plot, height = height, width = width,shp_file = shp_file, start_time = start_time, end_time = end_time)
 }
 }

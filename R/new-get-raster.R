@@ -22,7 +22,7 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom tictoc tic toc
 #' @importFrom progressr with_progress progressor
-#' @export get_raster_new
+#' @export get_raster
 #' @examples
 #' \dontrun{
 #' dir_input <- "/dir/to/input/"
@@ -45,7 +45,7 @@ get_raster <- function(dir_input, dir_output, season = "month", var_name, n_core
     tibble(
       mapped_files = .,
       tmp_file = path_file(mapped_files)) %>%
-    separate(tmp_file, into = c("year", "month_number", "month_name", "day"), sep = "_", remove = TRUE, extra = "drop") %>% 
+    separate(tmp_file, into = c("year", "month_number", "month_name", "day"), sep = "_", remove = TRUE, extra = "drop") %>%
     mutate(month_number = as.numeric(month_number),
            date = as_date(paste0(year, "-", month_number, "-", day)))
   if (custom_time) {

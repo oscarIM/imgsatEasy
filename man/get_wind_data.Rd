@@ -11,8 +11,8 @@ get_wind_data(
   long_max,
   start_time,
   end_time,
-  dir_output = getwd(),
-  name_outfile = "download.grib"
+  dir_output,
+  name_outfile
 )
 }
 \arguments{
