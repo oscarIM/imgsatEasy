@@ -1,4 +1,4 @@
-#' @title get_raster_new
+#' @title get_raster
 #' @description Función para generar imágenes ráster a partir de imágenes satelitales L3
 #' @param dir_input directorio en donde se almacenan las imágenes L3 (formato .nc)
 #' @param dir_output directorio de destino
@@ -36,7 +36,7 @@
 #' fecha2 <- "2022-04-24"
 #' get_raster_new(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, n_cores = n_cores)
 #' }
-get_raster_new <- function(dir_input, dir_output, season = "month", var_name, n_cores = 1, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL) {
+get_raster <- function(dir_input, dir_output, season = "month", var_name, n_cores = 1, stat_function = "median", custom_time = FALSE, begin_day = NULL, end_day = NULL) {
   current_wd <- path_wd()
   tic(msg = "Duración total análisis")
   # setwd(dir_input)
