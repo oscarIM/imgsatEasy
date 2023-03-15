@@ -139,4 +139,5 @@ daily_wind_plot <- function(csv_file, week_number, name_plot, height, width, shp
     ) +
     facet_wrap(~day_name, ncol = 2)
   ggsave(filename = name_plot, plot = daily_plot, device = "png", units = "in", dpi = 300, height = height, width = width)
+  cat("Listo... \n\n")
 }
