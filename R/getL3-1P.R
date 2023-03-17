@@ -57,7 +57,7 @@
 #' end_day <- "2022-12-28"
 #' getL3_1P(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
 #' }
-getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, flaguse, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
+getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
   current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
@@ -155,12 +155,12 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
   if (var_name == "sst") {
     seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
-      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 4, north, south, east, west, area_weighting, "qual_sst", "SST"))
+      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", "LAND,HISOLZEN", 2, north, south, east, west, area_weighting, "qual_sst", "SST"))
     }
   } else {
     seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
-      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 0, north, south, east, west, area_weighting))
+      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 2, north, south, east, west, area_weighting))
     }
   }
   # AUX#
