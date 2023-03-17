@@ -155,7 +155,7 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
   if (var_name == "sst") {
     seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
-      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, "0", north, south, east, west, area_weighting, "qual_sst", "SST"))
+      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 4, north, south, east, west, area_weighting, "qual_sst", "SST"))
     }
   } else {
     seadas_l2bin <- function(infile, ofile) {
