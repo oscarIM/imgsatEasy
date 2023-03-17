@@ -160,7 +160,7 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
   } else {
     seadas_l2bin <- function(infile, ofile) {
       system2(command = "chmod", args = c("+x", seadas_bins[1]))
-      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", flaguse, 2, north, south, east, west, area_weighting))
+      system2(command = seadas_bins[1], args = c(infile, ofile, "regional", var_name, res_l2, "off", "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT", 2, north, south, east, west, area_weighting))
     }
   }
   # AUX#
