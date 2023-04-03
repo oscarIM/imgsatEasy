@@ -16,7 +16,6 @@ getL3_1P(
   south,
   west,
   east,
-  flaguse,
   need_extract_and_format = TRUE,
   sort_files = FALSE,
   fudge,
@@ -49,8 +48,6 @@ getL3_1P(
 
 \item{east}{latitud este para la generación de las imágenes L3}
 
-\item{flaguse}{cadena de texto con los nosmbres de los flag a usar}
-
 \item{sort_files}{crearr sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
 
 \item{fudge}{??fusionador}
@@ -64,6 +61,8 @@ getL3_1P(
 \item{period_name}{cadena texto temporalidad a usar (e.g "semana_01")}
 
 \item{need_extract}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
+
+\item{flaguse}{cadena de texto con los nosmbres de los flag a usar}
 }
 \value{
 imágenes L3
