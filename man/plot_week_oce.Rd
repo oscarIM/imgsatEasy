@@ -47,7 +47,7 @@ lists_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022
 week_number <- 20
 start_time <- "2023-03-20"
 end_time <- "2023-03-26"
-name_plot <- "ocepars_plot_w20.png" 
+name_plot <- "ocepars_plot_w20.png"
 plot_week_oce(lists_nc = lists_nc, week_number = week_number,name_plot = name_plot,height = height, width = width,shp_file = shp_file,start_time  = start_time, end_time = end_time)
 }
 }
