@@ -1,6 +1,6 @@
 #' @title plot_week_oce
 #' @description Función para obtener imágenes semanales de parametros oceanográficos (chlor_a, sst y rrs_645)
-#' @param lists_nc lista de archivos nc de las variables
+#' @param list_nc lista de archivos nc de las variables
 #' @param week_number string que indica la semana a graficar
 #' @param name_plot string que indica el nombre de la imagen de salida
 #' @param height altura del plot
@@ -27,17 +27,17 @@
 #' shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/Golfo_Arauco_prj2.shp"
 #' height <-  5
 #' width <-  14
-#' lists_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/vars/input_plot/semana_20",regexp = ".nc$")
+#' list_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/vars/input_plot/semana_20",regexp = ".nc$")
 #' week_number <- 20
 #' start_time <- "2023-03-20"
 #' end_time <- "2023-03-26"
 #' name_plot <- "ocepars_plot_w20.png"
-#' plot_week_oce(lists_nc = lists_nc, week_number = week_number,name_plot = name_plot,height = height, width = width,shp_file = shp_file,start_time  = start_time, end_time = end_time)
+#' plot_week_oce(list_nc = list_nc, week_number = week_number,name_plot = name_plot,height = height, width = width,shp_file = shp_file,start_time  = start_time, end_time = end_time)
 #' }
-plot_week_oce <- function(lists_nc, week_number, name_plot, height, width, shp_file, start_time, end_time){
+plot_week_oce <- function(list_nc, week_number, name_plot, height, width, shp_file, start_time, end_time){
   shp_sf <- st_read(shp_file) %>% st_geometry()
   vars <- c("Rrs_645", "chlor_a", "sst")
-  list_raster <- map2(lists_nc, vars, ~raster::raster(.x, varname = .y))
+  list_raster <- map2(list_nc, vars, ~raster::raster(.x, varname = .y))
   stack_vars <- raster::stack(list_raster) %>% raster::as.data.frame(xy = TRUE)
   names(stack_vars)[3:5] <- c("rrs_645", "chlor_a", "sst")
   stack_vars <- stack_vars %>% dplyr::mutate(rrs_645 = rrs_645 * 158.9418)

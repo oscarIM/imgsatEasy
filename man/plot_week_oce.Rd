@@ -5,7 +5,7 @@
 \title{plot_week_oce}
 \usage{
 plot_week_oce(
-  lists_nc,
+  list_nc,
   week_number,
   name_plot,
   height,
@@ -16,7 +16,7 @@ plot_week_oce(
 )
 }
 \arguments{
-\item{lists_nc}{lista de archivos nc de las variables}
+\item{list_nc}{lista de archivos nc de las variables}
 
 \item{week_number}{string que indica la semana a graficar}
 
@@ -43,11 +43,11 @@ Función para obtener imágenes semanales de parametros oceanográficos (chlor_a
 shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/Golfo_Arauco_prj2.shp"
 height <-  5
 width <-  14
-lists_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/vars/input_plot/semana_20",regexp = ".nc$")
+list_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/vars/input_plot/semana_20",regexp = ".nc$")
 week_number <- 20
 start_time <- "2023-03-20"
 end_time <- "2023-03-26"
 name_plot <- "ocepars_plot_w20.png"
-plot_week_oce(lists_nc = lists_nc, week_number = week_number,name_plot = name_plot,height = height, width = width,shp_file = shp_file,start_time  = start_time, end_time = end_time)
+plot_week_oce(list_nc = list_nc, week_number = week_number,name_plot = name_plot,height = height, width = width,shp_file = shp_file,start_time  = start_time, end_time = end_time)
 }
 }
