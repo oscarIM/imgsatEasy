@@ -39,7 +39,7 @@
 plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, start_time, end_time) {
   shp_sf <- st_read(shp_file) %>% st_geometry()
   # vars <- c("Rrs_645", "chlor_a", "sst")
-  list_raster <- map(lists_nc, ~ raster::raster(., varname = var))
+  list_raster <- map(list_nc, ~ raster::raster(., varname = var))
   names_raster <- fs::path_file(list_nc)
   names_raster <- stringr::str_replace(string = names_raster, pattern = "w_", replacement = "Semana ")
   pattern_del <- paste0("_", var, "_", "1km_L3mapped.nc")
