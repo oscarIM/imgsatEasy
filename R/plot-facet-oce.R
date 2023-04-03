@@ -29,8 +29,8 @@
 #' shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/Golfo_Arauco_prj2.shp"
 #' height <- 5
 #' width <- 14
-#' lists_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/vars/input_plot/semana_20", regexp = ".nc$")
-#' var <- "sst
+#' lists_nc <- dir_ls(path = "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/oce_pars/var/input_plot/semana_20", regexp = ".nc$")
+#' var <- "sst"
 #' start_time <- "2023-03-20"
 #' end_time <- "2023-03-26"
 #' name_plot <- "ocepars_plot_w20.png"
@@ -151,5 +151,5 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
   https://oceancolor.gsfc.nasa.gov/cgi/browse.pl"
   )
   ggsave(filename = name_plot, plot = plot_final, device = "png", units = "in", dpi = 300, height = height, width = width)
-  gc()
+  gc(verbose = FALSE)
 }
