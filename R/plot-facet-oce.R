@@ -151,5 +151,4 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
   https://oceancolor.gsfc.nasa.gov/cgi/browse.pl"
   )
   ggsave(filename = name_plot, plot = plot_final, device = "png", units = "in", dpi = 300, height = height, width = width)
-  gc(verbose = FALSE)
-}
+ }
