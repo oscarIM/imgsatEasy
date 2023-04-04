@@ -12,7 +12,8 @@ daily_wind_plot(
   width,
   shp_file,
   start_time,
-  end_time
+  end_time,
+  ncol
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ daily_wind_plot(
 \item{start_time}{fecha de inicio del el plot}
 
 \item{end_time}{fecha de termino del plot}
+
+\item{ncol}{número de columnas del plot}
 }
 \value{
 imágenes png de velocidad y magnitud de viento
@@ -49,6 +52,7 @@ width <- 8
 shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/viento/Chile.shp"
 start_time <- "2023-01-23"
 end_time <- "2023-01-29"
-daily_wind_plot(csv_file = nc_file, time_step = time_step, week_number = week_number, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time)
+ncol <- 2
+daily_wind_plot(csv_file = nc_file, time_step = time_step, week_number = week_number, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time, ncol = ncol)
 }
 }

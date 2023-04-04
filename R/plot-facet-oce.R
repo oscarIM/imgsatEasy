@@ -8,6 +8,7 @@
 #' @param shp_file nombre del shp utilizado para la imagen final
 #' @param start_time fecha de inicio del el plot
 #' @param end_time fecha de termino del plot
+#' @param ncol número de columnas del plot
 #' @importFrom purrr map
 #' @importFrom tidyr pivot_longer
 #' @importFrom oce oce.colorsJet
@@ -34,9 +35,10 @@
 #' start_time <- "2023-03-20"
 #' end_time <- "2023-03-26"
 #' name_plot <- "ocepars_plot_w20.png"
-#' plot_facet_oce(list_nc = list_nc, var = var, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time)
+#' ncol=3
+#' plot_facet_oce(list_nc = list_nc, var = var, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time, ncol = ncol)
 #' }
-plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, start_time, end_time) {
+plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, start_time, end_time, ncol) {
   shp_sf <- st_read(shp_file) %>% st_geometry()
   # vars <- c("Rrs_645", "chlor_a", "sst")
   list_raster <- map(list_nc, ~ raster::raster(., varname = var))
@@ -84,7 +86,7 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~week, ncol = 3)
+      facet_wrap(~week, ncol = ncol)
   }
   ### plot sst
   if (var == "sst") {
@@ -110,7 +112,7 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~week, ncol = 3)
+      facet_wrap(~week, ncol = ncol)
   }
   if (var == "Rrs_645") {
     data <- data %>% dplyr::mutate(fill = fill * 158.9418)
@@ -142,7 +144,7 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~week, ncol = 3)
+      facet_wrap(~week, ncol = ncol)
   }
    plot_final <-  plot + plot_annotation(
     title = paste0("Parámetros oceanográficos: Golfo de Arauco: ", var),

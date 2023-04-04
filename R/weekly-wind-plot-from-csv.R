@@ -7,7 +7,7 @@
 #' @param shp_file nombre del shp utilizado para la imagen final
 #' @param start_time fecha de inicio del el plot
 #' @param end_time fecha de termino del plot
-#' @param ncol numero de columnas para el plot
+#' @param ncol número de columnas para el plot
 #' @importFrom readr read_csv
 #' @importFrom lubridate as_date
 #' @importFrom purrr map map2

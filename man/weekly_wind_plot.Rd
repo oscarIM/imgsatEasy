@@ -30,7 +30,7 @@ weekly_wind_plot(
 
 \item{width}{ancho del plot}
 
-\item{ncol}{numero de columnas para el plot}
+\item{ncol}{número de columnas para el plot}
 }
 \value{
 imágenes png de velocidad y magnitud de viento

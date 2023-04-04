@@ -8,6 +8,7 @@
 #' @param shp_file nombre del shp utilizado para la imagen final
 #' @param start_time fecha de inicio del el plot
 #' @param end_time fecha de termino del plot
+#' @param ncol número de columnas del plot
 #' @importFrom lubridate wday as_date
 #' @importFrom purrr map map_depth
 #' @importFrom tibble tibble as_tibble
@@ -32,9 +33,10 @@
 #' shp_file <- "/media/evolecolab/PortableSSD/seguimiento_arauco_2022/viento/Chile.shp"
 #' start_time <- "2023-01-23"
 #' end_time <- "2023-01-29"
-#' daily_wind_plot(csv_file = nc_file, time_step = time_step, week_number = week_number, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time)
+#' ncol <- 2
+#' daily_wind_plot(csv_file = nc_file, time_step = time_step, week_number = week_number, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time, ncol = ncol)
 #' }
-daily_wind_plot <- function(csv_file, week_number, name_plot, height, width, shp_file, start_time, end_time) {
+daily_wind_plot <- function(csv_file, week_number, name_plot, height, width, shp_file, start_time, end_time, ncol) {
   sf_use_s2(FALSE)
   df_plot <- readr::read_csv(csv_file, show_col_types = FALSE) %>%
     dplyr::filter(dplyr::between(lon, -76, -70)) %>%
@@ -137,7 +139,7 @@ daily_wind_plot <- function(csv_file, week_number, name_plot, height, width, shp
       caption = "Fuente: ERA5 hourly data on pressure levels from 1959 to present; \n
           https://cds.climate.copernicus.eu/"
     ) +
-    facet_wrap(~day_name, ncol = 2)
+    facet_wrap(~day_name, ncol = ncol)
   ggsave(filename = name_plot, plot = daily_plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   cat("Listo... \n\n")
 }

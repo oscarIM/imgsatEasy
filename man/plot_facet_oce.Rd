@@ -12,7 +12,8 @@ plot_facet_oce(
   width,
   shp_file,
   start_time,
-  end_time
+  end_time,
+  ncol
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ plot_facet_oce(
 \item{start_time}{fecha de inicio del el plot}
 
 \item{end_time}{fecha de termino del plot}
+
+\item{ncol}{número de columnas del plot}
 }
 \value{
 imágenes png parámetros oceanográficos
@@ -48,6 +51,7 @@ var <- "sst"
 start_time <- "2023-03-20"
 end_time <- "2023-03-26"
 name_plot <- "ocepars_plot_w20.png"
-plot_facet_oce(list_nc = list_nc, var = var, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time)
+ncol=3
+plot_facet_oce(list_nc = list_nc, var = var, name_plot = name_plot, height = height, width = width, shp_file = shp_file, start_time = start_time, end_time = end_time, ncol = ncol)
 }
 }
