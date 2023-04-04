@@ -61,7 +61,7 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
   current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
-  sst <- c(".SST.x.nc$", ".SST.NRT.x.nc$")
+  sst <- c(".SST.x.nc$", "SST.NRT.nc", ".SST.NRT.x.nc$")
   patterns_sst <- paste(sst, collapse = "|")
   patterns_l2 <- c(oc, sst)
   patterns_l2 <- paste0(patterns_l2, collapse = "|")
