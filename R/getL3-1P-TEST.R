@@ -33,7 +33,7 @@
 #' @importFrom utils untar
 #' @importFrom tictoc tic toc
 #' @importFrom progressr with_progress progressor
-#' @export getL3_1_test
+#' @export getL3_1P_test
 #' @examples
 #' \dontrun{
 #' dir_input <- "/home/evolecol/Desktop/R_package/test_functions/test_new_L3/data_raw"
