@@ -1,4 +1,4 @@
-#' @title getL3_1P_test
+#' @title getL3_caca
 #' @description Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
 #' @param dir_ocssw directory en donde estan los binarios ocssw (seadas)
 #' @param dir_input directory en donde se almacenan las imágenes L2
@@ -33,7 +33,7 @@
 #' @importFrom utils untar
 #' @importFrom tictoc tic toc
 #' @importFrom progressr with_progress progressor
-#' @export getL3_1P_test
+#' @export getL3_caca
 #' @examples
 #' \dontrun{
 #' dir_input <- "/home/evolecol/Desktop/R_package/test_functions/test_new_L3/data_raw"
@@ -55,9 +55,9 @@
 #' fudge <- 2
 #' begin_day <- "2022-12-26"
 #' end_day <- "2022-12-28"
-#' getL3_1P_test(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
+#' getL3_caca(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
 #' }
-getL3_1P_test <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
+getL3_caca <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
   current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
