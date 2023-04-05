@@ -55,6 +55,7 @@
 #' fudge <- 2
 #' begin_day <- "2022-12-26"
 #' end_day <- "2022-12-28"
+#' export_all <- FALSE
 #' getL3_1P(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
 #' }
 getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
@@ -201,9 +202,10 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
   ## movimiento de archivos. ACA CREAR CARPETA OUTPUT Y MOVER TODO
-  files_l2 <- dir_ls(path = dir_output, regexp = patterns_l2, recurse = FALSE)
   files_l3mapped <- dir_ls(path = dir_output, regexp = "L3mapped.nc$", recurse = FALSE)
+  files_l2 <- dir_ls(path = dir_output, regexp = patterns_l2, recurse = FALSE)
   files_logfiles <- dir_ls(path = dir_output, regexp = ".txt$", recurse = FALSE)
+  file_delete(c(files_l2, files_logfiles))
   cat("Moviendo archivos a sus respectivos directorios...\n\n")
   if (sort_files) {
     file_list <- list(files_l2, files_l3mapped, files_logfiles)
@@ -212,12 +214,12 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
   } else {
-    dir_create(path = paste0(dir_output, "/all_img_L2"))
-    dir_create(path = paste0(dir_output, "/all_img_L3"))
-    dir_create(path = paste0(dir_output, "/all_log_files"))
-    walk(files_l2, ~ file_move(path = ., new_path = paste0(dir_output, "/all_img_L2")))
-    walk(files_l3mapped, ~ file_move(path = ., new_path = paste0(dir_output, "/all_img_L3")))
-    walk(files_logfiles, ~ file_move(path = ., new_path = paste0(dir_output, "/all_log_files")))
+    #dir_create(path = paste0(dir_output, "/all_img_L2"))
+    #dir_create(path = paste0(dir_output, "/all_img_L3"))
+    #dir_create(path = paste0(dir_output, "/all_log_files"))
+    #walk(files_l2, ~ file_move(path = ., new_path = paste0(dir_output, "/all_img_L2")))
+    walk(files_l3mapped, ~ file_move(path = ., new_path = dir_output))
+    #walk(files_logfiles, ~ file_move(path = ., new_path = paste0(dir_output, "/all_log_files")))
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
