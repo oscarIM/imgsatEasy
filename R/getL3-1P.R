@@ -166,36 +166,13 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
     system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge)) }}
   tic(msg = "Duración l2bin")
   seadas_l2bin(infile = "infile.txt", ofile = outfile_l2bin)
-  # with_progress({
-  #  p <- progressor(steps = length(files_df$infile_l2bin))
-  #  future_walk2(files_df$infile_l2bin, files_df$ofile_l2bin, ~ {
-  #    p()
-  #    Sys.sleep(.2)
-  #    seadas_l2bin(infile = .x, ofile = .y)
-  #  })
-  # })
   toc()
   # stopCluster(cl)
-  # filtrar solo los archivos para los cuales hubo resultados
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- dir_ls(path = dir_output, regexp = "_L3b_tmp.nc$", recurse = TRUE)
-  # files_to_l3mapgen <- files_df %>% filter(ofile_l3bin %in% l3binned_files)
-  # cl <- makeForkCluster(n_cores)
-  # plan(cluster, workers = cl)
-  # cat("Corriendo l3mapgen...\n\n")
   tic(msg = "Duración l3mapgen")
   seadas_l3mapgen(infile = l3binned_files, ofile = outfile_mapgen)
-  # with_progress({
-  #  p <- progressor(steps = length(files_to_l3mapgen$ofile_l3bin))
-  #  future_walk2(files_to_l3mapgen$ofile_l3bin, files_to_l3mapgen$ofile_l3mapgen, ~ {
-  #    p()
-  #    Sys.sleep(.2)
-  #    seadas_l3mapgen(infile = .x, ofile = .y)
-  #  })
-  # })
   toc()
-  # stopCluster(cl)
-  # rm(cl)
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
   ## movimiento de archivos. ACA CREAR CARPETA OUTPUT Y MOVER TODO
@@ -211,12 +188,7 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
   } else {
-    #dir_create(path = paste0(dir_output, "/all_img_L2"))
-    #dir_create(path = paste0(dir_output, "/all_img_L3"))
-    #dir_create(path = paste0(dir_output, "/all_log_files"))
-    #walk(files_l2, ~ file_move(path = ., new_path = paste0(dir_output, "/all_img_L2")))
-    walk(files_l3mapped, ~ file_move(path = ., new_path = dir_output))
-    #walk(files_logfiles, ~ file_move(path = ., new_path = paste0(dir_output, "/all_log_files")))
+    file_move(path = files_l3mapped, new_path = dir_output)
     file_delete(c(seadas_bins[[1]], seadas_bins[[2]]))
     files_remove <- dir_ls(path = dir_output, regexp = "_tmp.nc$")
     file_delete(files_remove)
