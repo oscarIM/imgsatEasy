@@ -49,6 +49,15 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
     dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
     tidyr::drop_na()
   df_plot$week <- factor(df_plot$week, levels = names_csv)
+  #### dataframe by season ####
+  df_plot <- df_plot %>%
+    dplyr::group_by(lon, lat, week) %>%
+    dplyr::summarise(
+      speed_mean = mean(speed, na.rm = TRUE),
+      dir = mean(dir),
+      u = mean(u, na.rm = TRUE),
+      v = mean(v, na.rm = TRUE)
+    )
   #### spatial shit####
   df_sf <- df_plot %>%
     sf::st_as_sf(coords = c("lon", "lat")) %>%
