@@ -53,7 +53,7 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
   df_plot <- df_plot %>%
     dplyr::group_by(lon, lat, week) %>%
     dplyr::summarise(
-      speed_mean = mean(speed, na.rm = TRUE),
+      speed_mean = mean(speed_mean, na.rm = TRUE),
       dir = mean(dir),
       u = mean(u, na.rm = TRUE),
       v = mean(v, na.rm = TRUE)
