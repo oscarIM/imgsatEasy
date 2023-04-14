@@ -43,8 +43,15 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
   names_csv <- stringr::str_remove(string = names_csv, pattern = pattern_del)
   fn_format_csv <- function(csv_file, name_csv) {
     csv <- readr::read_csv(csv_file,show_col_types = FALSE) %>%
+<<<<<<< HEAD
       dplyr::mutate(week = name_csv) %>%
       dplyr::group_by(lon, lat, week) %>%
+=======
+      dplyr::mutate(week_name = name_csv) %>%
+      dplyr::filter(dplyr::between(lon, -76, -70)) %>%
+      dplyr::filter(dplyr::between(lat, -44, -34)) %>%
+      dplyr::group_by(lon, lat, week_name) %>%
+>>>>>>> 9bfcc5db71082a0faded0c15b1682581721d9693
       dplyr::summarise(
         speed_mean = mean(speed_mean, na.rm = TRUE),
         dir = mean(dir,na.rm = TRUE),
@@ -52,15 +59,20 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
         v = mean(v, na.rm = TRUE)) %>%
       #dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
       tidyr::drop_na()
+<<<<<<< HEAD
     }
   df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x,name_csv = .y)) %>%
+=======
+  }
+  df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x, name_csv = .y)) %>%
+>>>>>>> 9bfcc5db71082a0faded0c15b1682581721d9693
     bind_rows()
   #df_plot$week <- factor(df_plot$week, levels = names_csv)
   #### spatial shit####
   df_sf <- df_plot %>%
     sf::st_as_sf(coords = c("lon", "lat")) %>%
     sf::st_set_crs(4326) %>%
-    dplyr::group_by(week) %>%
+    dplyr::group_by(week_name) %>%
     dplyr::group_split()
   grid <- df_sf[[1]] %>%
     sf::st_make_grid(n = c(150, 150)) %>%
@@ -72,7 +84,7 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
       id = dplyr::n(),
       contained = lapply(sf::st_contains(sf::st_sf(geometry), data_sf), identity),
       obs = sapply(contained, length),
-      week_name = unique(data_sf$week),
+      week_name = unique(data_sf$week_name),
       u = sapply(contained, function(x) {
         mean(data_sf[x, ]$u, na.rm = TRUE)
       }),
@@ -144,7 +156,8 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
       caption = "Fuente: ERA5 hourly data on pressure levels from 1959 to present; \n
           https://cds.climate.copernicus.eu/"
     ) +
-    facet_wrap(~week, ncol = ncol)
+    facet_wrap(~week_name, ncol = ncol)
   ggsave(filename = name_plot, plot = weekly_plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   cat("Listo... \n\n")
 }
+
