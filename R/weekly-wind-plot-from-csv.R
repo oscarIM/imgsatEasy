@@ -41,23 +41,21 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
   file_ext <- c("_complete.csv", "_partial.csv")
   pattern_del <- paste(file_ext, collapse = "|")
   names_csv <- stringr::str_remove(string = names_csv, pattern = pattern_del)
-  df_plot <- purrr::map(list_csv, ~ readr::read_csv(.x, show_col_types = FALSE))
-  df_plot <- purrr::map2(df_plot, names_csv, ~ dplyr::mutate(.x, week = .y)) %>%
-    dplyr::bind_rows() %>%
-    dplyr::filter(dplyr::between(lon, -76, -70)) %>%
-    dplyr::filter(dplyr::between(lat, -44, -34)) %>%
-    dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
-    tidyr::drop_na()
-  df_plot$week <- factor(df_plot$week, levels = names_csv)
-  #### dataframe by season ####
-  df_plot <- df_plot %>%
-    dplyr::group_by(lon, lat, week) %>%
-    dplyr::summarise(
-      speed_mean = mean(speed_mean, na.rm = TRUE),
-      dir = mean(dir),
-      u = mean(u, na.rm = TRUE),
-      v = mean(v, na.rm = TRUE)
-    )
+  fn_format_csv <- function(csv_file, name_csv) {
+    csv <- readr::read_csv(csv_file,show_col_types = FALSE) %>%
+      dplyr::mutate(week = name_csv) %>%
+      dplyr::group_by(lon, lat, week) %>%
+      dplyr::summarise(
+        speed_mean = mean(speed_mean, na.rm = TRUE),
+        dir = mean(dir,na.rm = TRUE),
+        u = mean(u, na.rm = TRUE),
+        v = mean(v, na.rm = TRUE)) %>%
+      #dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
+      tidyr::drop_na()
+    }
+  df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x,name_csv = .y)) %>%
+    bind_rows()
+  #df_plot$week <- factor(df_plot$week, levels = names_csv)
   #### spatial shit####
   df_sf <- df_plot %>%
     sf::st_as_sf(coords = c("lon", "lat")) %>%
@@ -140,7 +138,7 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
       x = NULL, y = NULL,
       title = "Velocidad y dirección promedio del viento: VIII Región",
       subtitle = paste0(
-        "Periodo :", min(df_plot$date), " al ", max(df_plot$date), "\n",
+        "Periodo :", start_time, " al ", end_time, "\n",
         "presión: 1000hPa"
       ),
       caption = "Fuente: ERA5 hourly data on pressure levels from 1959 to present; \n
