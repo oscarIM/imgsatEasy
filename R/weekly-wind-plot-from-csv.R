@@ -43,15 +43,12 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
   names_csv <- stringr::str_remove(string = names_csv, pattern = pattern_del)
   fn_format_csv <- function(csv_file, name_csv) {
     csv <- readr::read_csv(csv_file,show_col_types = FALSE) %>%
-<<<<<<< HEAD
       dplyr::mutate(week = name_csv) %>%
       dplyr::group_by(lon, lat, week) %>%
-=======
       dplyr::mutate(week_name = name_csv) %>%
       dplyr::filter(dplyr::between(lon, -76, -70)) %>%
       dplyr::filter(dplyr::between(lat, -44, -34)) %>%
       dplyr::group_by(lon, lat, week_name) %>%
->>>>>>> 9bfcc5db71082a0faded0c15b1682581721d9693
       dplyr::summarise(
         speed_mean = mean(speed_mean, na.rm = TRUE),
         dir = mean(dir,na.rm = TRUE),
@@ -59,13 +56,9 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
         v = mean(v, na.rm = TRUE)) %>%
       #dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
       tidyr::drop_na()
-<<<<<<< HEAD
     }
   df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x,name_csv = .y)) %>%
-=======
-  }
   df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x, name_csv = .y)) %>%
->>>>>>> 9bfcc5db71082a0faded0c15b1682581721d9693
     bind_rows()
   #df_plot$week <- factor(df_plot$week, levels = names_csv)
   #### spatial shit####
