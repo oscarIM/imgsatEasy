@@ -146,9 +146,9 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
       theme_bw() +
       facet_wrap(~week, ncol = ncol)
   }
-  #####formating names
+  #####formatting names
   if (var == "chlor_a") {
-    var <- expression(paste(Clorofila,"-", alpha))
+    var <- "Clorofila -a"
   }
   if (var == "sst"){
     var <- "Temperatura supercial del Mar"
