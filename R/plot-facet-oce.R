@@ -146,7 +146,17 @@ plot_facet_oce <- function(list_nc, var, name_plot, height, width, shp_file, sta
       theme_bw() +
       facet_wrap(~week, ncol = ncol)
   }
-   plot_final <-  plot + plot_annotation(
+  if (var =="chlor_a") {
+    var <- expression(paste(Clorofila,"-", alpha))
+  }
+  if (var == " sst"){
+    var <- "Temperatura supercial del Mar"
+  }
+  if(var == " Rrs_645"){
+    var <- "nWLR 645"
+  }
+
+  plot_final <-  plot + plot_annotation(
     title = paste0("Parámetros oceanográficos: Golfo de Arauco: ", var),
     subtitle = paste0("Periodo :", start_time, " al ", end_time),
     caption = "Fuente:  OceanColor Data; \n
