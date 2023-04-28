@@ -31,91 +31,90 @@
 get_dataframe <- function(dir_input, dir_output, type, var_name, stat_function = "median", season, n_cores = 4) {
   ####mensajes de error####
   tic(msg = "Duración total análisis")
-  files <- dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = TRUE) %>%
-    tibble(
+  files <- fs::dir_ls(path = dir_input, regexp = "_L3mapped.nc$", recurse = FALSE) %>%
+    tibble::tibble(
       mapped_files = .,
-      files = path_file(mapped_files)) %>%
-    separate(data = ., into = c("year", "month_number", "month_name", "day") , col = "files",  sep = "_", remove = FALSE, extra = "drop") %>%
-    mutate(month_number_1 = as.numeric(month_number),
-           date = as_date(paste0(year, "-", month_number_1, "-", day)))
- 
+      files = fs::path_file(mapped_files)) %>%
+    tidyr::separate(data = ., into = c("year", "month_number", "day") , col = "files",  sep = "_", remove = FALSE, extra = "drop") %>%
+    dplyr::mutate(date = lubridate::as_date(paste0(year, "-", month_number, "-", day)))
+
   if (type == "full_df") {
-    dir <- dir_create(path = paste0(dir_output, "/all_dataframe")) %>% 
-      fs_path()
-     list_day_files <- files %>% 
-      group_by(date) %>% 
-      group_split()
-    input_files <- map(list_day_files, ~ pull(., "mapped_files"))
-    input_dates <- map(list_day_files, ~ pull(., "date"))
+    dir <- fs::dir_create(path = paste0(dir_output, "/all_dataframe")) %>%
+      fs::fs_path()
+    list_day_files <- files %>%
+      dplyr::group_by(date) %>%
+      dplyr::group_split()
+    input_files <- purrr::map(list_day_files, ~ dplyr::pull(., "mapped_files"))
+    input_dates <- purrr::map(list_day_files, ~ dplyr::pull(., "date"))
     single_day_to_df <- function(input_files, dates){
       ####para archivos únicos####
       if (length(input_files) >= 2) {
         stack <- raster::stack(input_files, varname = var_name)
         df_day <- raster::calc(stack, fun = function(x) do.call(mean, list(x, na.rm = TRUE))) %>%
-          setNames(var_name) %>% 
+          setNames(var_name) %>%
           raster::as.data.frame(x = ., xy = TRUE)
-        df_day <- df_day %>% 
-          mutate(date = unique(dates)) %>%
-          drop_na() %>%
+        df_day <- df_day %>%
+          dplyr::mutate(date = unique(dates)) %>%
+          tidyr::drop_na() %>%
           tmp_name <- paste0(unique(dates), "_tmp.parquet")
         out <- paste0(dir, "/", tmp_name)
-        write_parquet(x = df_day, sink = out)
-        rm(list = c("stack", "df_day", "tmp_name", "out")) 
+        arrow::write_parquet(x = df_day, sink = out)
+        rm(list = c("stack", "df_day", "tmp_name", "out"))
       } else {
-        df_day <- raster::raster(input_files, varname = var_name) %>% 
-          raster::as.data.frame(x = ., xy = TRUE) %>% 
-          drop_na() %>%
-          dplyr::rename(!!var_name := 3)  %>% 
+        df_day <- raster::raster(input_files, varname = var_name) %>%
+          raster::as.data.frame(x = ., xy = TRUE) %>%
+          tidyr::drop_na() %>%
+          dplyr::rename(!!var_name := 3)  %>%
           dplyr::mutate(date = dates)
         tmp_name <- paste0(dates, "_tmp.parquet")
         out <- paste0(dir, "/", tmp_name)
-        write_parquet(x = df_day, sink = out)
+        arrow::write_parquet(x = df_day, sink = out)
         rm(list = c("df_day", "tmp_name", "out"))
       }
     }
     purrr::walk2(input_files, input_dates, ~single_day_to_df(input_file = .x, date = .y), .progress = TRUE)
     ####crear archivos mensuales y exportar####
-    files <- dir_ls(path = dir, regexp = "_tmp.parquet$", recurse = FALSE) %>%
-      tibble(
+    files <- fs::dir_ls(path = dir, regexp = "_tmp.parquet$", recurse = FALSE) %>%
+      tibble::tibble(
         data_frame_files = .,
-        date = as_date(path_file(data_frame_files), format = "%Y-%m-%d"),
-        year = year(date),
-        day = day(date),
-        month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE))
+        date = as.Date(fs::path_file(data_frame_files), format = "%Y-%m-%d"),
+        year = lubridate::year(date),
+        day = lubridate::day(date),
+        month_name = paste0(sprintf("%02d", lubridate::month(date)), "_", lubridate::month(date, label = TRUE, abbr = FALSE))
         )
     list_files <- files %>%
-      group_by(year, month_name) %>%
-      group_split() %>%
-      map(., ~ pull(., "data_frame_files"))
+      dplyr::group_by(year, month_name) %>%
+      dplyr::group_split() %>%
+      purrr::map(., ~ dplyr::pull(., "data_frame_files"))
     get_final_df <- function(files) {
-      df <- map(files, ~ read_parquet(.)) %>%
-        bind_rows() %>%
-        mutate(
-          year = year(date),
-          month = month(date),
-          month_name = paste0(sprintf("%02d", month(date)), "_", month(date, label = TRUE, abbr = FALSE))
+      df <- purrr::map(files, ~ arrow::read_parquet(.)) %>%
+        dplyr::bind_rows() %>%
+        dplyr::mutate(
+          year = lubridate::year(date),
+          month = lubridate::month(date),
+          month_name = paste0(sprintf("%02d", lubridate::month(date)), "_", lubridate::month(date, label = TRUE, abbr = FALSE))
         )
       tmp_name <- paste0(unique(df$year), "_", unique(df$month_name),"_", var_name, ".parquet")
       out <- paste0(dir, "/", tmp_name)
-      write_parquet(x = df, sink = out)
+      arrow::write_parquet(x = df, sink = out)
       rm(list = c("df", "tmp_name", "out"))
-      file_delete(files)
+      fs::file_delete(files)
     }
     purrr::walk(list_files , ~get_final_df(files = .), .progress = TRUE)
   }
   if (type == "to_plot") {
-    dir <- dir_create(path = paste0(dir_output, "/to_plot")) %>% 
-      fs_path()
+    dir <- fs::dir_create(path = paste0(dir_output, "/to_plot")) %>%
+      fs::fs_path()
      if (season == "year") {
       df_files <- files %>%
-        group_by(year) %>%
-        group_split() %>%
+        dplyr::group_by(year) %>%
+        dplyr::group_split() %>%
         setNames(map(., ~ unique(.[["year"]])))
     }
     if (season == "month") {
       df_files <- files %>%
-        group_by(month_number_1) %>%
-        group_split() %>%
+        dplyr::group_by(month_number) %>%
+        dplyr::group_split() %>%
         setNames(map(., ~(paste0(unique(.[["month_number"]]), "_", unique(.[["month_name"]])))))
          }
       get_season_raster <- function(df_input) {
@@ -124,21 +123,21 @@ get_dataframe <- function(dir_input, dir_output, type, var_name, stat_function =
       stack <- raster::stack(x = tmp, varname = var_name)
       raster::beginCluster(n_cores)
       if (stat_function == "median") {
-        tmp <- clusterR(stack, calc, args = list(fun = median, na.rm = TRUE))  
+        tmp <- raster::clusterR(stack, calc, args = list(fun = median, na.rm = TRUE))
         }
       if (stat_function == "mean") {
-        tmp <- clusterR(stack, calc, args = list(fun = mean, na.rm = TRUE))
+        tmp <- raster::clusterR(stack, calc, args = list(fun = mean, na.rm = TRUE))
         }
-      endCluster()
-     df <- tmp %>% setNames(var_name) %>% 
+      raster::endCluster()
+     df <- tmp %>% setNames(var_name) %>%
        raster::as.data.frame(x = ., xy = TRUE)
      tmp_name <- paste0(name,"_",var_name, "_", stat_function, ".parquet")
      out <- paste0(dir, "/", tmp_name)
-     write_parquet(x = df, sink = out)
+     arrow::write_parquet(x = df, sink = out)
      rm(list = c("stack", "df","tmp", "tmp_name", "out"))
       }
     #get_season_raster(input_list = input_files[1])
-    walk(df_files, ~ get_season_raster(df_input = .), .progress = TRUE)
+    purrr::walk(df_files, ~ get_season_raster(df_input = .), .progress = TRUE)
     #tratar de cambiar a map
     cat("Listo... \n\n")
   }
