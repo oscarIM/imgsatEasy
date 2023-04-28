@@ -192,7 +192,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
     system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge))
   }
   tictoc::tic(msg = "Duración l2bin")
-  purrr::walk2(file, outfile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y))
+  purrr::walk2(file, outfile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y), .progress = TRUE)
   tictoc::toc()
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- fs::dir_ls(path = dir_output, regexp = "_L3b_tmp.nc$", recurse = TRUE)
@@ -202,7 +202,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
     replacement = "_L3mapped.nc"
   )
   tictoc::tic(msg = "Duración l3mapgen")
-  purrr::walk2(l3binned_files, outfile_mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y))
+  purrr::walk2(l3binned_files, outfile_mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), .progress = TRUE)
   tictoc::toc()
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
