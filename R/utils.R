@@ -18,7 +18,7 @@ NULL
 #' @keywords internal
 #' @param files an input file
 move_files <- function(files) {
-  l2_pattern <- ".OC.NRT.nc$|.OC.x.nc$|SST.x.nc$|SST.NRT.x.nc$"
+  l2_pattern <- ".OC.x.nc$|.OC.NRT.nc$|.OC.NRT.x.nc$|.SST.x.nc$|SST.NRT.nc|.SST.NRT.x.nc$"
   l3_pattern <- "L3mapped.nc$"
   logfiles_pattern <- ".*txt"
   df <- tibble(
