@@ -1,4 +1,4 @@
-#' @title getL3_1P
+#' @title getL3_custom_season
 #' @description Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
 #' @param dir_ocssw directory en donde estan los binarios ocssw (seadas)
 #' @param dir_input directory en donde se almacenan las imágenes L2
@@ -32,7 +32,7 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom utils untar
 #' @importFrom tictoc tic toc
-#' @export getL3_1P
+#' @export getL3_custom_season
 #' @examples
 #' \dontrun{
 #' dir_input <- "/home/evolecol/Desktop/R_package/test_functions/test_new_L3/data_raw"
@@ -55,7 +55,7 @@
 #' end_day <- "2022-12-28"
 #' getL3_1P(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files, begin_day = begin_day, end_day = end_day, period_name = period_name)
 #' }
-getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
+getL3_custom_season <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, need_extract_and_format = TRUE, sort_files = FALSE, fudge, area_weighting, begin_day, end_day, period_name) {
   current_wd <- path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
@@ -162,8 +162,11 @@ getL3_1P <- function(dir_ocssw, dir_input, dir_output, var_name, n_cores = 1, re
     }
   }
   # AUX#
-  seadas_l3mapgen <- function(infile, ofile) {{ system2(command = "chmod", args = c("+x", seadas_bins[2]))
-    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge)) }}
+  seadas_l3mapgen <- function(infile, ofile) {
+    system2(command = "chmod", args = c("+x", seadas_bins[2]))
+    system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge)) 
+  }
+
   tic(msg = "Duración l2bin")
   seadas_l2bin(infile = "infile.txt", ofile = outfile_l2bin)
   toc()
