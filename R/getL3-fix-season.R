@@ -69,7 +69,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
       purrr::walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
     } else {
       cl <- parallel::makeForkCluster(n_cores)
-      future:plan(cluster, workers = cl)
+      future::plan(cluster, workers = cl)
       furrr::future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
       parallel::stopCluster(cl)
       rm(cl)
