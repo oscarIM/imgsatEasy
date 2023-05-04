@@ -55,7 +55,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
   current_wd <- fs::path_wd()
   oc <- c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$")
   patterns_oc <- paste(oc, collapse = "|")
-  sst <- c(".SST.x.nc$", "SST.NRT.nc", ".SST.NRT.x.nc$")
+  sst <- c(".SST.x.nc$", ".SST.NRT.nc$", ".SST.NRT.x.nc$")
   patterns_sst <- paste(sst, collapse = "|")
   patterns_l2 <- c(oc, sst)
   patterns_l2 <- paste0(patterns_l2, collapse = "|")
@@ -220,13 +220,21 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
     pattern = "_L3b_tmp.nc",
     replacement = "_L3mapped.nc"
   )
+  cat("Corriendo wrappers de seadas: l3mapgen...\n\n")
   tictoc::tic(msg = "Duración l3mapgen")
-  if(length(file) <= 10) {
+  if(length(l3binned_files) <= 10) {
     purrr::walk2(l3binned_files, outfile_mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), .progress = TRUE)
   } else {
     cl <- parallel::makeForkCluster(n_cores)
     future::plan(cluster, workers = cl)
-    furrr::future_walk2(l3binned_files, outfile_mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y))
+    progressr::with_progress({
+      p <- progressor(steps = length(l3binned_files))
+      furrr::future_walk2(l3binned_files, outfile_mapgen, ~ {
+        p()
+        Sys.sleep(.2)
+        seadas_l3mapgen(infile = .x, ofile = .y)
+      }, .options = furrr_options(seed = TRUE))
+    })
     parallel::stopCluster(cl)
     rm(cl)
     }
