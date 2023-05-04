@@ -29,6 +29,7 @@
 #' @importFrom parallel stopCluster makeForkCluster
 #' @importFrom utils untar
 #' @importFrom tictoc tic toc
+#' @import progressr
 #' @export getL3_fix_season
 #' @examples
 #' \dontrun{
@@ -205,7 +206,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
       furrr::future_walk2(file, outfile_l2bin, ~ {
         p()
         Sys.sleep(.2)
-        seadas_l2bin(infile = .x, ofile = .y))
+        seadas_l2bin(infile = .x, ofile = .y)
       }, .options = furrr_options(seed = TRUE))
     })
     parallel::stopCluster(cl)

@@ -9,6 +9,7 @@ getL3_fix_season(
   dir_input,
   dir_output,
   var_name,
+  season,
   n_cores = 1,
   res_l2 = "1",
   res_l3 = "1Km",
@@ -31,6 +32,8 @@ getL3_fix_season(
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
+\item{season}{temporalidad para la generación de L3 ("day", "week", "month", "year" por ahora)}
+
 \item{n_cores}{número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente}
 
 \item{res_l2}{resolución para l2bin. Por defecto, res = "1" (H: 0.5km, Q: 250m, HQ: 100m, HH: 50m, 1: 1.1km, 2: 2.3km, 4: 4.6km, 9: 9.2km, 18: 18.5km, 36: 36km, 1D: 1 degree, HD: 0.5 degree, QD: 0.25 degree)}
@@ -50,8 +53,6 @@ getL3_fix_season(
 \item{fudge}{??fusionador}
 
 \item{area_weighting}{area_weighting}
-
-\item{season}{temporalidad para la generación de L3 ("day", "week", "month", "year" por ahora)}
 
 \item{need_extract}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
 }
