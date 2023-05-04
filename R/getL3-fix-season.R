@@ -156,7 +156,7 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
   outfile_l2bin <- paste0(names(files_df_list), "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
   rm(list = ls(pattern = "tmp"))
   # correr l2bin-l3mapgen
-  cat("Corriendo wrappers de seadas...\n\n")
+
   Sys.sleep(1)
   # rutas temporales solo para probar la funcion, despues estaran dentro del programa
   if (var_name == "sst") {
@@ -193,18 +193,25 @@ getL3_fix_season <- function(dir_ocssw, dir_input, dir_output, var_name, season,
   }
 
   ####aca agrgar un if length files >= 10. hacerlo multicore####
+  cat("Corriendo wrappers de seadas: l2bin...\n\n")
   tictoc::tic(msg = "Duración l2bin")
   if(length(file) <= 10) {
     purrr::walk2(file, outfile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y), .progress = TRUE)
   } else {
     cl <- parallel::makeForkCluster(n_cores)
     future::plan(cluster, workers = cl)
-    furrr::future_walk2(file, outfile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y))
+    progressr::with_progress({
+      p <- progressor(steps = length(file))
+      furrr::future_walk2(file, outfile_l2bin, ~ {
+        p()
+        Sys.sleep(.2)
+        seadas_l2bin(infile = .x, ofile = .y))
+      }, .options = furrr_options(seed = TRUE))
+    })
     parallel::stopCluster(cl)
     rm(cl)
   }
   tictoc::toc()
-
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- fs::dir_ls(path = dir_output, regexp = "_L3b_tmp.nc$", recurse = TRUE)
   outfile_mapgen <- stringr::str_replace(
