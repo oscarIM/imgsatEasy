@@ -57,7 +57,7 @@ weekly_wind_plot <- function(list_csv, name_plot, shp_file, start_time, end_time
       #dplyr::filter(dplyr::between(date, lubridate::as_date(start_time), lubridate::as_date(end_time))) %>%
       tidyr::drop_na()
     }
-  df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x,name_csv = .y)) %>%
+  #df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x,name_csv = .y)) %>%
   df_plot <- map2(list_csv, names_csv, ~fn_format_csv(csv_file = .x, name_csv = .y)) %>%
     bind_rows()
   #df_plot$week <- factor(df_plot$week, levels = names_csv)
