@@ -6,6 +6,7 @@
 #' @param long_min latitud mínima para la zona de descarga
 #' @param start_time tiempo inicial para la descarga
 #' @param end_time tiempo dinal para la descarga
+#' @param product_time tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"
 #' @param dir_output directorio de descarga de los datos. Por defecto(getwd())
 #' @param prefix_outfile archivo a descargar
 #' @return dataframe en .csv
@@ -43,7 +44,7 @@
 #' )
 #' }
 get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
-                          end_time, dir_output = getwd(), prefix_outfile) {
+                          end_time, dir_output = getwd(), product_name, prefix_outfile) {
   tictoc::tic("Tiempo total descarga y transformación de datos")
   #### input checks ####
   if (missing(long_min)) {
@@ -75,26 +76,48 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
   ####
   #### request ####
   cat("Generando la socilitud de datos para el area y tiempo definidos... \n")
-  request <- list(
-    "dataset_short_name" = "reanalysis-era5-pressure-levels",
-    "pressure_level" = "1000",
-    "product_type" = "reanalysis",
-    "variable" = c("u_component_of_wind", "v_component_of_wind"),
-    "year" = as.character(lubridate::year(start_time)),
-    "month" = paste0(sprintf("%02d", lubridate::month(start_time))),
-    "day" = days,
-    "time" = c(
-      "00:00", "01:00", "02:00", "03:00", "04:00",
-      "05:00", "06:00", "07:00", "08:00", "09:00",
-      "10:00", "11:00", "12:00", "13:00", "14:00",
-      "15:00", "16:00", "17:00", "18:00", "19:00",
-      "20:00", "21:00", "22:00", "23:00"
-    ),
-    "area" = area,
-    "format" = "grib",
-    "target" = "tmp.grib"
-  )
-  ####
+  if(product_name == "pressure_levels") {
+    request <- list(
+      "dataset_short_name" = "reanalysis-era5-pressure-levels",
+      "pressure_level" = "1000",
+      "product_type" = "reanalysis",
+      "variable" = c("u_component_of_wind", "v_component_of_wind"),
+      "year" = as.character(lubridate::year(start_time)),
+      "month" = paste0(sprintf("%02d", lubridate::month(start_time))),
+      "day" = days,
+      "time" = c(
+        "00:00", "01:00", "02:00", "03:00", "04:00",
+        "05:00", "06:00", "07:00", "08:00", "09:00",
+        "10:00", "11:00", "12:00", "13:00", "14:00",
+        "15:00", "16:00", "17:00", "18:00", "19:00",
+        "20:00", "21:00", "22:00", "23:00"
+      ),
+      "area" = area,
+      "format" = "grib",
+      "target" = "tmp.grib"
+    )
+}
+  if (product_name == "single-levels") {
+    request <- list(
+      "dataset_short_name" = "reanalysis-era5-single-levels",
+      #"pressure_level" = "1000",
+      "product_type" = "reanalysis",
+      "variable" = c("10m_u_component_of_wind", "10m_v_component_of_wind", "mean_sea_level_pressure"),
+      "year" = as.character(lubridate::year(start_time)),
+      "month" = paste0(sprintf("%02d", lubridate::month(start_time))),
+      "day" = days,
+      "time" = c(
+        "00:00", "01:00", "02:00", "03:00", "04:00",
+        "05:00", "06:00", "07:00", "08:00", "09:00",
+        "10:00", "11:00", "12:00", "13:00", "14:00",
+        "15:00", "16:00", "17:00", "18:00", "19:00",
+        "20:00", "21:00", "22:00", "23:00"
+      ),
+      "area" = area,
+      "format" = "grib",
+      "target" = "tmp.grib"
+    )
+  }
   #### download####
   dir_output <- fs::dir_create(path = dir_output) %>%
     fs::fs_path()
