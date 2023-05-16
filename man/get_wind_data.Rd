@@ -12,6 +12,7 @@ get_wind_data(
   start_time,
   end_time,
   dir_output = getwd(),
+  product_name,
   prefix_outfile
 )
 }
@@ -31,6 +32,8 @@ get_wind_data(
 \item{dir_output}{directorio de descarga de los datos. Por defecto(getwd())}
 
 \item{prefix_outfile}{archivo a descargar}
+
+\item{product_time}{tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"}
 }
 \value{
 dataframe en .csv
