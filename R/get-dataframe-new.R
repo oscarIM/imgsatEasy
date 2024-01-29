@@ -115,11 +115,11 @@ get_dataframe <- function(dir_input, dir_output, type, var_name, stat_function =
       df_files <- files %>%
         dplyr::group_by(month_number) %>%
         dplyr::group_split() %>%
-        setNames(map(., ~(paste0(unique(.[["month_number"]]), "_", unique(.[["month_name"]])))))
+        setNames(map(., ~(paste0(unique(.[["month_number"]])))))
          }
       get_season_raster <- function(df_input) {
       tmp <- df_input$mapped_files
-      name <- paste0(unique(df_input$month_number),"_", unique(df_input$month_name), "_", min(df_input$year),"_",max(df_input$year))
+      name <- paste0(unique(df_input$month_number), "_", min(df_input$year),"_",max(df_input$year))
       stack <- raster::stack(x = tmp, varname = var_name)
       raster::beginCluster(n_cores)
       if (stat_function == "median") {

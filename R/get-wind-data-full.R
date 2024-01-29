@@ -104,7 +104,7 @@ get_wind_data <- function(lat_min, lat_max, long_min, long_max, start_time,
       "product_type" = "reanalysis",
       "variable" = c("10m_u_component_of_wind", "10m_v_component_of_wind", "mean_sea_level_pressure"),
       "year" = as.character(lubridate::year(start_time)),
-      "month" = paste0(sprintf("%02d", lubridate::month(start_time))),
+      "month" = as.character(lubridate::month(seq.Date(from = lubridate::ymd(start_time), to = lubridate::ymd(end_time), by = "month"))),
       "day" = days,
       "time" = c(
         "00:00", "01:00", "02:00", "03:00", "04:00",
