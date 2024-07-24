@@ -6,7 +6,7 @@
 #' @param long_min latitud mínima para la zona de descarga
 #' @param start_time tiempo inicial para la descarga
 #' @param end_time tiempo dinal para la descarga
-#' @param product_time tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"
+#' @param product_name tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"
 #' @param dir_output directorio de descarga de los datos. Por defecto(getwd())
 #' @param prefix_outfile archivo a descargar
 #' @return dataframe en .csv
