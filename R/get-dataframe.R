@@ -69,7 +69,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
   input_folder <- list.dirs(full.names = TRUE) %>%
     stringr::str_subset(pattern = "requested_files")
   setwd(input_folder)
-  cat("haciendo algo...\n\n")
+  cat("Transformando archivos L2 a L3...\n\n")
   all_files_tmp <- list.files(full.names = TRUE, pattern = ".nc$") %>%
     dplyr::tibble(file = .) %>%
     tidyr::separate(col = "file",
@@ -238,7 +238,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
   if (length(files_l3mapped) <= 10) {
     # Procesamiento secuencial usando purrr::walk
     purrr::walk(files_l3mapped, function(file) {
-      df <- nc_to_table(file)
+      df <- nc_to_table(file, var_name)
       write_table(df, file)
     })
   } else {
@@ -250,7 +250,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
       furrr::future_walk(files_l3mapped, ~ {
         p()
         Sys.sleep(.2)
-        df <- nc_to_table(.x)
+        df <- nc_to_table(.x, var_name)
         write_table(df, .x)
       }, .options = furrr::furrr_options(seed = TRUE))
     })
