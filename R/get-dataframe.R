@@ -19,6 +19,7 @@
 #' @return tabla de datos en csv o parquet
 #' @import tidyverse
 #' @import furrr
+#' @import ncdf4
 #' @import future
 #' @import parallel
 #' @import progressr
