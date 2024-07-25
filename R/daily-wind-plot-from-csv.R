@@ -9,17 +9,10 @@
 #' @param start_time fecha de inicio del el plot
 #' @param end_time fecha de termino del plot
 #' @param ncol número de columnas del plot
-#' @importFrom lubridate wday as_date
-#' @importFrom purrr map map_depth
-#' @importFrom tibble tibble as_tibble
-#' @importFrom tidyr drop_na
-#' @importFrom oce oce.colorsJet
-#' @importFrom stringr str_to_sentence
-#' @importFrom metR scale_x_longitude scale_y_latitude
-#' @importFrom readr read_csv
-#' @import ggplot2
+#' @import tidyverse
 #' @import sf
-#' @import dplyr
+#' @import oce
+#' @importFrom metR scale_x_longitude scale_y_latitude
 #' @return imágenes png de velocidad y magnitud de viento
 #' @export daily_wind_plot
 #' @examples
