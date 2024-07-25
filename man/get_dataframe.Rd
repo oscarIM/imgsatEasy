@@ -20,7 +20,7 @@ get_dataframe(
   west,
   east,
   fudge,
-  area_weighting
+  area_weighting = 0
 )
 }
 \arguments{
