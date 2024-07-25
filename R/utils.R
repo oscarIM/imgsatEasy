@@ -41,6 +41,10 @@ tic <- function(msg = NULL) {
     cat(msg, "\n")
   }
 }
+#' @title toc
+#' @rdname toc
+#' @keywords internal
+#' @param msg as input
 toc <- function() {
   start_time <- get(".tic_time", envir = .GlobalEnv)
   elapsed_time <- proc.time() - start_time
