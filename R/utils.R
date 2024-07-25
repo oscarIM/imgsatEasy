@@ -75,7 +75,7 @@ nc_to_table <- function(file, var_name) {
 #' @param df as input
 #' @param file as input
 #'
-write_table <- function(df, file) {
+write_table <- function(df, file, format_output) {
   base_name <- stringr::str_remove(string = file, pattern = "_1km_L3mapped.nc$")
   if (format_output  == "parquet") {
     file_name <- paste0(base_name, ".parquet")

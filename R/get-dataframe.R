@@ -240,7 +240,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     # Procesamiento secuencial usando purrr::walk
     purrr::walk(files_l3mapped, function(file) {
       df <- nc_to_table(file, var_name)
-      write_table(df, file)
+      write_table(df, file, format_output)
     })
   } else {
     # Procesamiento paralelo usando furrr::future_walk
@@ -252,7 +252,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
         p()
         Sys.sleep(.2)
         df <- nc_to_table(.x, var_name)
-        write_table(df, .x)
+        write_table(df, .x, format_ouput)
       }, .options = furrr::furrr_options(seed = TRUE))
     })
     parallel::stopCluster(cl)
