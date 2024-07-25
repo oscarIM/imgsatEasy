@@ -7,7 +7,7 @@
 move_files(files)
 }
 \arguments{
-\item{files}{an input file}
+\item{files}{as input file}
 }
 \description{
 move_file

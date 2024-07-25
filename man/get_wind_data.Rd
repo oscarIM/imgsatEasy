@@ -31,9 +31,9 @@ get_wind_data(
 
 \item{dir_output}{directorio de descarga de los datos. Por defecto(getwd())}
 
-\item{prefix_outfile}{archivo a descargar}
+\item{product_name}{tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"}
 
-\item{product_time}{tipo de producto. Por ahora 2: "pressure-levels" o "single-levels"}
+\item{prefix_outfile}{archivo a descargar}
 }
 \value{
 dataframe en .csv

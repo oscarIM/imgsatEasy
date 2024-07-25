@@ -1,22 +1,7 @@
-#' Pipe operator
-#'
-#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
-#'
-#' @name %>%
-#' @rdname pipe
-#' @keywords internal
-#' @export
-#' @importFrom magrittr %>%
-#' @usage lhs \%>\% rhs
-#' @param lhs A value or the magrittr placeholder.
-#' @param rhs A function call using the magrittr semantics.
-#' @return The result of calling `rhs(lhs)`.
-NULL
-
 #' @title move_file
 #' @rdname move_file
 #' @keywords internal
-#' @param files an input file
+#' @param files as input file
 move_files <- function(files) {
   l2_pattern <- ".OC.x.nc$|.OC.NRT.nc$|.OC.NRT.x.nc$|.SST.x.nc$|SST.NRT.nc|.SST.NRT.x.nc$"
   l3_pattern <- "L3mapped.nc$"
@@ -45,4 +30,19 @@ move_files <- function(files) {
     dir_create(.)
   })
   walk2(files, df$dir, ~ file_move(path = .x, new_path = .y))
+}
+#' @title tic
+#' @rdname tic
+#' @keywords internal
+#' @param msg as input
+tic <- function(msg = NULL) {
+  assign(".tic_time", proc.time(), envir = .GlobalEnv)
+  if (!is.null(msg)) {
+    cat(msg, "\n")
+  }
+}
+toc <- function() {
+  start_time <- get(".tic_time", envir = .GlobalEnv)
+  elapsed_time <- proc.time() - start_time
+  cat("Duración total análisis: ", elapsed_time[3], "segundos\n")
 }

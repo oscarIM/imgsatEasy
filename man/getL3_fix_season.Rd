@@ -17,8 +17,6 @@ getL3_fix_season(
   south,
   west,
   east,
-  need_extract_and_format = TRUE,
-  sort_files = FALSE,
   fudge,
   area_weighting
 )
@@ -32,7 +30,7 @@ getL3_fix_season(
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
-\item{season}{temporalidad para la generación de L3 ("day", "week", "month", "year" por ahora)}
+\item{season}{temporalidad para la generación de L3 ("day",  "month", "year" por ahora)}
 
 \item{n_cores}{número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente}
 
@@ -48,19 +46,15 @@ getL3_fix_season(
 
 \item{east}{latitud este para la generación de las imágenes L3}
 
-\item{sort_files}{crearr sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
-
 \item{fudge}{??fusionador}
 
 \item{area_weighting}{area_weighting}
-
-\item{need_extract}{mantener sistema de archivos año/mes? (TRUE/FALSE).Por defecto, FALSE}
 }
 \value{
-imágenes L3
+archivos nc level-L3
 }
 \description{
-Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl
+Función para obtener imágenes L3 a partir de imágenes L2 descargadas desde https://oceancolor.gsfc.nasa.gov/cgi/browse.pl. Solo se pueden extraer archivos diarios, mensuales o anuales
 }
 \examples{
 \dontrun{
@@ -76,8 +70,6 @@ north <- -35
 south <- -40
 west <- -75
 east <- -70
-need_extract_and_format <- TRUE
-sort_files <- FALSE
 fudge <- 2
 area_weighting <- 0
 getL3_fixed_season(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, need_extract_and_format = need_extract_and_format, sort_files = sort_files)
