@@ -50,3 +50,42 @@ toc <- function() {
   elapsed_time <- proc.time() - start_time
   cat("Duración total análisis: ", elapsed_time[3], "segundos\n")
 }
+
+#' @title write_table
+#' @rdname toc
+#' @keywords internal
+#' @param file as input
+nc_to_table <- function(file) {
+  nc <- nc_open(file)
+  on.exit(nc_close(nc))
+  times <- c(ncatt_get(nc, 0, "time_coverage_start")$value, ncatt_get(nc, 0, "time_coverage_end")$value)
+  lat <- ncvar_get(nc, "lat") %>% as.vector()
+  lon <- ncvar_get(nc, "lon") %>% as.vector()
+  var_tmp <- ncvar_get(nc, var_name)
+  df <- tidyr::expand_grid(lat = lat, lon = lon) %>%
+    dplyr::mutate(!!sym(var_name) := as.vector(var_tmp),
+                  date1 = times[1], date2 = times[2])
+  df <- as.matrix(df)
+  df <- as.data.frame(df)
+  return(df)
+
+}
+#' @title nc_to_table
+#' @rdname toc
+#' @keywords internal
+#' @param df as input
+#' @param file as input
+#'
+write_table <- function(df, file) {
+  base_name <- stringr::str_remove(string = file, pattern = "_1km_L3mapped.nc$")
+  if (format_output  == "parquet") {
+    file_name <- paste0(base_name, ".parquet")
+    arrow::write_parquet(x = df, sink = file_name)
+  } else if (format_output == "csv") {
+    file_name <- paste0(base_name, ".csv")
+    ###readr
+    write_csv(x = df, file = file_name, progress = FALSE)
+  } else {
+    stop("Formato no soportado: ", format_output )
+  }
+}
