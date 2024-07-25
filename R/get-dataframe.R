@@ -43,7 +43,7 @@
 #' sensor <- "all"
 #' get_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, sensor = sensor)
 #' }
-get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet" , sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting) {
+get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet" , sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting = 0) {
   tic()
   current_wd <- getwd()
   patterns_oc <- paste(c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$"), collapse = "|")
