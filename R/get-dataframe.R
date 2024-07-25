@@ -252,7 +252,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
         p()
         Sys.sleep(.2)
         df <- nc_to_table(.x, var_name)
-        write_table(df, .x, format_ouput)
+        write_table(df, .x, format_output)
       }, .options = furrr::furrr_options(seed = TRUE))
     })
     parallel::stopCluster(cl)
