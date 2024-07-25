@@ -2,7 +2,6 @@
 
 export(daily_wind_plot)
 export(getL3_custom_season)
-export(getL3_fix_season)
 export(get_clim)
 export(get_dataframe)
 export(get_raster)
