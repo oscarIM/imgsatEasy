@@ -8,7 +8,8 @@ get_dataframe(
   dir_ocssw,
   dir_input,
   dir_output,
-  format_ouput = "parquet",
+  format_output = "parquet",
+  sensor,
   var_name,
   season,
   n_cores = 1,
@@ -28,6 +29,10 @@ get_dataframe(
 \item{dir_input}{directorio en donde se almacenan las imágenes L2}
 
 \item{dir_output}{directorio en donde se almacenaran los archivos resultantes}
+
+\item{format_output}{formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.}
+
+\item{sensor}{String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA (aqua) y MODIS TERRA (terra) o ambos ("all)}
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
@@ -50,8 +55,6 @@ get_dataframe(
 \item{fudge}{??fusionador}
 
 \item{area_weighting}{area_weighting}
-
-\item{format_output}{formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.}
 }
 \value{
 tabla de datos en csv o parquet
@@ -76,6 +79,7 @@ west <- -75
 east <- -70
 fudge <- 2
 area_weighting <- 0
-get_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
+sensor <- "all"
+get_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, sensor = sensor)
 }
 }

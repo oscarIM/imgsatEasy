@@ -6,6 +6,7 @@
 #' @param format_output formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
 #' @param season temporalidad para la generación de las tablas de datos ("day",  "month", "year" por ahora)
+#' @param sensor String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA (aqua) y MODIS TERRA (terra) o ambos ("all)
 #' @param n_cores número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente
 #' @param res_l2 resolución para l2bin. Por defecto, res = "1" (H: 0.5km, Q: 250m, HQ: 100m, HH: 50m, 1: 1.1km, 2: 2.3km, 4: 4.6km, 9: 9.2km, 18: 18.5km, 36: 36km, 1D: 1 degree, HD: 0.5 degree, QD: 0.25 degree)
 #' @param res_l3 resolución para l3mapgen. Por defecto, res = "1km" (36km: 1080 x 540, 18km: 2160 x 1080, 9km: 4320 x 2160, 4km: 8640 x 4320, 2km: 17280 x 8640, 1km: 34560 x 17280, hkm: 69120 x 34560, qkm: 138240 x 69120, smi: 4096 x 2048, smi4: 8192 x 4096, land: 8640 x 4320)
@@ -39,9 +40,10 @@
 #' east <- -70
 #' fudge <- 2
 #' area_weighting <- 0
-#' get_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east)
+#' sensor <- "all"
+#' get_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, sensor = sensor)
 #' }
-get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_ouput = "parquet", var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting) {
+get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet" , sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting) {
   tic()
   current_wd <- getwd()
   patterns_oc <- paste(c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$"), collapse = "|")
