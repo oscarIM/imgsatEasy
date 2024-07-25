@@ -4,7 +4,7 @@
 \alias{write_table}
 \title{write_table}
 \usage{
-write_table(df, file)
+write_table(df, file, format_output)
 }
 \arguments{
 \item{df}{as input}
