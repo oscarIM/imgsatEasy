@@ -51,11 +51,12 @@ toc <- function() {
   cat("Duración total análisis: ", elapsed_time[3], "segundos\n")
 }
 
-#' @title write_table
-#' @rdname toc
+#' @title nc_to_table
+#' @rdname nc_to_table
 #' @keywords internal
 #' @param file as input
-nc_to_table <- function(file) {
+#' @param var_name as input
+nc_to_table <- function(file, var_name) {
   nc <- nc_open(file)
   on.exit(nc_close(nc))
   times <- c(ncatt_get(nc, 0, "time_coverage_start")$value, ncatt_get(nc, 0, "time_coverage_end")$value)
@@ -65,13 +66,11 @@ nc_to_table <- function(file) {
   df <- tidyr::expand_grid(lat = lat, lon = lon) %>%
     dplyr::mutate(!!sym(var_name) := as.vector(var_tmp),
                   date1 = times[1], date2 = times[2])
-  df <- as.matrix(df)
-  df <- as.data.frame(df)
   return(df)
 
 }
-#' @title nc_to_table
-#' @rdname toc
+#' @title write_table
+#' @rdname write_table
 #' @keywords internal
 #' @param df as input
 #' @param file as input
