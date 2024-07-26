@@ -55,22 +55,35 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
   list_tar_tmp <- list.files(full.names = TRUE, pattern = "*.tar")
   ## chequar si length list_tar_tmp == 0, indica error
   ex_dir <- stringr::str_remove(list_tar_tmp, pattern = ".tar")
-
-  if (length(list_tar_tmp) <= 1) {
-    purrr::walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"))
-  } else {
-    Sys.sleep(2)
-    cl <- parallel::makeForkCluster(n_cores)
-    future::plan("cluster", workers = cl)
-    furrr::future_walk(list_tar_tmp, ~ untar(tarfile = .x, exdir = "nc_files"),.progress = TRUE)
-    parallel::stopCluster(cl)
-    rm(cl)
+  if (length(list_tar_tmp) <= 10) {
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(list_tar_tmp))
+      purrr::walk(list_tar_tmp, ~ {
+        p()
+        Sys.sleep(.2)
+        untar(tarfile = .x, exdir = "nc_files")
+        })
+      })
+    } else {
+      cl <- parallel::makeForkCluster(n_cores)
+      future::plan("cluster", workers = cl)
+      progressr::with_progress({
+        p <- progressr::progressor(steps = length(list_tar_tmp))
+        furrr::future_walk(list_tar_tmp, ~ {
+          p()
+          Sys.sleep(.2)
+          untar(tarfile = .x, exdir = "nc_files")
+      }, .options = furrr_options(seed = TRUE))
+    })
+      parallel::stopCluster(cl)
+      rm(cl)
   }
 
   input_folder <- list.dirs(full.names = TRUE) %>%
     stringr::str_subset(pattern = "requested_files")
   setwd(input_folder)
-  cat("Transformando archivos L2 a L3...\n\n")
+
+  cat("Transformando archivos L2 a L3: Configurando archivos de entrada... \n\n")
   all_files_tmp <- list.files(full.names = TRUE, pattern = ".nc$") %>%
     dplyr::tibble(file = .) %>%
     tidyr::separate(col = "file",
@@ -142,8 +155,8 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
       }
     }))
   #### generar y exportarinfiles por season####
-  file <- paste0(names(files_df_list), "_infile.txt")
-  purrr::walk2(files_df_list, file, ~ cat(.x$infile_l2bin, file = .y, sep = "\n"))
+  files <- paste0(names(files_df_list), "_infile.txt")
+  purrr::walk2(files_df_list, files, ~ cat(.x$infile_l2bin, file = .y, sep = "\n"))
   outfile_l2bin <- paste0(names(files_df_list), "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
   # correr l2bin-l3mapgen
 
@@ -182,17 +195,22 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     system2(command = "chmod", args = c("+x", seadas_bins[2]))
     system2(command = seadas_bins[2], args = c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge))
   }
-
-  ####aca agrgar un if length files >= 10. hacerlo multicore####
-  cat("Corriendo wrappers de seadas: l2bin...\n\n")
-  if (length(file) <= 10) {
-    purrr::walk2(file, outfile_l2bin, ~ seadas_l2bin(infile = .x, ofile = .y), .progress = TRUE)
+  cat("Transformando archivos L2 a L3: Corriendo l2bin...\n\n")
+  if (length(files) <= 10) {
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(files))
+      purrr::walk2(files, outfile_l2bin, ~ {
+        p()
+        Sys.sleep(.2)
+        seadas_l2bin(infile = .x, ofile = .y)
+      })
+    })
   } else {
     cl <- parallel::makeForkCluster(n_cores)
     future::plan("cluster", workers = cl)
     progressr::with_progress({
-      p <- progressor(steps = length(file))
-      furrr::future_walk2(file, outfile_l2bin, ~ {
+      p <- progressor(steps = length(files))
+      furrr::future_walk2(files, outfile_l2bin, ~ {
         p()
         Sys.sleep(.2)
         seadas_l2bin(infile = .x, ofile = .y)
@@ -208,24 +226,29 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     pattern = "_L3b_tmp.nc",
     replacement = "_L3mapped.nc"
   )
-  cat("Corriendo wrappers de seadas: l3mapgen...\n\n")
-
+  cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
   if (length(l3binned_files) <= 10) {
-    purrr::walk2(l3binned_files, outfile_mapgen, ~ seadas_l3mapgen(infile = .x, ofile = .y), .progress = TRUE)
-  } else {
-    cl <- parallel::makeForkCluster(n_cores)
-    future::plan("cluster", workers = cl)
-    progressr::with_progress({
-      p <- progressor(steps = length(l3binned_files))
-      furrr::future_walk2(l3binned_files, outfile_mapgen, ~ {
-        p()
-        Sys.sleep(.2)
-        seadas_l3mapgen(infile = .x, ofile = .y)
-      }, .options = furrr::furrr_options(seed = TRUE))
-    })
-    parallel::stopCluster(cl)
-    rm(cl)
-  }
+      progressr::with_progress({
+        p <- progressr::progressor(steps = length(l3binned_files))
+        purrr::walk2(l3binned_files, outfile_mapgen, ~ {
+          p()
+          Sys.sleep(.2)
+          seadas_l3mapgen(infile = .x, ofile = .y)
+          })
+        }) } else {
+          cl <- parallel::makeForkCluster(n_cores)
+          future::plan("cluster", workers = cl)
+          progressr::with_progress({
+            p <- progressor(steps = length(l3binned_files))
+            furrr::future_walk2(l3binned_files, outfile_mapgen, ~ {
+              p()
+              Sys.sleep(.2)
+              seadas_l3mapgen(infile = .x, ofile = .y)
+              }, .options = furrr::furrr_options(seed = TRUE))
+            })
+          parallel::stopCluster(cl)
+          rm(cl)
+    }
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
   ## movimiento de archivos. ACA CREAR CARPETA OUTPUT Y MOVER TODO
@@ -234,30 +257,33 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
   files_del <- list.files(path = dir_output, pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   files_l3mapped <- list.files(path = dir_output, pattern = "L3mapped.nc$", full.names = TRUE, recursive = FALSE)
   unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
-  cat(paste0("Iniciando generación de archivos de ", var_name ," en formato ", format_output, "\n\n"))
 
+  cat(paste0("Iniciando generación de archivos de ", var_name ," en formato ", format_output, "\n\n"))
   if (length(files_l3mapped) <= 10) {
-    # Procesamiento secuencial usando purrr::walk
-    purrr::walk(files_l3mapped, function(file) {
-      df <- nc_to_table(file, var_name)
-      write_table(df, file, format_output)
-    })
-  } else {
-    # Procesamiento paralelo usando furrr::future_walk
-    cl <- parallel::makeForkCluster(n_cores)
-    future::plan("cluster", workers = cl)
     progressr::with_progress({
-      p <- progressor(steps = length(files_l3mapped))
-      furrr::future_walk(files_l3mapped, ~ {
+      p <- progressr::progressor(steps = length(files_l3mapped))
+      purrr::walk(files_l3mapped, function(file) {
         p()
         Sys.sleep(.2)
-        df <- nc_to_table(.x, var_name)
-        write_table(df, .x, format_output)
-      }, .options = furrr::furrr_options(seed = TRUE))
-    })
-    parallel::stopCluster(cl)
-    rm(cl)
+        df <- nc_to_table(file, var_name)
+        write_table(df, file, format_output)
+        })
+      }) } else {
+        cl <- parallel::makeForkCluster(n_cores)
+        future::plan("cluster", workers = cl)
+        progressr::with_progress({
+          p <- progressor(steps = length(files_l3mapped))
+          furrr::future_walk(files_l3mapped, ~ {
+            p()
+            Sys.sleep(.2)
+            df <- nc_to_table(.x, var_name)
+            write_table(df, .x, format_output)
+            }, .options = furrr::furrr_options(seed = TRUE))
+          })
+        parallel::stopCluster(cl)
+        rm(cl)
   }
+
   unlink(files_l3mapped)
   setwd(current_wd)
   toc()
