@@ -93,7 +93,7 @@ files_df_list <- all_files_tmp %>%
     }
   }))
 cat("\n\n Calculando climatologías...\n\n")
-path_list <- purrr::map(files_df_list, ~ pull(., "file"))
+path_list <- purrr::map(files_df_list, ~ dplyr::pull(., "file"))
 func <- match.fun(stat_function)
 ext_file <- unique(stringr::str_extract(string = all_files_tmp$tmp_col, pattern = files_ext_pattern))
 ####filter data####

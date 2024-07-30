@@ -16,8 +16,6 @@ plot_clim(
   res = 300,
   height = 8,
   width = 6,
-  xlim,
-  ylim,
   ticks_x = 0.2,
   ticks_y = 0.1,
   n_cores = 1
@@ -46,13 +44,13 @@ plot_clim(
 
 \item{width}{amplitud para la imágen png de la climatología}
 
-\item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
-
-\item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
-
 \item{ticks_x}{vector numérico tamaño 1 indicando ticks en el eje x del plot}
 
 \item{ticks_y}{vector numérico tamaño 1 indicando ticks en el eje y del plot}
+
+\item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
+
+\item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
 }
 \value{
 imágenes png

@@ -4,7 +4,7 @@
 \alias{process_sublist}
 \title{process_sublist}
 \usage{
-process_sublist(entry_list)
+process_sublist(entry_list, n_cores)
 }
 \arguments{
 \item{entry_list}{as input}
