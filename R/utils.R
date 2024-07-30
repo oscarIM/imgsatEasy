@@ -99,15 +99,15 @@ process_tables <- function(file) {
   dataframe <- dataframe %>%
     tidyr::drop_na() %>%
     dplyr::group_by(lat, lon) %>%
-    dplyr::mutate(ID = dplyr::cur_group_id()) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::group_by(ID) %>% 
-    dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), 
+    dplyr::mutate(ID = dplyr::cur_group_id()) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(ID) %>%
+    dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE),
                      date1 = first(date1),
                      date2 = first(date2),
                      lon = first(lon),
                      lat = first(lat),
-                     .groups = "drop") %>% 
+                     .groups = "drop") %>%
     dplyr::select(-ID)
   data_sf <- sf::st_as_sf(dataframe, coords = c("lon", "lat"), crs = 4326)
   data_to_filter <- suppressMessages(sf::st_intersects(data_sf, shp_sf))
@@ -127,7 +127,7 @@ process_tables <- function(file) {
 #' @rdname process_sublist
 #' @keywords internal
 #' @param entry_list as input
-process_sublist <- function(entry_list) {
+process_sublist <- function(entry_list, n_cores) {
   if (n_cores <= 1) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))

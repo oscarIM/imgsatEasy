@@ -41,7 +41,7 @@
 #' width <- 9
 #' plot_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
 #' }
-plot_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, xlim, ylim, ticks_x = 0.2, ticks_y = 0.1, n_cores = 1) {
+plot_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.2, ticks_y = 0.1, n_cores = 1) {
 #agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
   #* Establish a new 'ArgCheck' object
   #Check <- ArgumentCheck::newArgCheck()
