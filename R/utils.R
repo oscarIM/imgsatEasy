@@ -74,7 +74,6 @@ nc_to_table <- function(file, var_name) {
 #' @keywords internal
 #' @param df as input
 #' @param file as input
-#'
 write_table <- function(df, file, format_output) {
   base_name <- stringr::str_remove(string = file, pattern = "_1km_L3mapped.nc$")
   if (format_output  == "parquet") {
@@ -87,4 +86,99 @@ write_table <- function(df, file, format_output) {
   } else {
     stop("Formato no soportado: ", format_output )
   }
+}
+
+#' @title process_tables
+#' @rdname process_tables
+#' @keywords internal
+#' @param file as input
+process_tables <- function(file) {
+  dataframe <- switch(ext_file,
+                      ".parquet" = arrow::read_parquet(file),
+                      ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
+  dataframe <- dataframe %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(lat, lon) %>%
+    dplyr::mutate(ID = dplyr::cur_group_id()) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::group_by(ID) %>% 
+    dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), 
+                     date1 = first(date1),
+                     date2 = first(date2),
+                     lon = first(lon),
+                     lat = first(lat),
+                     .groups = "drop") %>% 
+    dplyr::select(-ID)
+  data_sf <- sf::st_as_sf(dataframe, coords = c("lon", "lat"), crs = 4326)
+  data_to_filter <- suppressMessages(sf::st_intersects(data_sf, shp_sf))
+  # just useful for marine plots
+  dataframe <- dataframe %>% dplyr::mutate(inside = apply(data_to_filter, 1, any))
+  dataframe <- dataframe %>%
+    dplyr::filter(inside == FALSE) %>%
+    dplyr::filter(between(lon, bbox[1], bbox[3])) %>%
+    dplyr::filter(between(lat, bbox[2], bbox[4])) %>%
+    dplyr::mutate(season = stringr::str_to_sentence(lubridate::month(date1, abbr = FALSE, label = TRUE))) %>%
+    dplyr::select(-inside)
+  return(dataframe)
+  rm(list = c("data_sf", "data_to_filter"))
+  gc()
+}
+#' @title process_sublist
+#' @rdname process_sublist
+#' @keywords internal
+#' @param entry_list as input
+process_sublist <- function(entry_list) {
+  if (n_cores <= 1) {
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(entry_list))
+      dataframe_list <- purrr::map(entry_list, ~{
+        result <- process_tables(.x)
+        p()
+        Sys.sleep(0.2)
+        result
+      })
+    })
+  } else {
+    cl <- parallel::makeForkCluster(n_cores)
+    future::plan("cluster", workers = cl)
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(entry_list))
+      dataframe_list <- furrr::future_map(entry_list, ~{
+        result <- process_tables(.x)
+        p()
+        Sys.sleep(0.2)
+        result
+      }, .options = furrr::furrr_options(seed = TRUE))
+    })
+    parallel::stopCluster(cl)
+  }
+  return(dataframe_list)
+}
+
+#' @title scale_x_longitude
+#' @rdname scale_x_longitude
+#' @keywords internal
+scale_x_longitude <- function(name = "", ticks = 30,
+                              breaks = seq(-180, 360, by = ticks),
+                              expand = c(0, 0),
+                              labels = LonLabel,
+                              trans = "identity",
+                              ...) {
+    # labels = waiver()
+    ggplot2::scale_x_continuous(name = name, expand = expand,
+                                breaks = breaks,
+                                labels = labels,
+                                trans = trans,
+                                ...)
+}
+#' @title scale_x_latitude
+#' @rdname scale_x_latitude
+#' @keywords internal
+scale_y_latitude <- function(name = "", ticks = 30,
+                             breaks = seq(-90, 90, by = ticks),
+                             expand = c(0, 0),
+                             labels = LatLabel, ...) {
+    ggplot2::scale_y_continuous(name = name, expand = expand,
+                       breaks = breaks, labels = labels,
+                       ...)
 }

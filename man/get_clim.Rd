@@ -25,7 +25,7 @@ get_clim(
 )
 }
 \arguments{
-\item{dir_input}{directorio en donde se almacenan las imágenes raster (formato .tif)}
+\item{dir_input}{directorio en donde se almacenan las imágenes raster (formato .tif), csv o parquet}
 
 \item{dir_output}{directorio en donde se almacenará la imagen png}
 
@@ -52,10 +52,6 @@ get_clim(
 \item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
 
 \item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
-
-\item{ticks_x}{vector numérico tamaño 1 indicando ticks en el eje x del plot}
-
-\item{ticks_y}{vector numérico tamaño 1 indicando ticks en el eje y del plot}
 }
 \value{
 imágenes png y tif de climatologías y Rdata

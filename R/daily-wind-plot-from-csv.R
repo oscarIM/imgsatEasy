@@ -12,7 +12,7 @@
 #' @import tidyverse
 #' @import sf
 #' @import oce
-#' @importFrom metR scale_x_longitude scale_y_latitude
+#' @import metR
 #' @return imágenes png de velocidad y magnitud de viento
 #' @export daily_wind_plot
 #' @examples

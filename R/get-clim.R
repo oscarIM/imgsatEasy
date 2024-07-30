@@ -1,6 +1,6 @@
 #' @title get_clim
 #' @description Función para generar climatología y exportarla (formato png) para una variable determinada
-#' @param dir_input directorio en donde se almacenan las imágenes raster (formato .tif)
+#' @param dir_input directorio en donde se almacenan las imágenes raster (formato .tif), csv o parquet
 #' @param dir_output directorio en donde se almacenará la imagen png
 #' @param season temporalidad para la generación de imágenes en formato raster("mes", o "year")
 #' @param stat_function función estadística para generar las imágenes raster ("median" o "mean")
@@ -14,27 +14,17 @@
 #' @param width amplitud para la imágen png de la climatología
 #' @param xlim vector numérico tamaño 2 para los limites de x en el plot
 #' @param ylim vector numérico tamaño 2 para los limites de y en el plot
-#' @param ticks_x vector numérico tamaño 1 indicando ticks en el eje x del plot
-#' @param ticks_y vector numérico tamaño 1 indicando ticks en el eje y del plot
-#' @import ggplot2
-#' @importFrom fs dir_ls dir_create dir_exists
-#' @importFrom stars st_as_stars write_stars read_stars st_apply
-#' @importFrom raster stack
-#' @importFrom purrr map
-#' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr mutate across group_split group_by case_when bind_rows
-#' @importFrom tidyr separate pivot_longer
-#' @importFrom sf read_sf st_geometry st_cast st_union st_as_sf st_intersects sf_use_s2 as_Spatial
-#' @importFrom oce oce.colorsJet oce.colorsViridis
-#' @importFrom metR scale_x_longitude scale_y_latitude
-#' @importFrom RColorBrewer brewer.pal
-#' @importFrom stringr str_remove str_to_sentence str_extract str_replace
-#' @importFrom tictoc tic toc
-#' @importFrom future plan cluster
-#' @importFrom parallel stopCluster makeForkCluster
-#' @importFrom progressr with_progress progressor
-#' @importFrom furrr future_map furrr_options
-#' @importFrom methods as
+#' @import tidyverse
+#' @import sf
+#' @import oce
+#' @import tidyverse
+#' @import RColorBrewer
+#' @import raster
+#' @import raster
+#' @import future
+#' @import parallel
+#' @import progressr
+#' @import furrr
 #' @return imágenes png y tif de climatologías y Rdata
 #' @export get_clim
 #' @examples
