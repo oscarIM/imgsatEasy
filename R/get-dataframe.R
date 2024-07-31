@@ -30,6 +30,7 @@
 #' @importFrom rlang !! sym :=
 #' @importFrom stringr str_detect str_remove str_replace str_subset
 #' @importFrom tidyr separate expand_grid
+#' @importFrom magrittr %>%
 #' @export get_dataframe
 #' @examples
 #' \dontrun{

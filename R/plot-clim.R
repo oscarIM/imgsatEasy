@@ -25,6 +25,7 @@
 #' @importFrom rlang !! sym :=
 #' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_intersects st_geometry
 #' @importFrom stringr str_extract str_extract_all str_to_sentence
+#' @importFrom magrittr %>%
 #' @import ggplot2
 #' @return imágenes png
 #' @export plot_clim
