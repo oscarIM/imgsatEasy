@@ -93,7 +93,7 @@ write_table <- function(df, file, format_output) {
 #' @keywords internal
 #' @param file as input
 #' @param ext_file as input
-process_tables <- function(file, ext_file, var_name) {
+process_tables <- function(file, ext_file, var_name, func = func) {
   dataframe <- switch(ext_file,
                       ".parquet" = arrow::read_parquet(file),
                       ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
@@ -104,10 +104,10 @@ process_tables <- function(file, ext_file, var_name) {
     dplyr::ungroup() %>%
     dplyr::group_by(ID) %>%
     dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE),
-                     date1 = first(date1),
-                     date2 = first(date2),
-                     lon = first(lon),
-                     lat = first(lat),
+                     date1 = dplyr::first(date1),
+                     date2 = dplyr::first(date2),
+                     lon = dplyr::first(lon),
+                     lat = dplyr::first(lat),
                      .groups = "drop") %>%
     dplyr::select(-ID)
   data_sf <- sf::st_as_sf(dataframe, coords = c("lon", "lat"), crs = 4326)
