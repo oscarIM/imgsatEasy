@@ -16,7 +16,10 @@
 #' @param ticks_x vector numérico tamaño 1 indicando ticks en el eje x del plot
 #' @param ticks_y vector numérico tamaño 1 indicando ticks en el eje y del plot
 #' @import arrow
-#' @import tidyverse
+#' @import stringr
+#' @import lubridate
+#' @import purrr
+#' @import rlang
 #' @import dplyr
 #' @import raster
 #' @import sf
@@ -25,7 +28,6 @@
 #' @import parallel
 #' @import progressr
 #' @import furrr
-#' @import rlang
 #' @return imágenes png
 #' @export plot_clim
 #' @examples
