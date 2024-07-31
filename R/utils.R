@@ -129,7 +129,7 @@ process_tables <- function(file, ext_file) {
 #' @keywords internal
 #' @param entry_list as input
 #' @param n_cores as input
-process_sublist <- function(entry_list, n_cores) {
+process_sublist <- function(entry_list, n_cores, ext_file) {
   if (n_cores <= 1) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))
