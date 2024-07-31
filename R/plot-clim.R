@@ -21,7 +21,7 @@
 #' @importFrom future plan
 #' @importFrom parallel makeForkCluster stopCluster
 #' @importFrom progressr progressor with_progress
-#' @importFrom purrr map map2
+#' @importFrom purrr map map2 map_chr
 #' @importFrom rlang !! sym :=
 #' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_intersects st_geometry
 #' @importFrom stringr str_extract str_extract_all str_to_sentence
@@ -219,7 +219,45 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
            caption = "Fuente: OceanColor Data")
-    ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
-  }
+    }
+  if (var_name == "chlor_a") {
+    oce_jets <- get_palette("oce_jets")
+    min_value <- min(log10(data_plot$fill), na.rm = TRUE)
+    max_value <- max(log10(data_plot$fill), na.rm = TRUE)
+    limits <- c(floor(min_value), ceiling(max_value))
+    breaks <- seq(limits[1], limits[2], by = 1)
+    labels <- purrr::map(breaks, ~bquote(10^.(.x))) %>%
+      purrr::map_chr(deparse)
+    plot <- ggplot(data = data_plot) +
+      geom_tile(aes(x = lon, y = lat, fill = log10(fill))) +
+      scale_fill_gradientn(
+        colours = oce_jets,
+        na.value = "white",
+        limits = limits,
+        #oob = squish,
+        breaks = breaks,
+        #labels = c(expression(10^-1), expression(10^0), expression(10^1), expression(10^2))
+        labels = parse(text = labels))# +
+    scale_x_longitude(ticks = 0.2) +
+      metR::scale_y_latitude(ticks = 0.1) +
+      coord_equal() +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+      coord_sf(xlim = xlim, ylim = ylim) +
+      guides(fill = guide_colorbar(
+        title = expression(paste(Clorofila - alpha ~ " " (mg ~ m^{
+          -3
+        }))),
+        title.position = "right",
+        title.theme = element_text(angle = 90),
+        barwidth = .5,
+        barheight = 15,
+        title.hjust = .5
+      )) +
+      theme_bw() +
+      facet_wrap(~season, ncol = ncol) +
+      labs(title = paste0("Clorofila-a Periodo: ", min(data_plot$year1), "-", max(data_plot$year2)),
+           caption = "Fuente: OceanColor Data")
+    }
+  ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   toc()
 }
