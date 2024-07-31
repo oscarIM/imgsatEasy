@@ -92,6 +92,7 @@ write_table <- function(df, file, format_output) {
 #' @rdname process_tables
 #' @keywords internal
 #' @param file as input
+#' @param ext_file as input
 process_tables <- function(file, ext_file) {
   dataframe <- switch(ext_file,
                       ".parquet" = arrow::read_parquet(file),
@@ -127,12 +128,13 @@ process_tables <- function(file, ext_file) {
 #' @rdname process_sublist
 #' @keywords internal
 #' @param entry_list as input
+#' @param n_cores as input
 process_sublist <- function(entry_list, n_cores) {
   if (n_cores <= 1) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))
       dataframe_list <- purrr::map(entry_list, ~{
-        result <- process_tables(.x)
+        result <- process_tables(.x, ext_file = ext_file)
         p()
         Sys.sleep(0.2)
         result
@@ -144,7 +146,7 @@ process_sublist <- function(entry_list, n_cores) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))
       dataframe_list <- furrr::future_map(entry_list, ~{
-        result <- process_tables(.x)
+        result <- process_tables(.x,ext_file = ext_file)
         p()
         Sys.sleep(0.2)
         result
