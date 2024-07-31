@@ -17,7 +17,7 @@
 #' @importFrom arrow read_parquet
 #' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup
 #' @importFrom lubridate month year
-#' @importFrom furrr future_map
+#' @importFrom furrr future_walk furrr_options
 #' @importFrom future plan
 #' @importFrom parallel makeForkCluster stopCluster
 #' @importFrom progressr progressor with_progress

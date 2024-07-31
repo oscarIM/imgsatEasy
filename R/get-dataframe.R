@@ -21,7 +21,7 @@
 #' @importFrom dplyr across all_of filter group_by group_split mutate pull select tibble
 #' @importFrom lubridate day month year
 #' @importFrom future plan
-#' @importFrom furrr future_walk
+#' @importFrom furrr future_walk furrr_options
 #' @importFrom ncdf4 nc_open ncatt_get ncvar_get
 #' @importFrom parallel makeForkCluster stopCluster
 #' @importFrom progressr progressor with_progress
