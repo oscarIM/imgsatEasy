@@ -67,24 +67,23 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     progressr::with_progress({
       p <- progressr::progressor(steps = length(list_tar_tmp))
       purrr::walk(list_tar_tmp, ~ {
-        p()
         Sys.sleep(.2)
         untar(tarfile = .x, exdir = "nc_files")
-        })
+        p()
       })
-    } else {
-      cl <- parallel::makeForkCluster(n_cores)
-      future::plan("cluster", workers = cl)
-      progressr::with_progress({
-        p <- progressr::progressor(steps = length(list_tar_tmp))
-        furrr::future_walk(list_tar_tmp, ~ {
-          p()
-          Sys.sleep(.2)
-          untar(tarfile = .x, exdir = "nc_files")
+    })
+  } else {
+    cl <- parallel::makeForkCluster(n_cores)
+    on.exit(parallel::stopCluster(cl))
+    future::plan("cluster", workers = cl)
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(list_tar_tmp))
+      furrr::future_walk(list_tar_tmp, ~ {
+        Sys.sleep(.2)
+        untar(tarfile = .x, exdir = "nc_files")
+        p()
       }, .options = furrr_options(seed = TRUE))
     })
-      parallel::stopCluster(cl)
-      rm(cl)
   }
 
   input_folder <- list.dirs(full.names = TRUE) %>%
@@ -144,6 +143,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     dplyr::mutate(date = as.Date(full_time, format = "%Y%m%d"),
                   year = lubridate::year(date),
                   month = lubridate::month(date),
+                  month =  sprintf("%02d", month),
                   day = lubridate::day(date))
   group_vars <- switch(season,
                        "year"  = "year",
@@ -157,9 +157,9 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
       if (season == "year") {
         unique(.[["year"]])
       } else if (season == "month") {
-        paste0(unique(.[["year"]]), "_", unique(.[["month"]]))
+        paste0(unique(.[["year"]]), "-", unique(.[["month"]]))
       } else if (season == "day") {
-        paste0(unique(.[["year"]]), "_", unique(.[["month"]]), "_", unique(.[["day"]]))
+        paste0(unique(.[["year"]]), "-", unique(.[["month"]]), "-", unique(.[["day"]]))
       }
     }))
   #### generar y exportarinfiles por season####
@@ -208,24 +208,23 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     progressr::with_progress({
       p <- progressr::progressor(steps = length(files))
       purrr::walk2(files, outfile_l2bin, ~ {
-        p()
         Sys.sleep(.2)
         seadas_l2bin(infile = .x, ofile = .y)
+        p()
       })
     })
   } else {
     cl <- parallel::makeForkCluster(n_cores)
+    on.exit(parallel::stopCluster(cl))
     future::plan("cluster", workers = cl)
     progressr::with_progress({
       p <- progressor(steps = length(files))
       furrr::future_walk2(files, outfile_l2bin, ~ {
-        p()
         Sys.sleep(.2)
         seadas_l2bin(infile = .x, ofile = .y)
+        p()
       }, .options = furrr_options(seed = TRUE))
     })
-    parallel::stopCluster(cl)
-    rm(cl)
   }
   # filtrar solo los archivos para los cuales hubo resultados
   l3binned_files <- list.files(path = dir_output, pattern = "_L3b_tmp.nc$", full.names = TRUE)
@@ -236,26 +235,25 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
   )
   cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
   if (length(l3binned_files) <= 10) {
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(l3binned_files))
+      purrr::walk2(l3binned_files, outfile_mapgen, ~ {
+        Sys.sleep(.2)
+        seadas_l3mapgen(infile = .x, ofile = .y)
+        p()
+      })
+    }) } else {
+      cl <- parallel::makeForkCluster(n_cores)
+      on.exit(parallel::stopCluster(cl))
+      future::plan("cluster", workers = cl)
       progressr::with_progress({
-        p <- progressr::progressor(steps = length(l3binned_files))
-        purrr::walk2(l3binned_files, outfile_mapgen, ~ {
-          p()
+        p <- progressor(steps = length(l3binned_files))
+        furrr::future_walk2(l3binned_files, outfile_mapgen, ~ {
           Sys.sleep(.2)
           seadas_l3mapgen(infile = .x, ofile = .y)
-          })
-        }) } else {
-          cl <- parallel::makeForkCluster(n_cores)
-          future::plan("cluster", workers = cl)
-          progressr::with_progress({
-            p <- progressor(steps = length(l3binned_files))
-            furrr::future_walk2(l3binned_files, outfile_mapgen, ~ {
-              p()
-              Sys.sleep(.2)
-              seadas_l3mapgen(infile = .x, ofile = .y)
-              }, .options = furrr::furrr_options(seed = TRUE))
-            })
-          parallel::stopCluster(cl)
-          rm(cl)
+          p()
+        }, .options = furrr::furrr_options(seed = TRUE))
+      })
     }
   cat(paste0("Fin de la generación de imágenes L3 de ", var_name, "\n\n"))
   ##############################################################################
@@ -271,26 +269,25 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
     progressr::with_progress({
       p <- progressr::progressor(steps = length(files_l3mapped))
       purrr::walk(files_l3mapped, function(file) {
-        p()
         Sys.sleep(.2)
         df <- nc_to_table(file, var_name)
         write_table(df, file, format_output)
-        })
-      }) } else {
-        cl <- parallel::makeForkCluster(n_cores)
-        future::plan("cluster", workers = cl)
-        progressr::with_progress({
-          p <- progressor(steps = length(files_l3mapped))
-          furrr::future_walk(files_l3mapped, ~ {
-            p()
-            Sys.sleep(.2)
-            df <- nc_to_table(.x, var_name)
-            write_table(df, .x, format_output)
-            }, .options = furrr::furrr_options(seed = TRUE))
-          })
-        parallel::stopCluster(cl)
-        rm(cl)
-  }
+        p()
+      })
+    }) } else {
+      cl <- parallel::makeForkCluster(n_cores)
+      on.exit(parallel::stopCluster(cl))
+      future::plan("cluster", workers = cl)
+      progressr::with_progress({
+        p <- progressor(steps = length(files_l3mapped))
+        furrr::future_walk(files_l3mapped, ~ {
+          Sys.sleep(.2)
+          df <- nc_to_table(.x, var_name)
+          write_table(df, .x, format_output)
+          p()
+        }, .options = furrr::furrr_options(seed = TRUE))
+      })
+    }
 
   unlink(files_l3mapped)
   setwd(current_wd)
