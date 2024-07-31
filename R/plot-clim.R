@@ -101,11 +101,70 @@ ext_file <- unique(stringr::str_extract(string = all_files_tmp$tmp_col, pattern 
 sf::sf_use_s2(FALSE)
 shp_sf <- sf::read_sf(shp_file) %>% sf::st_geometry()
 bbox <- sf::st_bbox(shp_sf)
-#process_table and  process_sublist in utils.R
+#process_table and  process_sublist should be in utils.R but does not work!
+process_tables <- function(file) {
+  dataframe <- switch(ext_file,
+                      ".parquet" = arrow::read_parquet(file),
+                      ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
+  dataframe <- dataframe %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(lat, lon) %>%
+    dplyr::mutate(ID = dplyr::cur_group_id()) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(ID) %>%
+    dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE),
+                     date1 = dplyr::first(date1),
+                     date2 = dplyr::first(date2),
+                     lon = dplyr::first(lon),
+                     lat = dplyr::first(lat),
+                     .groups = "drop") %>%
+    dplyr::select(-ID)
+  data_sf <- sf::st_as_sf(dataframe, coords = c("lon", "lat"), crs = 4326)
+  data_to_filter <- suppressMessages(sf::st_intersects(data_sf, shp_sf))
+  # just useful for marine plots
+  dataframe <- dataframe %>% dplyr::mutate(inside = apply(data_to_filter, 1, any))
+  dataframe <- dataframe %>%
+    dplyr::filter(inside == FALSE) %>%
+    dplyr::filter(between(lon, bbox[1], bbox[3])) %>%
+    dplyr::filter(between(lat, bbox[2], bbox[4])) %>%
+    dplyr::mutate(season = stringr::str_to_sentence(lubridate::month(date1, abbr = FALSE, label = TRUE))) %>%
+    dplyr::select(-inside)
+  return(dataframe)
+  rm(list = c("data_sf", "data_to_filter"))
+  gc()
+}
+process_sublist <- function(entry_list) {
+  if (n_cores <= 1) {
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(entry_list))
+      dataframe_list <- purrr::map(entry_list, ~{
+        result <- process_tables(.x)
+        p()
+        Sys.sleep(0.2)
+        result
+      })
+    })
+  } else {
+    cl <- parallel::makeForkCluster(n_cores)
+    future::plan("cluster", workers = cl)
+    progressr::with_progress({
+      p <- progressr::progressor(steps = length(entry_list))
+      dataframe_list <- furrr::future_map(entry_list, ~{
+        result <- process_tables(.x)
+        p()
+        Sys.sleep(0.2)
+        result
+      }, .options = furrr::furrr_options(seed = TRUE))
+    })
+    parallel::stopCluster(cl)
+  }
+  return(dataframe_list)
+}
+
 index <- seq_along(path_list)
 all_results <- purrr::map2(.x = path_list, .y = index, ~ {
   print(paste("Procesando item", .y, "de", max(index), "con", length(.x), "archivos"))
-  process_sublist(entry_list = .x, n_cores = n_cores, ext_file = ext_file, func = func, shp_sf = shp_sf)
+  process_sublist(entry_list = .x)
 })
 
 data_plot <- dplyr::bind_rows(all_results) %>%
