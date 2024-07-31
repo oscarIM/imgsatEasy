@@ -93,7 +93,7 @@ write_table <- function(df, file, format_output) {
 #' @keywords internal
 #' @param file as input
 #' @param ext_file as input
-process_tables <- function(file, ext_file, var_name, func = func) {
+process_tables <- function(file, ext_file, var_name, func) {
   dataframe <- switch(ext_file,
                       ".parquet" = arrow::read_parquet(file),
                       ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
@@ -129,12 +129,12 @@ process_tables <- function(file, ext_file, var_name, func = func) {
 #' @keywords internal
 #' @param entry_list as input
 #' @param n_cores as input
-process_sublist <- function(entry_list, n_cores, ext_file) {
+process_sublist <- function(entry_list, n_cores, ext_file, func) {
   if (n_cores <= 1) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))
       dataframe_list <- purrr::map(entry_list, ~{
-        result <- process_tables(.x, ext_file = ext_file, var_name = var_name)
+        result <- process_tables(.x, ext_file = ext_file, var_name = var_name, func = func)
         p()
         Sys.sleep(0.2)
         result
@@ -146,7 +146,7 @@ process_sublist <- function(entry_list, n_cores, ext_file) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(entry_list))
       dataframe_list <- furrr::future_map(entry_list, ~{
-        result <- process_tables(.x,ext_file = ext_file, var_name = var_name)
+        result <- process_tables(.x,ext_file = ext_file, var_name = var_name, func = func)
         p()
         Sys.sleep(0.2)
         result
