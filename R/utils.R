@@ -88,12 +88,6 @@ write_table <- function(df, file, format_output) {
   }
 }
 
-#' @title process_tables
-#' @rdname process_tables
-#' @keywords internal
-#' @param file as input
-#' @param ext_file as input
-
 #' @title scale_x_longitude
 #' @rdname scale_x_longitude
 #' @keywords internal
