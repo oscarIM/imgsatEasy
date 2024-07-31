@@ -95,7 +95,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         unique(.[["month"]])
       }
     }))
-  cat("\n\n Calculando climatologías...\n\n")
+  cat("\n\n Calculando climatología...\n\n")
   path_list <- purrr::map(files_df_list, ~ dplyr::pull(., "file"))
   func <- match.fun(stat_function)
   ext_file <- unique(stringr::str_extract(string = all_files_tmp$tmp_col, pattern = files_ext_pattern))
@@ -216,7 +216,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~season, ncol = ncol) +
+      facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
            caption = "Fuente: OceanColor Data")
     ggsave(filename = name_plot, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
