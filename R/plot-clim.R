@@ -24,7 +24,8 @@
 #' @importFrom purrr map map2 map_chr
 #' @importFrom rlang !! sym :=
 #' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_intersects st_geometry
-#' @importFrom stringr str_extract str_extract_all str_to_sentence
+#' @importFrom stringr str_extract str_to_sentence
+#' @importFrom tidyr separate_wider_delim
 #' @importFrom magrittr %>%
 #' @import ggplot2
 #' @return imágenes png
@@ -70,7 +71,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
   all_files_tmp <- list.files(path = dir_input,full.names = TRUE, pattern = files_ext_pattern) %>%
     dplyr::tibble(file = .) %>%
     dplyr::mutate(tmp_col = basename(file),
-                  tmp = stringr::str_extract_all(string = tmp_col, pattern = "^\\d+(_\\d+)*"))
+                  tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+"))
   #n_count <- stringr::str_count(string = all_files_tmp$tmp[1],pattern = "_")
   #season_map <- c("year", "month", "day")
   # Asignar valor a season usando el vector de estaciones
@@ -219,7 +220,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
            caption = "Fuente: OceanColor Data")
-    }
+  }
   if (var_name == "chlor_a") {
     oce_jets <- get_palette("oce_jets")
     min_value <- min(log10(data_plot$fill), na.rm = TRUE)
@@ -257,7 +258,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       facet_wrap(~season, ncol = ncol) +
       labs(title = paste0("Clorofila-a Periodo: ", min(data_plot$year1), "-", max(data_plot$year2)),
            caption = "Fuente: OceanColor Data")
-    }
+  }
   ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   toc()
 }
