@@ -115,6 +115,7 @@ scale_y_latitude <- function(name = "", ticks = 30,
                        breaks = breaks, labels = labels,
                        ...)
 }
+#' @title LonLabel
 #' @rdname map_labels
 #' @keywords internal
 LonLabel <- function(lon, east = "\u00B0E", west = "\u00B0W", zero = "\u00B0") {
@@ -126,9 +127,9 @@ LonLabel <- function(lon, east = "\u00B0E", west = "\u00B0W", zero = "\u00B0") {
   return(newlon)
 }
 
-
+#' @title LatLabel
 #' @rdname map_labels
-#' #' @keywords internal
+#' @keywords internal
 LatLabel <- function(lat, north = "\u00B0N", south = "\u00B0S", zero = "\u00B0") {
   lat <- as.numeric(lat)
   newlat <- ifelse(lat < 0, paste0(abs(lat), south), paste0(lat, north))
