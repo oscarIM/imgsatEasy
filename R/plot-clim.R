@@ -79,8 +79,8 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     {
       switch(
         season,
-        "year" = tidyr::separate_wider_delim(., cols = "tmp", delim = "_", cols_remove = TRUE, names = "year", too_many = "drop"),
-        "month" = tidyr::separate_wider_delim(., cols = "tmp", delim = "_", cols_remove = TRUE, names = c("year", "month"), too_many = "drop"),
+        "year" = tidyr::separate_wider_delim(., cols = "tmp", delim = "-", cols_remove = TRUE, names = "year", too_many = "drop"),
+        "month" = tidyr::separate_wider_delim(., cols = "tmp", delim = "-", cols_remove = TRUE, names = c("year", "month"), too_many = "drop"),
         .
       )
     }
