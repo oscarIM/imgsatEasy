@@ -101,7 +101,6 @@ sf::sf_use_s2(FALSE)
 shp_sf <- sf::read_sf(shp_file) %>% sf::st_geometry()
 bbox <- sf::st_bbox(shp_sf)
 #process_table and  process_sublist in utils.R
-
 index <- seq_along(path_list)
 all_results <- purrr::map2(.x = path_list, .y = index, ~ {
   print(paste("Procesando item", .y, "de", max(index), "con", length(.x), "archivos"))
