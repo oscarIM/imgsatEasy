@@ -24,6 +24,7 @@
 #' @import parallel
 #' @import progressr
 #' @import furrr
+#' @import rlang
 #' @return imágenes png
 #' @export plot_clim
 #' @examples
