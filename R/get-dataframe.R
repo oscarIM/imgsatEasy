@@ -22,7 +22,7 @@
 #' @importFrom lubridate day month year
 #' @importFrom future plan
 #' @importFrom furrr future_walk furrr_options
-#' @importFrom ncdf4 nc_open ncatt_get ncvar_get
+#' @importFrom ncdf4 nc_open ncatt_get ncvar_get nc_close
 #' @importFrom parallel makeForkCluster stopCluster
 #' @importFrom progressr progressor with_progress
 #' @importFrom purrr map walk walk2
