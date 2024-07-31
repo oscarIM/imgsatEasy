@@ -105,7 +105,7 @@ bbox <- sf::st_bbox(shp_sf)
 index <- seq_along(path_list)
 all_results <- purrr::map2(.x = path_list, .y = index, ~ {
   print(paste("Procesando item", .y, "de", max(index), "con", length(.x), "archivos"))
-  process_sublist(entry_list = .x, n_cores = n_cores, ext_file = ext_file, func = func)
+  process_sublist(entry_list = .x, n_cores = n_cores, ext_file = ext_file, func = func, shp_sf = shp_sf)
 })
 
 data_plot <- dplyr::bind_rows(all_results) %>%
