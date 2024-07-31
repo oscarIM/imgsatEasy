@@ -105,7 +105,7 @@ bbox <- sf::st_bbox(shp_sf)
 index <- seq_along(path_list)
 all_results <- purrr::map2(.x = path_list, .y = index, ~ {
   print(paste("Procesando item", .y, "de", max(index), "con", length(.x), "archivos"))
-  process_sublist(entry_list = .x, n_cores = n_cores)
+  process_sublist(entry_list = .x, n_cores = n_cores, ext_file = ext_file)
 })
 
 data_plot <- dplyr::bind_rows(all_results) %>%
@@ -125,7 +125,7 @@ if (season == "month") {
                                                            levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
 }
 if (season == "year") {
-  data_plot <- data_plot %>% dplyr::mutate(season = factor(season, 
+  data_plot <- data_plot %>% dplyr::mutate(season = factor(season,
                                                            levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)))
 }
 ###Plot section####
