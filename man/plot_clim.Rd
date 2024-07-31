@@ -6,7 +6,6 @@
 \usage{
 plot_clim(
   dir_input,
-  dir_output,
   season,
   stat_function,
   var_name,
@@ -22,9 +21,7 @@ plot_clim(
 )
 }
 \arguments{
-\item{dir_input}{directorio en donde se almacenan las imágenes raster (formato .tif), csv o parquet}
-
-\item{dir_output}{directorio en donde se almacenará la imagen png}
+\item{dir_input}{directorio en donde se almacenan las tablas en csv o parquet}
 
 \item{season}{temporalidad para la generación de imágenes en formato raster("mes", o "year")}
 
@@ -61,7 +58,6 @@ Función para generar climatología y exportarla (formato png) para una variable
 \examples{
 \dontrun{
 dir_input <- "/dir/to/input"
-dir_output <- "/dir/to/ouput"
 season <- "month"
 stat_function <- "median"
 var_name <- "chlor_a"
@@ -71,6 +67,6 @@ shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados
 res <- 300
 height <- 7
 width <- 9
-plot_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
+plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
 }
 }
