@@ -92,7 +92,7 @@ write_table <- function(df, file, format_output) {
 #' @rdname process_tables
 #' @keywords internal
 #' @param file as input
-process_tables <- function(file) {
+process_tables <- function(file, ext_file) {
   dataframe <- switch(ext_file,
                       ".parquet" = arrow::read_parquet(file),
                       ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
