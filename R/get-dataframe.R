@@ -17,12 +17,19 @@
 #' @param area_weighting area_weighting
 #' @param fudge ??fusionador
 #' @return tabla de datos en csv o parquet
-#' @import tidyverse
-#' @import furrr
-#' @import ncdf4
-#' @import future
-#' @import parallel
-#' @import progressr
+#' @importFrom arrow write_parquet
+#' @importFrom dplyr across all_of filter group_by group_split mutate pull select tibble
+#' @importFrom lubridate day month year
+#' @importFrom future plan
+#' @importFrom furrr future_walk
+#' @importFrom ncdf4 nc_open ncatt_get ncvar_get
+#' @importFrom parallel makeForkCluster stopCluster
+#' @importFrom progressr progressor with_progress
+#' @importFrom purrr map walk walk2
+#' @importFrom readr write_lines write_csv
+#' @importFrom rlang !! sym :=
+#' @importFrom stringr str_detect str_remove str_replace str_subset
+#' @importFrom tidyr separate expand_grid
 #' @export get_dataframe
 #' @examples
 #' \dontrun{
@@ -143,7 +150,7 @@ get_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "par
                        "day"   = "date")
 
   files_df_list <- files_df %>%
-    dplyr::group_by(across(all_of(group_vars))) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
     dplyr::group_split() %>%
     setNames(map(., ~ {
       if (season == "year") {

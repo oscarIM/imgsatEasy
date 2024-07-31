@@ -1,7 +1,6 @@
 #' @title plot_clim
 #' @description Función para generar climatología y exportarla (formato png) para una variable determinada
-#' @param dir_input directorio en donde se almacenan las imágenes raster (formato .tif), csv o parquet
-#' @param dir_output directorio en donde se almacenará la imagen png
+#' @param dir_input directorio en donde se almacenan las tablas en csv o parquet
 #' @param season temporalidad para la generación de imágenes en formato raster("mes", o "year")
 #' @param stat_function función estadística para generar las imágenes raster ("median" o "mean")
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
@@ -15,25 +14,23 @@
 #' @param ylim vector numérico tamaño 2 para los limites de y en el plot
 #' @param ticks_x vector numérico tamaño 1 indicando ticks en el eje x del plot
 #' @param ticks_y vector numérico tamaño 1 indicando ticks en el eje y del plot
-#' @import arrow
-#' @import stringr
-#' @import lubridate
-#' @import purrr
-#' @import rlang
-#' @import dplyr
-#' @import raster
-#' @import sf
-#' @import oce
-#' @import future
-#' @import parallel
-#' @import progressr
-#' @import furrr
+#' @importFrom arrow read_parquet
+#' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup
+#' @importFrom lubridate month year
+#' @importFrom furrr future_map
+#' @importFrom future plan
+#' @importFrom parallel makeForkCluster stopCluster
+#' @importFrom progressr progressor with_progress
+#' @importFrom purrr map map2
+#' @importFrom rlang !! sym :=
+#' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_intersects st_geometry
+#' @importFrom stringr str_extract str_extract_all str_to_sentence
+#' @import ggplot2
 #' @return imágenes png
 #' @export plot_clim
 #' @examples
 #' \dontrun{
 #' dir_input <- "/dir/to/input"
-#' dir_output <- "/dir/to/ouput"
 #' season <- "month"
 #' stat_function <- "median"
 #' var_name <- "chlor_a"
@@ -43,9 +40,9 @@
 #' res <- 300
 #' height <- 7
 #' width <- 9
-#' plot_clim(dir_input = dir_input, dir_output = dir_output, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
+#' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
 #' }
-plot_clim <- function(dir_input, dir_output, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.2, ticks_y = 0.1, n_cores = 1) {
+plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.2, ticks_y = 0.1, n_cores = 1) {
   #agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
   #* Establish a new 'ArgCheck' object
   #Check <- ArgumentCheck::newArgCheck()
