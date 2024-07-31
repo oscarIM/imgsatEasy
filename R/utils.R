@@ -115,3 +115,23 @@ scale_y_latitude <- function(name = "", ticks = 30,
                        breaks = breaks, labels = labels,
                        ...)
 }
+#' @rdname map_labels
+#' @keywords internal
+LonLabel <- function(lon, east = "\u00B0E", west = "\u00B0W", zero = "\u00B0") {
+  lon <- as.numeric(lon)
+  lon <- ifelse(lon > 180, ConvertLongitude(lon), lon)
+  newlon <- ifelse(lon < 0, paste0(abs(lon), west), paste0(lon, east))
+  newlon[lon == 0 & !is.na(lon)] <- paste0(lon[lon == 0 & !is.na(lon)], zero)
+  newlon[lon == 180 & !is.na(lon)] <- paste0(lon[lon == 180 & !is.na(lon)], zero)
+  return(newlon)
+}
+
+
+#' @rdname map_labels
+#' #' @keywords internal
+LatLabel <- function(lat, north = "\u00B0N", south = "\u00B0S", zero = "\u00B0") {
+  lat <- as.numeric(lat)
+  newlat <- ifelse(lat < 0, paste0(abs(lat), south), paste0(lat, north))
+  newlat[lat == 0 & !is.na(lat)] <- paste0(lat[lat == 0 & !is.na(lat)], zero)
+  return(newlat)
+}
