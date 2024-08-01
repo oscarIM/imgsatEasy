@@ -44,7 +44,7 @@
 #' width <- 9
 #' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
 #' }
-plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.2, ticks_y = 0.1, n_cores = 1) {
+plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1) {
   tic()
   #agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
   #* Establish a new 'ArgCheck' object
@@ -205,7 +205,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       ) +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
-      coord_equal() +
+      #coord_equal() +
       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       guides(fill = guide_colorbar(
@@ -236,13 +236,11 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         colours = oce_jets,
         na.value = "white",
         limits = limits,
-        #oob = squish,
         breaks = breaks,
-        #labels = c(expression(10^-1), expression(10^0), expression(10^1), expression(10^2))
-        labels = parse(text = labels))# +
-    scale_x_longitude(ticks = 0.2) +
-      metR::scale_y_latitude(ticks = 0.1) +
-      coord_equal() +
+        labels = parse(text = labels)) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
+      #coord_equal() +
       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       guides(fill = guide_colorbar(
@@ -261,6 +259,42 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
            caption = "Fuente: OceanColor Data")
     ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
+  if (var_name == "Rrs_645") {
+    oce_jets <- get_palette("oce_jets")
+    data_plot <- data_plot %>% dplyr::mutate(fill = fill * 158.9418) %>%
+      dplyr::filter(fill >= 0)
+    plot <- ggplot(data_plot) +
+      geom_raster(aes(x, y, fill = fill)) +
+      scale_fill_gradientn(
+        colours = oce_jets,
+        na.value = "white") +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
+      #coord_equal() +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+      coord_sf(xlim = xlim, ylim = ylim) +
+      guides(fill = guide_colorbar(
+        title = expression(paste(
+          "nWLR 645",
+          " (",
+          "mW ",
+          cm^-2,
+          um^-1,
+          sr^-1,
+          ")"
+        )),
+        title.position = "right",
+        title.theme = element_text(angle = 90),
+        barwidth = .5,
+        barheight = 15,
+        title.hjust = .5
+      )) +
+      theme_bw() +
+      facet_wrap(~season, ncol = ncol) +
+      labs(title = paste0("Radiación normalizada de salida del agua: ", min(data_plot$year1), "-", max(data_plot$year2)),
+           caption = "Fuente: OceanColor Data")
+    ggsave(filename = name_plot, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
+    }
 
   toc()
 }
