@@ -254,7 +254,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~season, ncol = ncol) +
+      facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Clorofila-a Periodo: ", min(data_plot$year1), "-", max(data_plot$year2)),
            caption = "Fuente: OceanColor Data")
     ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
@@ -290,7 +290,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         title.hjust = .5
       )) +
       theme_bw() +
-      facet_wrap(~season, ncol = ncol) +
+      facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Radiación normalizada de salida del agua: ", min(data_plot$year1), "-", max(data_plot$year2)),
            caption = "Fuente: OceanColor Data")
     ggsave(filename = name_plot, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
