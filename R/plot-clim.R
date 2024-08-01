@@ -220,6 +220,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       facet_wrap(~season, ncol = n_col) +
       labs(title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
            caption = "Fuente: OceanColor Data")
+    ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
   if (var_name == "chlor_a") {
     oce_jets <- get_palette("oce_jets")
@@ -258,7 +259,8 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       facet_wrap(~season, ncol = ncol) +
       labs(title = paste0("Clorofila-a Periodo: ", min(data_plot$year1), "-", max(data_plot$year2)),
            caption = "Fuente: OceanColor Data")
+    ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
-  ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
+
   toc()
 }
