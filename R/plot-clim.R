@@ -46,40 +46,41 @@
 #' }
 plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1) {
   tic()
-  #agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
+  # agregar los errores  para no calcular todo y luego ver que solo falta un paramentro gráfico..
   #* Establish a new 'ArgCheck' object
-  #Check <- ArgumentCheck::newArgCheck()
+  # Check <- ArgumentCheck::newArgCheck()
   #* Add an error if height < 0
-  #if (height < 0)
+  # if (height < 0)
   #  ArgumentCheck::addError(
   #    msg = "'height' must be >= 0",
   #    argcheck = Check
   #  )
 
   #* Add an error if radius < 0
-  #if (radius < 0)
+  # if (radius < 0)
   #  ArgumentCheck::addError(
   #    msg = "'radius' must be >= 0",
   #    argcheck = Check
   #  )
 
   #* Return errors and warnings (if any)
-  #ArgumentCheck::finishArgCheck(Check)
-  #tic(msg = "Duración total análisis")
+  # ArgumentCheck::finishArgCheck(Check)
+  # tic(msg = "Duración total análisis")
   #######################
   files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
-  all_files_tmp <- list.files(path = dir_input,full.names = TRUE, pattern = files_ext_pattern) %>%
+  all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
     dplyr::tibble(file = .) %>%
-    dplyr::mutate(tmp_col = basename(file),
-                  tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+"))
-  #n_count <- stringr::str_count(string = all_files_tmp$tmp[1],pattern = "_")
-  #season_map <- c("year", "month", "day")
+    dplyr::mutate(
+      tmp_col = basename(file),
+      tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+")
+    )
+  # n_count <- stringr::str_count(string = all_files_tmp$tmp[1],pattern = "_")
+  # season_map <- c("year", "month", "day")
   # Asignar valor a season usando el vector de estaciones
-  #season <- ifelse(n_count >= 0 && n_count <= 2, season_map[n_count + 1], NA)
+  # season <- ifelse(n_count >= 0 && n_count <= 2, season_map[n_count + 1], NA)
   all_files_tmp <- all_files_tmp %>%
     {
-      switch(
-        season,
+      switch(season,
         "year" = tidyr::separate_wider_delim(., cols = "tmp", delim = "-", cols_remove = TRUE, names = "year", too_many = "drop"),
         "month" = tidyr::separate_wider_delim(., cols = "tmp", delim = "-", cols_remove = TRUE, names = c("year", "month"), too_many = "drop"),
         .
@@ -100,27 +101,30 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
   path_list <- purrr::map(files_df_list, ~ dplyr::pull(., "file"))
   func <- match.fun(stat_function)
   ext_file <- unique(stringr::str_extract(string = all_files_tmp$tmp_col, pattern = files_ext_pattern))
-  ####filter data####
+  #### filter data####
   sf::sf_use_s2(FALSE)
   shp_sf <- sf::read_sf(shp_file) %>% sf::st_geometry()
   bbox <- sf::st_bbox(shp_sf)
-  #process_table and  process_sublist should be in utils.R but does not work!
+  # process_table and  process_sublist should be in utils.R but does not work!
   process_tables <- function(file) {
     dataframe <- switch(ext_file,
-                        ".parquet" = arrow::read_parquet(file),
-                        ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
+      ".parquet" = arrow::read_parquet(file),
+      ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
+    )
     dataframe <- dataframe %>%
       tidyr::drop_na() %>%
       dplyr::group_by(lat, lon) %>%
       dplyr::mutate(ID = dplyr::cur_group_id()) %>%
       dplyr::ungroup() %>%
       dplyr::group_by(ID) %>%
-      dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE),
-                       date1 = dplyr::first(date1),
-                       date2 = dplyr::first(date2),
-                       lon = dplyr::first(lon),
-                       lat = dplyr::first(lat),
-                       .groups = "drop") %>%
+      dplyr::summarise(
+        fill = func(!!sym(var_name), na.rm = TRUE),
+        date1 = dplyr::first(date1),
+        date2 = dplyr::first(date2),
+        lon = dplyr::first(lon),
+        lat = dplyr::first(lat),
+        .groups = "drop"
+      ) %>%
       dplyr::select(-ID)
     data_sf <- sf::st_as_sf(dataframe, coords = c("lon", "lat"), crs = 4326)
     data_to_filter <- suppressMessages(sf::st_intersects(data_sf, shp_sf))
@@ -140,7 +144,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     if (n_cores <= 1) {
       progressr::with_progress({
         p <- progressr::progressor(steps = length(entry_list))
-        dataframe_list <- purrr::map(entry_list, ~{
+        dataframe_list <- purrr::map(entry_list, ~ {
           result <- process_tables(.x)
           p()
           Sys.sleep(0.2)
@@ -153,7 +157,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       future::plan("cluster", workers = cl)
       progressr::with_progress({
         p <- progressr::progressor(steps = length(entry_list))
-        dataframe_list <- furrr::future_map(entry_list, ~{
+        dataframe_list <- furrr::future_map(entry_list, ~ {
           result <- process_tables(.x)
           p()
           Sys.sleep(0.2)
@@ -175,22 +179,26 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     dplyr::mutate(ID = dplyr::cur_group_id()) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(ID, season) %>%
-    dplyr::summarise(fill = func(fill, na.rm = TRUE),
-                     date1 = first(date1),
-                     date2 = first(date2),
-                     lon = first(lon),
-                     lat = first(lat),
-                     .groups = "drop") %>%
+    dplyr::summarise(
+      fill = func(fill, na.rm = TRUE),
+      date1 = first(date1),
+      date2 = first(date2),
+      lon = first(lon),
+      lat = first(lat),
+      .groups = "drop"
+    ) %>%
     dplyr::select(-ID)
   if (season == "month") {
     data_plot <- data_plot %>% dplyr::mutate(season = factor(season,
-                                                             levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
+      levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+    ))
   }
   if (season == "year") {
     data_plot <- data_plot %>% dplyr::mutate(season = factor(season,
-                                                             levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)))
+      levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)
+    ))
   }
-  ###Plot section####
+  ### Plot section####
   cat("\n\n Generando gráfico...\n\n")
   xlim <- c(bbox[1], bbox[3])
   ylim <- c(bbox[2], bbox[4])
@@ -205,7 +213,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       ) +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
-      #coord_equal() +
+      # coord_equal() +
       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       guides(fill = guide_colorbar(
@@ -218,8 +226,10 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       )) +
       theme_bw() +
       facet_wrap(~season, ncol = n_col) +
-      labs(title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-           caption = "Fuente: OceanColor Data")
+      labs(
+        title = paste0("Temperatura Superficial del Mar Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
+        caption = "Fuente: OceanColor Data"
+      )
     ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
   if (var_name == "chlor_a") {
@@ -228,7 +238,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     max_value <- max(log10(data_plot$fill), na.rm = TRUE)
     limits <- c(floor(min_value), ceiling(max_value))
     breaks <- seq(limits[1], limits[2], by = 1)
-    labels <- purrr::map(breaks, ~bquote(10^.(.x))) %>%
+    labels <- purrr::map(breaks, ~ bquote(10^.(.x))) %>%
       purrr::map_chr(deparse)
     plot <- ggplot2::ggplot(data = data_plot) +
       geom_tile(aes(x = lon, y = lat, fill = log10(fill))) +
@@ -237,14 +247,15 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         na.value = "white",
         limits = limits,
         breaks = breaks,
-        labels = parse(text = labels)) +
+        labels = parse(text = labels)
+      ) +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
-      #coord_equal() +
+      # coord_equal() +
       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       guides(fill = guide_colorbar(
-        title = expression(paste(Clorofila - alpha ~ " " (mg ~ m^{
+        title = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
           -3
         }))),
         title.position = "right",
@@ -255,22 +266,26 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       )) +
       theme_bw() +
       facet_wrap(~season, ncol = n_col) +
-      labs(title = paste0("Clorofila-a Periodo: ", min(data_plot$year1), "-", max(data_plot$year2)),
-           caption = "Fuente: OceanColor Data")
+      labs(
+        title = paste0("Clorofila-a durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
+        caption = "Fuente: OceanColor Data"
+      )
     ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
   if (var_name == "Rrs_645") {
     oce_jets <- get_palette("oce_jets")
-    data_plot <- data_plot %>% dplyr::mutate(fill = fill * 158.9418) %>%
+    data_plot <- data_plot %>%
+      dplyr::mutate(fill = fill * 158.9418) %>%
       dplyr::filter(fill >= 0)
     plot <- ggplot2::ggplot(data_plot) +
       geom_raster(aes(x, y, fill = fill)) +
       scale_fill_gradientn(
         colours = oce_jets,
-        na.value = "white") +
+        na.value = "white"
+      ) +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
-      #coord_equal() +
+      # coord_equal() +
       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
       coord_sf(xlim = xlim, ylim = ylim) +
       guides(fill = guide_colorbar(
@@ -291,10 +306,11 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       )) +
       theme_bw() +
       facet_wrap(~season, ncol = n_col) +
-      labs(title = paste0("Radiación normalizada de salida del agua: ", min(data_plot$year1), "-", max(data_plot$year2)),
-           caption = "Fuente: OceanColor Data")
+      labs(
+        title = paste0("Radiación normalizada de salida del agua durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
+        caption = "Fuente: OceanColor Data"
+      )
     ggsave(filename = name_plot, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
-    }
-
+  }
   toc()
 }
