@@ -197,7 +197,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
   if (var_name == "sst") {
     blues <- get_palette("blues")
     reds <- get_palette("reds")
-    plot <- ggplot(data = data_plot) +
+    plot <- ggplot2::ggplot(data = data_plot) +
       geom_tile(aes(x = lon, y = lat, fill = fill)) +
       scale_fill_gradientn(
         colours = c(blues, reds), na.value = "white",
@@ -230,7 +230,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     breaks <- seq(limits[1], limits[2], by = 1)
     labels <- purrr::map(breaks, ~bquote(10^.(.x))) %>%
       purrr::map_chr(deparse)
-    plot <- ggplot(data = data_plot) +
+    plot <- ggplot2::ggplot(data = data_plot) +
       geom_tile(aes(x = lon, y = lat, fill = log10(fill))) +
       scale_fill_gradientn(
         colours = oce_jets,
@@ -263,7 +263,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
     oce_jets <- get_palette("oce_jets")
     data_plot <- data_plot %>% dplyr::mutate(fill = fill * 158.9418) %>%
       dplyr::filter(fill >= 0)
-    plot <- ggplot(data_plot) +
+    plot <- ggplot2::ggplot(data_plot) +
       geom_raster(aes(x, y, fill = fill)) +
       scale_fill_gradientn(
         colours = oce_jets,
