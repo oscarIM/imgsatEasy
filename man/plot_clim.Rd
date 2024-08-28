@@ -15,7 +15,7 @@ plot_clim(
   res = 300,
   height = 8,
   width = 6,
-  ticks_x = 0.2,
+  ticks_x = 0.1,
   ticks_y = 0.1,
   n_cores = 1
 )
