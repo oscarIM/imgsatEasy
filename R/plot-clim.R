@@ -278,7 +278,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
       dplyr::mutate(fill = fill * 158.9418) %>%
       dplyr::filter(fill >= 0)
     plot <- ggplot2::ggplot(data_plot) +
-      geom_raster(aes(x, y, fill = fill)) +
+      geom_raster(aes(x = lon, y = lat, fill = fill)) +
       scale_fill_gradientn(
         colours = oce_jets,
         na.value = "white"
