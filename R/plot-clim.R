@@ -310,7 +310,7 @@ plot_clim <- function(dir_input, season, stat_function, var_name, shp_file, n_co
         title = paste0("Radiación normalizada de salida del agua durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
         caption = "Fuente: OceanColor Data"
       )
-    ggsave(filename = name_plot, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
+    ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
   }
   toc()
 }
