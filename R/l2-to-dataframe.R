@@ -6,7 +6,7 @@
 #' @param format_output formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
 #' @param season temporalidad para la generación de las tablas de datos ("day",  "month", "year" por ahora)
-#' @param sensor String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA (aqua) y MODIS TERRA (terra) o ambos ("all)
+#' @param sensor String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA ("aqua") y MODIS TERRA ("terra"),"sentinel3A", "sentinel3B", ambos modis ("modis_aq) o ambos sentinel ("sentinelAB")
 #' @param n_cores número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente
 #' @param res_l2 resolución para l2bin. Por defecto, res = "1" (H: 0.5km, Q: 250m, HQ: 100m, HH: 50m, 1: 1.1km, 2: 2.3km, 4: 4.6km, 9: 9.2km, 18: 18.5km, 36: 36km, 1D: 1 degree, HD: 0.5 degree, QD: 0.25 degree)
 #' @param res_l3 resolución para l3mapgen. Por defecto, res = "1km" (36km: 1080 x 540, 18km: 2160 x 1080, 9km: 4320 x 2160, 4km: 8640 x 4320, 2km: 17280 x 8640, 1km: 34560 x 17280, hkm: 69120 x 34560, qkm: 138240 x 69120, smi: 4096 x 2048, smi4: 8192 x 4096, land: 8640 x 4320)
@@ -103,7 +103,10 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   sensor_pattern  <- switch(sensor,
                             "aqua"  = "^AQUA",
                             "terra" = "^TERRA",
-                            "all"   = "^AQUA|^TERRA",
+                            "modis_aq"   = "^AQUA|^TERRA",
+                            "sentinel3A" = "^S3A",
+                            "sentinel3B" = "^S3B",
+                            "sentinelAB" = "^S3A|^S3B",
                             default = NULL)
 
   if (!is.na(sensor_pattern)) {
@@ -111,7 +114,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     all_files_tmp <- all_files_tmp %>%
       dplyr::filter(stringr::str_detect(sensor, pattern = sensor_pattern))
   } else {
-    stop("ingresar sensor: aqua, terra o all.. \n\n")
+    stop("ingresar sensor: aqua, terra, modis_aq, sentinel3A, sentinel3B, sentinelAB... \n\n")
   }
 
   if (!dir.exists(dir_output)) {

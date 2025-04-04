@@ -32,7 +32,7 @@ l2_to_dataframe(
 
 \item{format_output}{formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.}
 
-\item{sensor}{String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA (aqua) y MODIS TERRA (terra) o ambos ("all)}
+\item{sensor}{String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA ("aqua") y MODIS TERRA ("terra"),"sentinel3A", "sentinel3B", ambos modis ("modis_aq) o ambos sentinel ("sentinelAB")}
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
