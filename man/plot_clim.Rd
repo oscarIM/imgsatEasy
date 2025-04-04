@@ -5,11 +5,11 @@
 \title{plot_clim}
 \usage{
 plot_clim(
-  dir_input,
+  dir_input = NULL,
   season,
   stat_function,
   var_name,
-  shp_file,
+  shp_file = NULL,
   n_col,
   name_output,
   res = 300,
@@ -17,7 +17,13 @@ plot_clim(
   width = 6,
   ticks_x = 0.1,
   ticks_y = 0.1,
-  n_cores = 1
+  n_cores = 1,
+  xlim,
+  ylim,
+  save_data = TRUE,
+  from_data = FALSE,
+  data_plot_file = NULL,
+  sensor
 )
 }
 \arguments{
@@ -29,7 +35,7 @@ plot_clim(
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
-\item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa)}
+\item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
 
 \item{n_col}{numero de columnas para el gráfico}
 
@@ -45,9 +51,19 @@ plot_clim(
 
 \item{ticks_y}{vector numérico tamaño 1 indicando ticks en el eje y del plot}
 
+\item{n_cores}{cores a usar}
+
 \item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
 
 \item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
+
+\item{save_data}{opcion boleana}
+
+\item{from_data}{opcion boleana}
+
+\item{data_plot_file}{nombre de archivo}
+
+\item{sensor}{nombre del sensor (solo sirve para la leyenda)}
 }
 \value{
 imágenes png
@@ -57,16 +73,19 @@ Función para generar climatología y exportarla (formato png) para una variable
 }
 \examples{
 \dontrun{
-dir_input <- "/dir/to/input"
+dir_input <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/aqua/chlor_a/parquet_files"
 season <- "month"
 stat_function <- "median"
 var_name <- "chlor_a"
-n_col <- 3
-name_output <- "climatologia_chlor_a.png"
-shp_file <- "/home/evolecolab/Escritorio/test_satImg/raster_mensuales/resultados_raster/Golfo_Arauco_prj2.shp"
-res <- 300
-height <- 7
-width <- 9
-plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, shp_file = shp_file, n_col = n_col, n_cores, name_output = name_output, res = res, height = height, width = width)
+#shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
+n_col <- 4
+name_output <- "chlor_aqua_proyecto_junin.png"
+ticks_x = 0.1
+ticks_y = 0.15
+n_cores = 16
+xlim <- c(west, east)
+ylim <- c(north, south)
+sensor = "aqua"
+plot_clim(dir_input = dir_input,season = season, stat_function = stat_function,var_name = var_name,n_col = n_col,name_output = name_output,res = 300,height = 12,width = 9,ticks_x = ticks_x, ticks_y = ticks_y,n_cores = n_cores,xlim = xlim, ylim = ylim,save_data = FALSE,from_data = TRUE,data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 }
 }
