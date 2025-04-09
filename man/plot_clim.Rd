@@ -10,6 +10,8 @@ plot_clim(
   stat_function,
   var_name,
   shp_file = NULL,
+  start_date = NULL,
+  end_date = NULL,
   n_col,
   name_output,
   res = 300,
@@ -36,6 +38,10 @@ plot_clim(
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
 \item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
+
+\item{start_date}{fecha inicio}
+
+\item{end_date}{fecha final}
 
 \item{n_col}{numero de columnas para el gráfico}
 
