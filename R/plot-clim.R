@@ -19,6 +19,8 @@
 #' @param save_data opcion boleana
 #' @param from_data opcion boleana
 #' @param data_plot_file nombre de archivo
+#' @param start_date fecha inicio
+#' @param end_date fecha final
 #' @importFrom arrow read_parquet
 #' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup
 #' @importFrom lubridate month year
@@ -54,7 +56,7 @@
 #' plot_clim(dir_input = dir_input,season = season, stat_function = stat_function,var_name = var_name,n_col = n_col,name_output = name_output,res = 300,height = 12,width = 9,ticks_x = ticks_x, ticks_y = ticks_y,n_cores = n_cores,xlim = xlim, ylim = ylim,save_data = FALSE,from_data = TRUE,data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 
 #' }
-plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file=NULL, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim,save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor) {
+plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file = NULL, start_date = NULL, end_date = NULL, n_col, name_output, res = 300, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim,save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor) {
   tic()
   sf::sf_use_s2(FALSE)
 
@@ -346,11 +348,14 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file=
       dplyr::mutate(
         tmp_col = basename(file),
         tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+")
-      )
-    # n_count <- stringr::str_count(string = all_files_tmp$tmp[1],pattern = "_")
-    # season_map <- c("year", "month", "day")
-    # Asignar valor a season usando el vector de estaciones
-    # season <- ifelse(n_count >= 0 && n_count <= 2, season_map[n_count + 1], NA)
+      ) %>%
+      tidyr::separate(tmp_col,into = "date",sep = "_",extra = "drop") %>%
+      dplyr::mutate(date = as.Date(date))
+    all_files_tmp <- if (is.null(start_date) || is.null(end_date)) {
+      all_files_tmp  # No cambia nada si alguna de las fechas es NULL
+    } else {
+      all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
+    }
     all_files_tmp <- all_files_tmp %>%
       {
         switch(season,
