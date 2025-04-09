@@ -349,7 +349,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
         tmp_col = basename(file),
         tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+")
       ) %>%
-      tidyr::separate(tmp_col,into = "date",sep = "_",extra = "drop") %>%
+      tidyr::separate(tmp_col,into = "date",sep = "_",remove = FALSE, extra =  "drop") %>%
       dplyr::mutate(date = as.Date(date))
     all_files_tmp <- if (is.null(start_date) || is.null(end_date)) {
 
