@@ -19,7 +19,7 @@
 #' @param save_data opcion boleana
 #' @param from_data opcion boleana
 #' @param data_plot_file nombre de archivo
-#' @param start_date fecha inicio
+#' @param start_date fecha inicio (formato "YYYYY-MM-DD")
 #' @param end_date fecha final
 #' @importFrom arrow read_parquet
 #' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup
@@ -352,6 +352,8 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
       tidyr::separate(tmp_col,into = "date",sep = "_",extra = "drop") %>%
       dplyr::mutate(date = as.Date(date))
     all_files_tmp <- if (is.null(start_date) || is.null(end_date)) {
+      start_date <- as.Date(start_date)
+      end_date <- as.Date(end_date)
       all_files_tmp  # No cambia nada si alguna de las fechas es NULL
     } else {
       all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
