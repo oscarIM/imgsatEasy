@@ -115,24 +115,54 @@ scale_y_latitude <- function(name = "", ticks = 30,
                        breaks = breaks, labels = labels,
                        ...)
 }
+
+#LonLabel <- function(lon, east = "\u00B0E", west = "\u00B0W", zero = "\u00B0") {
+#  lon <- as.numeric(lon)
+#  lon <- ifelse(lon > 180, ConvertLongitude(lon), lon)
+#  newlon <- ifelse(lon < 0, paste0(abs(lon), west), paste0(lon, east))
+#  newlon[lon == 0 & !is.na(lon)] <- paste0(lon[lon == 0 & !is.na(lon)], zero)
+#  newlon[lon == 180 & !is.na(lon)] <- paste0(lon[lon == 180 & !is.na(lon)], zero)
+#  return(newlon)
+#}
 #' @title LonLabel
 #' @rdname map_labels
 #' @keywords internal
 LonLabel <- function(lon, east = "\u00B0E", west = "\u00B0W", zero = "\u00B0") {
   lon <- as.numeric(lon)
   lon <- ifelse(lon > 180, ConvertLongitude(lon), lon)
-  newlon <- ifelse(lon < 0, paste0(abs(lon), west), paste0(lon, east))
-  newlon[lon == 0 & !is.na(lon)] <- paste0(lon[lon == 0 & !is.na(lon)], zero)
-  newlon[lon == 180 & !is.na(lon)] <- paste0(lon[lon == 180 & !is.na(lon)], zero)
+  lon_fmt <- formatC(lon, format = "f", digits = 1)  # ← aquí el cambio
+
+  newlon <- ifelse(lon < 0,
+                   paste0(formatC(abs(lon), format = "f", digits = 1), west),
+                   paste0(lon_fmt, east))
+
+  newlon[lon == 0 & !is.na(lon)] <- paste0(formatC(lon[lon == 0 & !is.na(lon)], format = "f", digits = 1), zero)
+  newlon[lon == 180 & !is.na(lon)] <- paste0(formatC(lon[lon == 180 & !is.na(lon)], format = "f", digits = 1), zero)
+
   return(newlon)
 }
+
+#LatLabel <- function(lat, north = "\u00B0N", south = "\u00B0S", zero = "\u00B0") {
+#  lat <- as.numeric(lat)
+#  newlat <- ifelse(lat < 0, paste0(abs(lat), south), paste0(lat, north))
+#  newlat[lat == 0 & !is.na(lat)] <- paste0(lat[lat == 0 & !is.na(lat)], zero)
+#  return(newlat)
+#}
 
 #' @title LatLabel
 #' @rdname map_labels
 #' @keywords internal
+
 LatLabel <- function(lat, north = "\u00B0N", south = "\u00B0S", zero = "\u00B0") {
   lat <- as.numeric(lat)
-  newlat <- ifelse(lat < 0, paste0(abs(lat), south), paste0(lat, north))
-  newlat[lat == 0 & !is.na(lat)] <- paste0(lat[lat == 0 & !is.na(lat)], zero)
+  lat_fmt <- formatC(lat, format = "f", digits = 1)  # ← aquí el cambio
+
+  newlat <- ifelse(lat < 0,
+                   paste0(formatC(abs(lat), format = "f", digits = 1), south),
+                   paste0(lat_fmt, north))
+
+  newlat[lat == 0 & !is.na(lat)] <- paste0(formatC(lat[lat == 0 & !is.na(lat)], format = "f", digits = 1), zero)
+
   return(newlat)
 }
+
