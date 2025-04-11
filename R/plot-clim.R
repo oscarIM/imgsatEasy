@@ -101,22 +101,26 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
                                                                levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)
       ))
     }
-    n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
-    barheight <- 5 * n_facet_lines
+
 
      cat("\n\n Generando gráfico...\n\n")
     #xlim <- c(bbox[1], bbox[3])
     #ylim <- c(bbox[2], bbox[4])
-
-    cols <- switch (object,
-      case = action
+##### all plot elements####
+     n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
+     barheight <- 5 * n_facet_lines
+    cols <- switch (var_name,
+      "chlor_a" = get_palette("oce_jets"),
+      "sst" = c(get_palette("blues"), get_palette("reds"))
     )
 
      guide_title <- switch (var_name,
       "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
         -3
       }))),
-      "sst" = "sst"
+      "sst" =  "Temperatura Superficial Mar (°C)",
+      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
+
     )
 
 
@@ -127,7 +131,8 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
       base_plot <- ggplot2::ggplot(data = data_plot) +
        geom_tile(aes(x = lon, y = lat, fill = fill)) +
        scale_fill_gradientn(
-         colours = cols, na.value = "white",
+         colours = cols,
+         na.value = "white",
          n.breaks = 5
        ) +
        scale_x_longitude(ticks = ticks_x) +
