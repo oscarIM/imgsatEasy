@@ -77,13 +77,20 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
     shp_sf <- sf::read_sf(shp_file) %>%
       sf::st_geometry()
   }
+
+  ###gral phtafical vars
+
+
   caption <- switch (sensor,
                      "aqua" = "Fuente: OceanColor Data; Sensor Aqua-MODIS",
                      "terra" = "Fuente: OceanColor Data; Sensor Terra-MODIS",
                      "all" = "Fuente: OceanColor Data; Combined sensor Aqua-Terra"
   )
+
+
+
   if(from_data) {
-    data_plot <- readr::read_csv(data_plot_file,show_col_types = FALSE)
+     data_plot <- readr::read_csv(data_plot_file,show_col_types = FALSE)
     if (season == "month") {
       data_plot <- data_plot %>% dplyr::mutate(season = factor(season,
                                                                levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
@@ -94,11 +101,72 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
                                                                levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)
       ))
     }
-    cat("\n\n Generando gráfico...\n\n")
+    n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
+    barheight <- 5 * n_facet_lines
+
+     cat("\n\n Generando gráfico...\n\n")
     #xlim <- c(bbox[1], bbox[3])
     #ylim <- c(bbox[2], bbox[4])
 
-    if (var_name == "sst") {
+    cols <- switch (object,
+      case = action
+    )
+
+     guide_title <- switch (var_name,
+      "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
+        -3
+      }))),
+      "sst" = "sst"
+    )
+
+
+
+
+
+
+      base_plot <- ggplot2::ggplot(data = data_plot) +
+       geom_tile(aes(x = lon, y = lat, fill = fill)) +
+       scale_fill_gradientn(
+         colours = cols, na.value = "white",
+         n.breaks = 5
+       ) +
+       scale_x_longitude(ticks = ticks_x) +
+       scale_y_latitude(ticks = ticks_y) +
+       # coord_equal() +
+       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+       coord_sf(xlim = xlim, ylim = ylim) +
+       theme_bw() +
+       facet_wrap(~season, ncol = n_col) +
+       theme(panel.spacing.x = unit(2, "lines"),
+             panel.spacing.y = unit(1, "lines")) +
+        guides(fill = guide_colorbar(
+         title = guide_title,
+         title.position = "right",
+         title.theme = element_text(angle = 90),
+         barwidth = .5,
+         barheight = barheight,
+         title.hjust = .5
+       )) +
+       theme_bw() +
+       facet_wrap(~season, ncol = n_col) +
+       theme(panel.spacing.x = unit(2, "lines"),
+             panel.spacing.y = unit(1, "lines")) +
+       labs(
+         title = paste0("Temperatura Superficial del Mar durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
+         caption = caption
+       )
+
+
+
+
+
+
+
+
+
+
+
+     if (var_name == "sst") {
       blues <- get_palette("blues")
       reds <- get_palette("reds")
       plot <- ggplot2::ggplot(data = data_plot) +
@@ -117,7 +185,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
           title.position = "right",
           title.theme = element_text(angle = 90),
           barwidth = .5,
-          barheight = 15,
+          barheight = barheight,
           title.hjust = .5
         )) +
         theme_bw() +
@@ -159,7 +227,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
           title.position = "right",
           title.theme = element_text(angle = 90),
           barwidth = .5,
-          barheight = 15,
+          barheight = barheight,
           title.hjust = .5
         )) +
         theme_bw() +
@@ -207,7 +275,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
           title.position = "right",
           title.theme = element_text(angle = 90),
           barwidth = .5,
-          barheight = 15,
+          barheight = barheight,
           title.hjust = .5
         )) +
         theme_bw() +
