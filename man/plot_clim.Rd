@@ -39,7 +39,7 @@ plot_clim(
 
 \item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
 
-\item{start_date}{fecha inicio}
+\item{start_date}{fecha inicio (formato "YYYYY-MM-DD")}
 
 \item{end_date}{fecha final}
 
