@@ -103,7 +103,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
 
     )
     n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
-    barheight <- 5 * n_facet_lines
+    barheight <- 7 * n_facet_lines
     year1 <-  lubridate::year(min(data_plot$date1))
     year2 <- lubridate::year(max(data_plot$date1))
     periodo <- ifelse(year1 != year2, paste0(year1, "-", year2), year2)
@@ -128,8 +128,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
       max_value <- max(data_plot$fill, na.rm = TRUE)
       limits <- c(floor(min_value), ceiling(max_value))
       breaks <- seq(limits[1], limits[2], by = 1)
-      labels <- purrr::map(breaks, ~ bquote(10^.(.x))) %>%
-        rlang::exec(expression, !!!.)
+      labels <- as.expression(lapply(breaks, function(x) bquote(10^.(x))))
     } else  if (var_name == "Rrs_645") {
       data_plot <- data_plot %>%
         dplyr::mutate(fill = fill * 158.9418)
@@ -340,8 +339,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
       max_value <- max(data_plot$fill, na.rm = TRUE)
       limits <- c(floor(min_value), ceiling(max_value))
       breaks <- seq(limits[1], limits[2], by = 1)
-      labels <- purrr::map(breaks, ~ bquote(10^.(.x))) %>%
-        rlang::exec(expression, !!!.)
+      labels <- as.expression(lapply(breaks, function(x) bquote(10^.(x))))
     } else  if (var_name == "Rrs_645") {
       data_plot <- data_plot %>%
         dplyr::mutate(fill = fill * 158.9418)
