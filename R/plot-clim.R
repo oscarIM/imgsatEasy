@@ -383,6 +383,10 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
         caption = caption)
   }
   if(save_data) {
+    if(var_name=="chlor_a") {
+      data_plot <- data_plot %>%
+        dplyr::mutate(fill = 10^fill)
+    }
     filename <- stringr::str_replace(string = name_output, pattern = ".png", replacement = ".csv")
     readr::write_csv(x = data_plot,file = filename)
     ggplot2::ggsave(filename = name_output, plot = plot, device = "png", units = "in", dpi = 300, height = height, width = width)
