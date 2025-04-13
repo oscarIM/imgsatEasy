@@ -30,7 +30,8 @@
 #' @importFrom progressr progressor with_progress
 #' @importFrom purrr map map2 map_chr
 #' @importFrom rlang !! sym :=
-#' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_intersects st_geometry st_crs
+#' @importFrom scales pretty_breaks
+#' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_geometry st_crs
 #' @importFrom stringr str_extract str_to_sentence
 #' @importFrom tidyr separate_wider_delim
 #' @importFrom magrittr %>%
@@ -77,20 +78,8 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
     shp_sf <- sf::read_sf(shp_file) %>%
       sf::st_geometry()
   }
-
-  ###gral phtafical vars
-
-
-  caption <- switch (sensor,
-                     "aqua" = "Fuente: OceanColor Data; Sensor Aqua-MODIS",
-                     "terra" = "Fuente: OceanColor Data; Sensor Terra-MODIS",
-                     "all" = "Fuente: OceanColor Data; Combined sensor Aqua-Terra"
-  )
-
-
-
   if(from_data) {
-     data_plot <- readr::read_csv(data_plot_file,show_col_types = FALSE)
+    data_plot <- readr::read_csv(data_plot_file, show_col_types = FALSE)
     if (season == "month") {
       data_plot <- data_plot %>% dplyr::mutate(season = factor(season,
                                                                levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
@@ -102,318 +91,88 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
       ))
     }
 
+    cat("\n\n Generando gráfico...\n\n")
+    caption <- switch (sensor,
+                       "aqua" = "Fuente: OceanColor Data; Sensor Modis-Aqua",
+                       "terra" = "Fuente: OceanColor Data; Sensor Modis-Terra",
+                       "modis_aq" = "Fuente: OceanColor Data; Combined Aqua-Terra satellites",
+                       "sentinel3A" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3A",
+                       "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
+                       "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
+                       default = "Sensor desconocido"
 
-     cat("\n\n Generando gráfico...\n\n")
-    #xlim <- c(bbox[1], bbox[3])
-    #ylim <- c(bbox[2], bbox[4])
-##### all plot elements####
-     n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
-     barheight <- 5 * n_facet_lines
+    )
+    n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
+    barheight <- 5 * n_facet_lines
+    year1 <-  lubridate::year(min(data_plot$date1))
+    year2 <- lubridate::year(max(data_plot$date1))
+    periodo <- ifelse(year1 != year2, paste0(year1, "-", year2), year2)
+    title_plot <- switch (var_name,
+                          "chlor_a" = "Concentración de clorofila-a durante periodo: ",
+                          "sst" =  "Temperatura Superficial del Mar durante periodo: ",
+                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm) durante periodo: ")
+    title_plot <- paste0(title_plot,  "", periodo)
     cols <- switch (var_name,
-      "chlor_a" = get_palette("oce_jets"),
-      "sst" = c(get_palette("blues"), get_palette("reds"))
-    )
+                    "sst" = c(get_palette("blues"), get_palette("reds")),
+                    get_palette("oce_jets"))
+    guide_title <- switch (var_name,
+                           "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
+                             -3
+                           }))),
+                           "sst" =  "Temperatura Superficial Mar (°C)",
+                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
 
-     guide_title <- switch (var_name,
-      "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
-        -3
-      }))),
-      "sst" =  "Temperatura Superficial Mar (°C)",
-      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
-
-    )
-
-
-
-
-
-
-      base_plot <- ggplot2::ggplot(data = data_plot) +
-       geom_tile(aes(x = lon, y = lat, fill = fill)) +
-       scale_fill_gradientn(
-         colours = cols,
-         na.value = "white",
-         n.breaks = 5
-       ) +
-       scale_x_longitude(ticks = ticks_x) +
-       scale_y_latitude(ticks = ticks_y) +
-       # coord_equal() +
-       geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-       coord_sf(xlim = xlim, ylim = ylim) +
-       theme_bw() +
-       facet_wrap(~season, ncol = n_col) +
-       theme(panel.spacing.x = unit(2, "lines"),
-             panel.spacing.y = unit(1, "lines")) +
-        guides(fill = guide_colorbar(
-         title = guide_title,
-         title.position = "right",
-         title.theme = element_text(angle = 90),
-         barwidth = .5,
-         barheight = barheight,
-         title.hjust = .5
-       )) +
-       theme_bw() +
-       facet_wrap(~season, ncol = n_col) +
-       theme(panel.spacing.x = unit(2, "lines"),
-             panel.spacing.y = unit(1, "lines")) +
-       labs(
-         title = paste0("Temperatura Superficial del Mar durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-         caption = caption
-       )
-
-
-
-
-
-
-
-
-
-
-
-     if (var_name == "sst") {
-      blues <- get_palette("blues")
-      reds <- get_palette("reds")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = c(blues, reds), na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = "Temperatura Superficial Mar (°C)",
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = barheight,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Temperatura Superficial del Mar durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-    }
     if (var_name == "chlor_a") {
-      oce_jets <- get_palette("oce_jets")
-      min_value <- min(log10(data_plot$fill), na.rm = TRUE)
-      max_value <- max(log10(data_plot$fill), na.rm = TRUE)
+      data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
+      min_value <- min(data_plot$fill, na.rm = TRUE)
+      max_value <- max(data_plot$fill, na.rm = TRUE)
       limits <- c(floor(min_value), ceiling(max_value))
       breaks <- seq(limits[1], limits[2], by = 1)
       labels <- purrr::map(breaks, ~ bquote(10^.(.x))) %>%
-        purrr::map_chr(deparse)
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = log10(fill))) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          limits = limits,
-          breaks = breaks,
-          labels = parse(text = labels)
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
-            -3
-          }))),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = barheight,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        #theme(panel.spacing = unit(2, "lines")) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Clorofila-a durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-    }
-    if (var_name == "Rrs_645") {
-      oce_jets <- get_palette("oce_jets")
+        rlang::exec(expression, !!!.)
+    } else  if (var_name == "Rrs_645") {
       data_plot <- data_plot %>%
-        dplyr::mutate(fill = fill * 158.9418) #%>%
-      #dplyr::filter(fill >= 0)
-
-      min_fill <- min(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
-      data_plot <- data_plot %>%
-        mutate(fill = if_else(fill < 0, min_fill, fill))
-
-      plot <- ggplot2::ggplot(data_plot) +
-        geom_raster(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white"
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nWLR 645",
-            " (",
-            "mW ",
-            cm^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = barheight,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = "Radiación normalizada de salida del agua (645nm)",
-          subtitle = paste0("Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
+        dplyr::mutate(fill = fill * 158.9418)
+      breaks <- scales::pretty_breaks(n = 5)(data_plot$fill)
+      labels <- ggplot2::waiver()
+      limits <- range(data_plot$fill, na.rm = TRUE)
+    } else {
+      breaks <- scales::pretty_breaks(n = 5)(data_plot$fill)
+      labels <- ggplot2::waiver()
+      limits <- range(data_plot$fill, na.rm = TRUE)
     }
-    if (var_name == "Rrs_555") {
-      oce_jets <- get_palette("oce_jets")
-      data_plot <- data_plot %>%
-        dplyr::mutate(fill = fill * 183.869) %>%
-        dplyr::filter(fill >= 0)
-      plot <- ggplot2::ggplot(data_plot) +
-        geom_raster(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white"
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nWLR 555",
-            " (",
-            "mW ",
-            cm^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Radiación normalizada de salida del agua (555 nm) durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
 
-    }
-    if (var_name == "nflh") {
-      oce_jets <- get_palette("oce_jets")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nFLH",
-            " (",
-            "mW ",
-            m^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Altura Normalizada de la Línea de Fluorescencia durnte periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
+    plot <- ggplot2::ggplot(data = data_plot) +
+      geom_tile(aes(x = lon, y = lat, fill = fill)) +
+      scale_fill_gradientn(colours = cols,
+                           na.value = "white",
+                           breaks = breaks,
+                           labels = labels,
+                           limits = limits) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
+      # coord_equal() +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+      coord_sf(xlim = xlim, ylim = ylim) +
+      theme_bw() +
+      facet_wrap(~season, ncol = n_col) +
+      theme(panel.spacing.x = unit(2, "lines"),
+            panel.spacing.y = unit(1, "lines")) +
+      guides(fill = guide_colorbar(
+        title = guide_title,
+        title.position = "right",
+        title.theme = element_text(angle = 90),
+        barwidth = .5,
+        barheight = barheight,
+        title.hjust = .5)) +
+      theme_bw() +
+      facet_wrap(~season, ncol = n_col) +
+      theme(panel.spacing.x = unit(2, "lines"),
+            panel.spacing.y = unit(1, "lines")) +
+      labs(
+        title = title_plot,
+        caption = caption)
 
-
-    }
-    if (var_name == "Kd_490") {
-      oce_jets <- get_palette("oce_jets")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "Kd 490",
-            " (",
-            m^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Coeficiente de atenuación difusa a 490 nm durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-    }
   } else {
     files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
     all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
@@ -545,253 +304,85 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
     }
     ### Plot section####
     cat("\n\n Generando gráfico...\n\n")
-    #xlim <- c(bbox[1], bbox[3])
-    #ylim <- c(bbox[2], bbox[4])
+    caption <- switch (sensor,
+                       "aqua" = "Fuente: OceanColor Data; Sensor Modis-Aqua",
+                       "terra" = "Fuente: OceanColor Data; Sensor Modis-Terra",
+                       "modis_aq" = "Fuente: OceanColor Data; Combined Aqua-Terra satellites",
+                       "sentinel3A" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3A",
+                       "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
+                       "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
+                       default = "Sensor desconocido"
 
-    if (var_name == "sst") {
-      blues <- get_palette("blues")
-      reds <- get_palette("reds")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = c(blues, reds), na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = "Temperatura Superficial Mar (°C)",
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Temperatura Superficial del Mar durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
+    )
+    n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
+    barheight <- 5 * n_facet_lines
+    year1 <-  lubridate::year(min(data_plot$date1))
+    year2 <- lubridate::year(max(data_plot$date1))
+    periodo <- ifelse(year1 != year2, paste0(year1, "-", year2), year2)
+    title_plot <- switch (var_name,
+                          "chlor_a" = "Concentración de clorofila-a durante periodo: ",
+                          "sst" =  "Temperatura Superficial del Mar durante periodo: ",
+                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm) durante periodo: ")
+    title_plot <- paste0(title_plot,  "", periodo)
+    cols <- switch (var_name,
+                    "sst" = c(get_palette("blues"), get_palette("reds")),
+                    get_palette("oce_jets"))
+    guide_title <- switch (var_name,
+                           "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
+                             -3
+                           }))),
+                           "sst" =  "Temperatura Superficial Mar (°C)",
+                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
 
-    }
     if (var_name == "chlor_a") {
-      oce_jets <- get_palette("oce_jets")
-      min_value <- min(log10(data_plot$fill), na.rm = TRUE)
-      max_value <- max(log10(data_plot$fill), na.rm = TRUE)
+      data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
+      min_value <- min(data_plot$fill, na.rm = TRUE)
+      max_value <- max(data_plot$fill, na.rm = TRUE)
       limits <- c(floor(min_value), ceiling(max_value))
       breaks <- seq(limits[1], limits[2], by = 1)
       labels <- purrr::map(breaks, ~ bquote(10^.(.x))) %>%
-        purrr::map_chr(deparse)
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = log10(fill))) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          limits = limits,
-          breaks = breaks,
-          labels = parse(text = labels)
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
-            -3
-          }))),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Clorofila-a durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-    }
-    if (var_name == "Rrs_645") {
-      oce_jets <- get_palette("oce_jets")
+        rlang::exec(expression, !!!.)
+    } else  if (var_name == "Rrs_645") {
       data_plot <- data_plot %>%
-        dplyr::mutate(fill = fill * 158.9418) #%>%
-      #dplyr::filter(fill >= 0)
-
-      min_fill <- min(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
-      data_plot <- data_plot %>%
-        mutate(fill = if_else(fill < 0, min_fill, fill))
-
-      plot <- ggplot2::ggplot(data_plot) +
-        geom_raster(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white"
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nWLR 645",
-            " (",
-            "mW ",
-            cm^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = "Radiación normalizada de salida del agua (645nm)",
-          subtitle = paste0("Periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
+        dplyr::mutate(fill = fill * 158.9418)
+      breaks <- scales::pretty_breaks(n = 5)(data_plot$fill)
+      labels <- ggplot2::waiver()
+      limits <- range(data_plot$fill, na.rm = TRUE)
+    } else {
+      breaks <- scales::pretty_breaks(n = 5)(data_plot$fill)
+      labels <- ggplot2::waiver()
+      limits <- range(data_plot$fill, na.rm = TRUE)
     }
-    if (var_name == "Rrs_555") {
-      oce_jets <- get_palette("oce_jets")
-      data_plot <- data_plot %>%
-        dplyr::mutate(fill = fill * 183.869) %>%
-        dplyr::filter(fill >= 0)
-      plot <- ggplot2::ggplot(data_plot) +
-        geom_raster(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white"
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nWLR 555",
-            " (",
-            "mW ",
-            cm^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Radiación normalizada de salida del agua (555 nm) durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-    }
-    if (var_name == "nflh") {
-      oce_jets <- get_palette("oce_jets")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "nFLH",
-            " (",
-            "mW ",
-            m^-2,
-            um^-1,
-            sr^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Altura Normalizada de la Línea de Fluorescencia durnte periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-
-    }
-    if (var_name == "Kd_490") {
-      oce_jets <- get_palette("oce_jets")
-      plot <- ggplot2::ggplot(data = data_plot) +
-        geom_tile(aes(x = lon, y = lat, fill = fill)) +
-        scale_fill_gradientn(
-          colours = oce_jets,
-          na.value = "white",
-          n.breaks = 5
-        ) +
-        scale_x_longitude(ticks = ticks_x) +
-        scale_y_latitude(ticks = ticks_y) +
-        # coord_equal() +
-        geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-        coord_sf(xlim = xlim, ylim = ylim) +
-        guides(fill = guide_colorbar(
-          title = expression(paste(
-            "Kd 490",
-            " (",
-            m^-1,
-            ")"
-          )),
-          title.position = "right",
-          title.theme = element_text(angle = 90),
-          barwidth = .5,
-          barheight = 15,
-          title.hjust = .5
-        )) +
-        theme_bw() +
-        facet_wrap(~season, ncol = n_col) +
-        theme(panel.spacing.x = unit(2, "lines"),
-              panel.spacing.y = unit(1, "lines")) +
-        labs(
-          title = paste0("Coeficiente de atenuación difusa a 490 nm durante periodo: ", lubridate::year(min(data_plot$date1)), "-", lubridate::year(max(data_plot$date2))),
-          caption = caption
-        )
-
-
-    }
-
+    plot <- ggplot2::ggplot(data = data_plot) +
+      geom_tile(aes(x = lon, y = lat, fill = fill)) +
+      scale_fill_gradientn(colours = cols,
+                           na.value = "white",
+                           breaks = breaks,
+                           labels = labels,
+                           limits = limits) +
+      scale_x_longitude(ticks = ticks_x) +
+      scale_y_latitude(ticks = ticks_y) +
+      # coord_equal() +
+      geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+      coord_sf(xlim = xlim, ylim = ylim) +
+      theme_bw() +
+      facet_wrap(~season, ncol = n_col) +
+      theme(panel.spacing.x = unit(2, "lines"),
+            panel.spacing.y = unit(1, "lines")) +
+      guides(fill = guide_colorbar(
+        title = guide_title,
+        title.position = "right",
+        title.theme = element_text(angle = 90),
+        barwidth = .5,
+        barheight = barheight,
+        title.hjust = .5)) +
+      theme_bw() +
+      facet_wrap(~season, ncol = n_col) +
+      theme(panel.spacing.x = unit(2, "lines"),
+            panel.spacing.y = unit(1, "lines")) +
+      labs(
+        title = title_plot,
+        caption = caption)
   }
   if(save_data) {
     filename <- stringr::str_replace(string = name_output, pattern = ".png", replacement = ".csv")
