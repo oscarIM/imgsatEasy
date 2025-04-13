@@ -314,7 +314,7 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
 
     )
     n_facet_lines <- ceiling(length(unique(as.character(data_plot$season)))/n_col)
-    barheight <- 5 * n_facet_lines
+    barheight <- 7 * n_facet_lines
     year1 <-  lubridate::year(min(data_plot$date1))
     year2 <- lubridate::year(max(data_plot$date1))
     periodo <- ifelse(year1 != year2, paste0(year1, "-", year2), year2)
