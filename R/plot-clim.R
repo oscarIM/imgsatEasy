@@ -115,12 +115,12 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
     cols <- switch (var_name,
                     "sst" = c(get_palette("blues"), get_palette("reds")),
                     get_palette("oce_jets"))
-    guide_title <- switch (var_name,
-                           "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
-                             -3
-                           }))),
-                           "sst" =  "Temperatura Superficial Mar (°C)",
-                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
+    guide_title <- switch(
+      var_name,
+      "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{-3}, "]")),
+      "sst" = "Temperatura Superficial Mar [°C]",
+      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
+    )
 
     if (var_name == "chlor_a") {
       data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
@@ -326,12 +326,12 @@ plot_clim <- function(dir_input=NULL, season, stat_function, var_name, shp_file 
     cols <- switch (var_name,
                     "sst" = c(get_palette("blues"), get_palette("reds")),
                     get_palette("oce_jets"))
-    guide_title <- switch (var_name,
-                           "chlor_a" = expression(paste(Clorofila - alpha ~ " "(mg ~ m^{
-                             -3
-                           }))),
-                           "sst" =  "Temperatura Superficial Mar (°C)",
-                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
+    guide_title <- switch(
+      var_name,
+      "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{-3}, "]")),
+      "sst" = "Temperatura Superficial Mar [°C]",
+      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
+    )
 
     if (var_name == "chlor_a") {
       data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
