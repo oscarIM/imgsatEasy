@@ -33,16 +33,19 @@ download_manifest <- function(folder_txts, output_file = "todos_los_links.txt", 
         stringr::str_subset("^https?://")
       if (length(links) == 0) return(NULL)
 
-      # Extraer parte única del nombre del archivo (el valor después de "/data...")
-      rutas_unicas <- stringr::str_match(links, "p=(/data\\d+/[\\w]+)")[, 2]  # Captura la ruta única
+      rutas_unicas <- stringr::str_match(links, "p=(/data\\d+/[\\w]+)")[, 2]
 
-      tibble::tibble(
-        link = links,
-        nombre_destino = rutas_unicas %>%
-          stringr::str_extract("([\\w]+)$") %>%  # Extrae la última parte de la ruta (por ejemplo, "d030e1a164f97563")
-          paste0("request_files_", ., ".tar")  # Formato limpio
-      )
+      tibble::tibble(link = links, ruta = rutas_unicas) %>%
+        dplyr::mutate(
+          id = stringr::str_extract(ruta, "([\\w]+)$"),
+          sufijo = stringr::str_extract(link, "_files_\\d+"),
+          nombre_destino = glue::glue("request_files_{id}{sufijo}.tar")
+        ) %>%
+        dplyr::select(link, nombre_destino)
     })
+
+
+
 
   # Guardar todos los links en un archivo
   readr::write_lines(links_con_nombre$link, output_file)
