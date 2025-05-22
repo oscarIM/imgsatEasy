@@ -65,6 +65,9 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
   purrr::walk(c("long_min", "long_max", "lat_min", "lat_max", "start_time", "end_time"),
               ~ if (rlang::is_missing(eval(rlang::sym(.x))))
                 stop(glue::glue("Se debe especificar `{.x}`")))
+  if (start_time > end_time) {
+    stop("`start_time` debe ser anterior o igual a `end_time`.")
+  }
 
   ### Formateo del área y fechas ###
   lat_max <- ceiling(lat_max)
