@@ -16,16 +16,16 @@
 #' @details Esta función requiere que el usuario tenga configurada una cuenta en el CDS (Climate Data Store) con su clave de API, la cual puede configurarse mediante `ecmwfr::wf_set_key()`.
 #'
 #' @importFrom glue glue
-#' @importFrom purrr walk
-#' @importFrom rlang sym is_missing
 #' @importFrom lubridate ymd day year month as_datetime as_date
-#' @importFrom dplyr mutate summarise group_by bind_cols rename select
-#' @importFrom tidyr pivot_longer pivot_wider separate
-#' @importFrom terra rast
+#' @importFrom rlang is_missing sym
+#' @importFrom purrr walk map map_dfc
+#' @importFrom stringr str_subset
+#' @importFrom dplyr mutate group_by summarise bind_cols as_tibble select
 #' @importFrom readr write_csv
+#' @importFrom arrow write_parquet
+#' @importFrom tidyr separate
 #' @importFrom rWind uv2ds
-#' @importFrom ecmwfr wf_request
-#' 
+#' @importFrom utils head
 #' @examples
 #' \dontrun{
 #' get_wind_data(
@@ -40,10 +40,9 @@
 #' }
 #'
 #' @export
-get_wind_data <- function(long_min, long_max, lat_min, lat_max,
-                          start_time, end_time,
-                          dir_output, prefix_outfile, product_name) {
-  
+get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_time, dir_output, prefix_outfile,
+                          product_name) {
+
   if (!dir.exists(dir_output)) dir.create(dir_output, recursive = TRUE)
   ### Funciones auxiliares internas ###
   circ_mean <- function(deg) {
@@ -55,24 +54,18 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,
     if ((mean_sin < 0) & (mean_cos > 0)) theta <- theta + 360
     theta
   }
-  
   rad2deg <- function(rad) {
     (rad * 180) / pi
   }
-  
   deg2rad <- function(deg) {
     (deg * pi) / 180
   }
-  
   cat("Generando la solicitud de datos para el área y tiempo definidos...\n")
-  
   ### Validación de argumentos ###
-  purrr::walk(
-    c("long_min", "long_max", "lat_min", "lat_max", "start_time", "end_time"),
-    ~ if (rlang::is_missing(eval(rlang::sym(.x))))
-      stop(glue::glue("Se debe especificar `{.x}`"))
-  )
-  
+  purrr::walk(c("long_min", "long_max", "lat_min", "lat_max", "start_time", "end_time"),
+              ~ if (rlang::is_missing(eval(rlang::sym(.x))))
+                stop(glue::glue("Se debe especificar `{.x}`")))
+
   ### Formateo del área y fechas ###
   lat_max <- ceiling(lat_max)
   long_max <- ceiling(long_max)
@@ -83,69 +76,78 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,
                     to = lubridate::ymd(end_time), by = "day")
   days <- as.character(lubridate::day(dates))
   target <- glue::glue("{prefix_outfile}.nc")
-  
+
   ### Construcción de la solicitud ###
   if (product_name == "pressure_levels") {
     request <- list(
       dataset_short_name = "reanalysis-era5-pressure-levels",
-      pressure_level     = "1000",
-      product_type       = "reanalysis",
-      variable           = c("u_component_of_wind", "v_component_of_wind"),
-      year               = as.character(lubridate::year(start_time)),
-      month              = sprintf("%02d", lubridate::month(start_time)),
-      day                = days,
-      time               = sprintf("%02d:00", 0:23),
+      pressure_level = "1000",
+      product_type = "reanalysis",
+      variable = c("u_component_of_wind", "v_component_of_wind"),
+      year= unique(as.character(lubridate::year(dates))),
+      month = unique(sprintf("%02d", lubridate::month(dates))),
+      day = days,
+      time = sprintf("%02d:00", 0:23),
       data_format        = "netcdf",
       download_format    = "unarchived",
       target             = target
     )
   }
-  
+
   if (product_name == "single-levels") {
     request <- list(
       dataset_short_name = "reanalysis-era5-single-levels",
-      product_type       = "reanalysis",
-      variable           = c("10m_u_component_of_wind", "10m_v_component_of_wind", "mean_sea_level_pressure"),
-      year               = as.character(lubridate::year(start_time)),
-      month              = as.character(unique(lubridate::month(dates))),
-      day                = days,
-      time               = sprintf("%02d:00", 0:23),
-      area               = area,
-      data_format        = "netcdf",
-      download_format    = "unarchived",
-      target             = target
-    )
+      product_type = "reanalysis",
+      variable = c("10m_u_component_of_wind", "10m_v_component_of_wind"),
+      year = unique(as.character(lubridate::year(dates))),
+      month = unique(sprintf("%02d", lubridate::month(dates))),
+      day = days,
+      time = sprintf("%02d:00", 0:23),
+      area = area,
+      data_format = "netcdf",
+      download_format = "unarchived",
+      target = target)
   }
-  
   cat("Descargando los datos...\n")
   ecmwfr::wf_request(request = request, path = dir_output)
   cat("Descarga finalizada.\n")
-  
   cat("Procesando datos...\n")
   file_ncdf <- glue::glue("{dir_output}/{target}")
-  
-  df <- terra::rast(file_ncdf) %>%
-    as.data.frame(xy = TRUE) %>%
-    tidyr::pivot_longer(cols = 3:last_col(), names_to = "variables_tmp", values_to = "values_tmp") %>%
-    tidyr::separate(col = variables_tmp, into = c("full_var", "timestamp"), sep = "=", extra = "drop") %>%
-    tidyr::separate(full_var, into = c("var_name"), sep = "_", extra = "drop") %>%
-    tidyr::pivot_wider(names_from = var_name, values_from = values_tmp) %>%
-    dplyr::mutate(time = lubridate::as_datetime(as.integer(timestamp), tz = "UTC")) %>%
-    dplyr::bind_cols(rWind::uv2ds(.$u10, .$v10))
-  
-  df_final <- df %>%
-    dplyr::mutate(date = lubridate::as_date(time)) %>%
-    dplyr::group_by(x, y, date) %>%
-    dplyr::summarise(
-      speed_mean = mean(speed, na.rm = TRUE),
-      dir        = circ_mean(dir),
-      u          = mean(u10, na.rm = TRUE),
-      v          = mean(v10, na.rm = TRUE),
-      .groups    = "drop"
-    ) %>%
-    dplyr::rename(lon = x, lat = y)
-  
-  ### Exportar archivo CSV final ###
-  file <- glue::glue("{dir_output}/{prefix_outfile}.csv")
-  readr::write_csv(df_final, file = file)
+  nc_data <- ncdf4::nc_open(file_ncdf)
+  all_vars <- names(nc_data$var)
+  vars <- stringr::str_subset(string = all_vars, pattern = "u10|v10")
+  dims <- names(nc_data$dim)
+  dims_list <- purrr::map(dims, ~ ncdf4::ncvar_get(nc = nc_data, varid = .))
+  names(dims_list) <- dims
+  arrays_list <- purrr::map(.x= vars, .f= ~ncdf4::ncvar_get(nc = nc_data, varid =.x ))
+  names(arrays_list) <- vars
+  grid_df <- expand.grid(
+    lon = as.vector(dims_list$longitude),
+    lat = as.vector(dims_list$latitude),
+    time = dims_list$valid_time
+  )
+  values_df <- purrr::map_dfc(arrays_list, ~ {
+    var_vec <- as.vector(aperm(.x, c(3, 2, 1)))
+  })
+  df <- dplyr::bind_cols(grid_df, values_df) %>%
+    dplyr::mutate(time = lubridate::as_datetime(as.integer(time), tz = "UTC"),
+                  date = lubridate::as_date(time)) %>%
+    dplyr::bind_cols(rWind::uv2ds(.$u10, .$v10)) %>%
+    dplyr::group_by(lon, lat, date) %>%
+    dplyr::summarise(speed_mean = mean(speed, na.rm = TRUE),
+                     dir_mean = circ_mean(dir),
+                     u_mean = mean(u10, na.rm = TRUE),
+                     v_mean = mean(v10, na.rm = TRUE),
+                     .groups = "drop") %>%
+    dplyr::as_tibble()
+  cat("Proceso de datos finalizado, guardando archivo...\n")
+
+  if(nrow(df) <= 100000) {
+    file <- glue::glue("{dir_output}/{prefix_outfile}.csv")
+    readr::write_csv(df, file = file)
+  } else {
+    file <- glue::glue("{dir_output}/{prefix_outfile}.parquet")
+    arrow::write_parquet(x = df,sink = file)
+  }
 }
+
