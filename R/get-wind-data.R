@@ -26,6 +26,7 @@
 #' @importFrom tidyr separate
 #' @importFrom rWind uv2ds
 #' @importFrom dtplyr lazy_dt
+#' @importFrom magrittr %>%
 #' @examples
 #' \dontrun{
 #' get_wind_data(
@@ -153,7 +154,7 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_
             speed_mean = mean(speed, na.rm = TRUE),
             dir = circ_mean(dir),
             u = mean(u, na.rm = TRUE),
-            v = mean(v, na.rm = TRUE),.groups = "drop"
+            v = mean(v, na.rm = TRUE), .groups = "drop"
           ) %>%
           as.data.frame()
       } else {
