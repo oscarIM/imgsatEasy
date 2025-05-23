@@ -1,3 +1,6 @@
+.datatable.aware <- TRUE
+
+
 #' @title move_file
 #' @rdname move_file
 #' @keywords internal
