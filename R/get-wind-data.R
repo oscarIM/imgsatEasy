@@ -20,12 +20,12 @@
 #' @importFrom rlang is_missing sym
 #' @importFrom purrr walk map map_dfc
 #' @importFrom stringr str_subset
-#' @importFrom dplyr mutate group_by summarise bind_cols as_tibble select
+#' @importFrom dplyr mutate group_by summarise bind_cols select
 #' @importFrom readr write_csv
 #' @importFrom arrow write_parquet
 #' @importFrom tidyr separate
 #' @importFrom rWind uv2ds
-#' @importFrom utils head
+#' @importFrom dtplyr::lazy_dt
 #' @examples
 #' \dontrun{
 #' get_wind_data(
@@ -40,9 +40,7 @@
 #' }
 #'
 #' @export
-get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_time, dir_output, prefix_outfile,
-                          product_name) {
-
+get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_time, dir_output, prefix_outfile, product_name) {
   if (!dir.exists(dir_output)) dir.create(dir_output, recursive = TRUE)
   ### Funciones auxiliares internas ###
   circ_mean <- function(deg) {
@@ -62,9 +60,12 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
   }
   cat("Generando la solicitud de datos para el área y tiempo definidos...\n")
   ### Validación de argumentos ###
-  purrr::walk(c("long_min", "long_max", "lat_min", "lat_max", "start_time", "end_time"),
-              ~ if (rlang::is_missing(eval(rlang::sym(.x))))
-                stop(glue::glue("Se debe especificar `{.x}`")))
+  purrr::walk(
+    c("long_min", "long_max", "lat_min", "lat_max", "start_time", "end_time"),
+    ~ if (rlang::is_missing(eval(rlang::sym(.x)))) {
+      stop(glue::glue("Se debe especificar `{.x}`"))
+    }
+  )
   if (start_time > end_time) {
     stop("`start_time` debe ser anterior o igual a `end_time`.")
   }
@@ -75,8 +76,10 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
   lat_min <- floor(lat_min)
   long_min <- floor(long_min)
   area <- paste0(lat_max, "/", long_min, "/", lat_min, "/", long_max)
-  dates <- seq.Date(from = lubridate::ymd(start_time),
-                    to = lubridate::ymd(end_time), by = "day")
+  dates <- seq.Date(
+    from = lubridate::ymd(start_time),
+    to = lubridate::ymd(end_time), by = "day"
+  )
   days <- as.character(lubridate::day(dates))
   target <- glue::glue("{prefix_outfile}.nc")
 
@@ -87,13 +90,13 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
       pressure_level = "1000",
       product_type = "reanalysis",
       variable = c("u_component_of_wind", "v_component_of_wind"),
-      year= unique(as.character(lubridate::year(dates))),
+      year = unique(as.character(lubridate::year(dates))),
       month = unique(sprintf("%02d", lubridate::month(dates))),
       day = days,
       time = sprintf("%02d:00", 0:23),
-      data_format        = "netcdf",
-      download_format    = "unarchived",
-      target             = target
+      data_format = "netcdf",
+      download_format = "unarchived",
+      target = target
     )
   }
 
@@ -109,7 +112,8 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
       area = area,
       data_format = "netcdf",
       download_format = "unarchived",
-      target = target)
+      target = target
+    )
   }
   cat("Descargando los datos...\n")
   ecmwfr::wf_request(request = request, path = dir_output)
@@ -117,40 +121,73 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max,start_time, end_t
   cat("Procesando datos...\n")
   file_ncdf <- glue::glue("{dir_output}/{target}")
   nc_data <- ncdf4::nc_open(file_ncdf)
-  all_vars <- names(nc_data$var)
-  vars <- stringr::str_subset(string = all_vars, pattern = "u10|v10")
-  dims <- names(nc_data$dim)
+
+  dims <- names(nc_data$dim)[c(3, 2, 1)]
   dims_list <- purrr::map(dims, ~ ncdf4::ncvar_get(nc = nc_data, varid = .))
   names(dims_list) <- dims
-  arrays_list <- purrr::map(.x= vars, .f= ~ncdf4::ncvar_get(nc = nc_data, varid =.x ))
+  all_vars <- names(nc_data$var)
+  vars <- stringr::str_subset(string = all_vars, pattern = "u10|v10")
+  arrays_list <- purrr::map(.x = vars, .f = ~ ncdf4::ncvar_get(nc = nc_data, varid = .x))
   names(arrays_list) <- vars
-  grid_df <- expand.grid(
-    lon = as.vector(dims_list$longitude),
-    lat = as.vector(dims_list$latitude),
-    time = dims_list$valid_time
-  )
-  values_df <- purrr::map_dfc(arrays_list, ~ {
-    var_vec <- as.vector(aperm(.x, c(3, 2, 1)))
-  })
-  df <- dplyr::bind_cols(grid_df, values_df) %>%
-    dplyr::mutate(time = lubridate::as_datetime(as.integer(time), tz = "UTC"),
-                  date = lubridate::as_date(time)) %>%
-    dplyr::bind_cols(rWind::uv2ds(.$u10, .$v10)) %>%
-    dplyr::group_by(lon, lat, date) %>%
-    dplyr::summarise(speed_mean = mean(speed, na.rm = TRUE),
-                     dir_mean = circ_mean(dir),
-                     u_mean = mean(u10, na.rm = TRUE),
-                     v_mean = mean(v10, na.rm = TRUE),
-                     .groups = "drop") %>%
-    dplyr::as_tibble()
+  tmp <- expand.grid(dims_list$lon, dims_list$lat, dims_list$valid_time) %>%
+    tidyr::as_tibble()
+  colnames(tmp) <- c("lon", "lat", "valid_time")
+  tmp <- tmp %>%
+    dplyr::mutate(
+      lon = as.vector(lon),
+      lat = as.vector(lat),
+      u = as.vector(arrays_list[[1]]),
+      v = as.vector(arrays_list[[2]]),
+      date = lubridate::as_datetime(as.integer(valid_time), tz = "UTC")
+    ) %>%
+    dplyr::bind_cols(rWind::uv2ds(.$u, .$v)) %>%
+    tidyr::drop_na() %>%
+    as.data.frame()
+  df_final <- {
+    if (nrow(tmp) > 1e6) {
+      if (requireNamespace("dtplyr", quietly = TRUE)) {
+        message("Usando dtplyr::lazy_dt() para acelerar el agrupamiento...")
+        dtplyr::lazy_dt(tmp) %>%
+          dplyr::group_by(lon, lat, date) %>%
+          dplyr::summarise(
+            speed_mean = mean(speed, na.rm = TRUE),
+            dir = circ_mean(dir),
+            u = mean(u, na.rm = TRUE),
+            v = mean(v, na.rm = TRUE),
+            .groups = "drop"
+          ) %>%
+          as.data.frame()
+      } else {
+        warning("El objeto tiene más de 1 millón de filas y no tienes 'dtplyr' instalado. Esto puede demorar. Considera instalar el paquete con install.packages('dtplyr')")
+        tmp %>%
+          dplyr::group_by(lon, lat, date) %>%
+          dplyr::summarise(
+            speed_mean = mean(speed, na.rm = TRUE),
+            dir = circ_mean(dir),
+            u = mean(u, na.rm = TRUE),
+            v = mean(v, na.rm = TRUE),
+            .groups = "drop"
+          )
+      }
+    } else {
+      tmp %>%
+        dplyr::group_by(lon, lat, date) %>%
+        dplyr::summarise(
+          speed_mean = mean(speed, na.rm = TRUE),
+          dir = circ_mean(dir),
+          u = mean(u, na.rm = TRUE),
+          v = mean(v, na.rm = TRUE),
+          .groups = "drop"
+        )
+    }
+  }
   cat("Proceso de datos finalizado, guardando archivo...\n")
 
-  if(nrow(df) <= 100000) {
+  if (nrow(df_final) <= 100000) {
     file <- glue::glue("{dir_output}/{prefix_outfile}.csv")
-    readr::write_csv(df, file = file)
+    readr::write_csv(df_final, file = file)
   } else {
     file <- glue::glue("{dir_output}/{prefix_outfile}.parquet")
-    arrow::write_parquet(x = df,sink = file)
+    arrow::write_parquet(x = df_final, sink = file)
   }
 }
-
