@@ -25,7 +25,7 @@
 #' @importFrom arrow write_parquet
 #' @importFrom tidyr separate
 #' @importFrom rWind uv2ds
-#' @importFrom dtplyr::lazy_dt
+#' @importFrom dtplyr lazy_dt
 #' @examples
 #' \dontrun{
 #' get_wind_data(
