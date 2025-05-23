@@ -130,7 +130,7 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_
   arrays_list <- purrr::map(.x = vars, .f = ~ ncdf4::ncvar_get(nc = nc_data, varid = .x))
   names(arrays_list) <- vars
   tmp <- expand.grid(dims_list$lon, dims_list$lat, dims_list$valid_time) %>%
-    tidyr::as_tibble()
+   as.data.frame()
   colnames(tmp) <- c("lon", "lat", "valid_time")
   tmp <- tmp %>%
     dplyr::mutate(
@@ -153,8 +153,7 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_
             speed_mean = mean(speed, na.rm = TRUE),
             dir = circ_mean(dir),
             u = mean(u, na.rm = TRUE),
-            v = mean(v, na.rm = TRUE),
-            .groups = "drop"
+            v = mean(v, na.rm = TRUE),.groups = "drop"
           ) %>%
           as.data.frame()
       } else {
