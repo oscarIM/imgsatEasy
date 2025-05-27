@@ -25,7 +25,8 @@ plot_clim(
   save_data = TRUE,
   from_data = FALSE,
   data_plot_file = NULL,
-  sensor
+  sensor,
+  zona
 )
 }
 \arguments{
@@ -41,7 +42,7 @@ plot_clim(
 
 \item{start_date}{fecha inicio (formato "YYYYY-MM-DD")}
 
-\item{end_date}{fecha final}
+\item{end_date}{string que define la zona de estudio}
 
 \item{n_col}{numero de columnas para el gráfico}
 
