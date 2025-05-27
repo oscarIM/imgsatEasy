@@ -42,7 +42,7 @@ plot_clim(
 
 \item{start_date}{fecha inicio (formato "YYYYY-MM-DD")}
 
-\item{end_date}{string que define la zona de estudio}
+\item{end_date}{fecha final}
 
 \item{n_col}{numero de columnas para el gráfico}
 
@@ -71,6 +71,8 @@ plot_clim(
 \item{data_plot_file}{nombre de archivo}
 
 \item{sensor}{nombre del sensor (solo sirve para la leyenda)}
+
+\item{zona}{string que define la zona de estudio}
 }
 \value{
 imágenes png
