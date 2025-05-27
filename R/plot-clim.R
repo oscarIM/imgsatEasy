@@ -336,8 +336,8 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
   years <- unique(lubridate::year(data_plot$date))
   if(length(years) == 1) {
     subtitle <- glue::glue(
-      "Periodo: del día {format(min(data_plot$date), '%d')} de {stringr::str_to_title(format(min(data_plot$date), '%B'))} ",
-      "al día {format(max(data_plot$date), '%d')} de {stringr::str_to_title(format(max(data_plot$date), '%B'))} de {years}")
+      "Periodo: del {format(min(data_plot$date), '%d')} de {stringr::str_to_title(format(min(data_plot$date), '%B'))} ",
+      "al {format(max(data_plot$date), '%d')} de {stringr::str_to_title(format(max(data_plot$date), '%B'))} de {years}")
   } else {
     subtitle <- glue::glue("Periodo: {min(lubridate::year(data_plot$date))} – {max(lubridate::year(data_plot$date))}")
   }
