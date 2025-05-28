@@ -84,36 +84,58 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     data_plot <- readr::read_csv(data_plot_file, show_col_types = FALSE)
     if (season == "month") {
       data_plot <- data_plot %>%
-        dplyr::mutate(season = factor(season, levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
-    }
-    if (season == "year") {
+        dplyr::mutate(season = factor(season, levels = c(
+          "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        )))
+    } else if (season == "year") {
       data_plot <- data_plot %>%
-        dplyr::mutate(season = factor(season, levels = seq(from = min(season, na.rm = TRUE), to = max(season, na.rm = TRUE), by = 1)))
-      }
+        dplyr::mutate(season = factor(season, levels = seq(
+          from = min(season, na.rm = TRUE),
+          to = max(season, na.rm = TRUE), by = 1
+        )))
+    } else if (season == "week") {
+      data_plot <- data_plot %>%
+        dplyr::mutate(
+          isoweek = lubridate::isoweek(date),
+          week_name = paste0("Semana ", isoweek),
+          season = week_name)
+      weeks_seq <- data.frame(week = unique(data_plot$isoweek)) %>%
+        dplyr::mutate(
+          week = as.integer(week),
+          start = lubridate::as_date(lubridate::floor_date(as.Date(start_date), "week", week_start = 1)) + 7 * (week - min(week)),
+          end   = start + 6,
+          label = glue::glue("Semana {week} ({format(start, '%d')}–{format(end, '%d %b')})"),
+          season = paste0("Semana ", week))
 
-    labeller_vector <- data_plot %>%
-      dplyr::group_by(season) %>%
-      dplyr::summarise(n_dias = dplyr::n_distinct(date), .groups = "drop") %>%
-      dplyr::mutate(label = glue::glue("{season} (n = {n_dias})")) %>%
-      dplyr::select(-n_dias) %>%
-      tibble::deframe()
+      labeller_vector <- weeks_seq %>%
+        dplyr::select(season, label) %>%
+        tibble::deframe()
+    }
+
     #####plots vars####
     title_plot <- switch (var_name,
                           "chlor_a" = "Concentración de clorofila-a en",
                           "sst" = "Temperatura Superficial del Mar en",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en")
     title_plot <- glue::glue("{title_plot} {zona}")
+
     years <- unique(lubridate::year(data_plot$date))
-      if (length(years) == 1) {
-        subtitle <- glue::glue(
-          "Periodo: del {format(as.Date(start_date), '%d')} de {stringr::str_to_title(format(as.Date(start_date), '%B'))} ",
-          "al {format(as.Date(end_date), '%d')} de {stringr::str_to_title(format(as.Date(end_date), '%B'))} de {years}"
-        )
-        } else {
-        subtitle <- glue::glue(
-          "Periodo: {lubridate::year(as.Date(start_date))} – {lubridate::year(as.Date(end_date))}"
-        )
-      }
+    start_date <- as.Date(start_date)
+    end_date   <- as.Date(end_date)
+
+    if (length(years) == 1) {
+      subtitle <- glue::glue(
+        "Periodo: del {format(start_date, '%d')} de {stringr::str_to_sentence(format(start_date, '%B'))} ",
+        "al {format(end_date, '%d')} de {stringr::str_to_sentence(format(end_date, '%B'))} de {years}"
+      )
+    } else {
+      subtitle <- glue::glue(
+        "Periodo: {lubridate::year(start_date)} – {lubridate::year(end_date)}"
+      )
+    }
+
+
     cols <- switch (var_name,
                     "sst" = c(get_palette("blues"), get_palette("reds")),
                     get_palette("oce_jets"))
@@ -183,9 +205,13 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                      legend.key.height = unit(0.4, "cm"),
                      plot.background = element_rect(fill = "white", color = NA),
                      plot.margin = margin(t = 5, r = 5, b = 5, l = 5),
-                     plot.title.position = "plot") +
-      ggplot2::facet_wrap(~season, ncol = n_col, labeller = ggplot2::labeller(season = labeller_vector))
+                     plot.title.position = "plot")
+    if (season == "week") {
+      plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col, labeller = ggplot2::labeller(season = labeller_vector))
     } else {
+      plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col)
+    }
+    }  else {
       files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
       all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
       dplyr::tibble(file = .) %>%
@@ -304,36 +330,39 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
           isoweek = lubridate::isoweek(date),
           week_name = paste0("Semana ", isoweek),
           season = week_name)
-      labeller_vector <- data_plot %>%
-        dplyr::group_by(week_name) %>%
-        dplyr::reframe(
-          label = paste0(
-            week_name, " (",
-            format(min(lubridate::as_date(date)), "%d"), "–", format(max(lubridate::as_date(date)), "%d %b"), ")"
-          )
-        ) %>%
+      weeks_seq <- data.frame(week = unique(data_plot$isoweek)) %>%
+        dplyr::mutate(
+          week = as.integer(week),
+          start = lubridate::as_date(lubridate::floor_date(as.Date(start_date), "week", week_start = 1)) + 7 * (week - min(week)),
+          end   = start + 6,
+          label = glue::glue("Semana {week} ({format(start, '%d')}–{format(end, '%d %b')})"),
+          season = paste0("Semana ", week))
+
+      labeller_vector <- weeks_seq %>%
+        dplyr::select(season, label) %>%
         tibble::deframe()
     }
   }
-
   #####plots vars####
   title_plot <- switch (var_name,
                         "chlor_a" = "Concentración de clorofila-a en",
                         "sst" = "Temperatura Superficial del Mar en",
                         "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en")
   title_plot <- glue::glue("{title_plot} {zona}")
-   years <- unique(lubridate::year(data_plot$date))
-   if (length(years) == 1) {
-     subtitle <- glue::glue(
-       "Periodo: del {format(as.Date(start_date), '%d')} de {stringr::str_to_title(format(as.Date(start_date), '%B'))} ",
-       "al {format(as.Date(end_date), '%d')} de {stringr::str_to_title(format(as.Date(end_date), '%B'))} de {years}"
-     )
-   } else {
-     subtitle <- glue::glue(
-       "Periodo: {lubridate::year(as.Date(start_date))} – {lubridate::year(as.Date(end_date))}"
-     )
-   }
+  years <- unique(lubridate::year(data_plot$date))
+  start_date <- as.Date(start_date)
+  end_date   <- as.Date(end_date)
 
+  if (length(years) == 1) {
+    subtitle <- glue::glue(
+      "Periodo: del {format(start_date, '%d')} de {stringr::str_to_sentence(format(start_date, '%B'))} ",
+      "al {format(end_date, '%d')} de {stringr::str_to_sentence(format(end_date, '%B'))} de {years}"
+    )
+  } else {
+    subtitle <- glue::glue(
+      "Periodo: {lubridate::year(start_date)} – {lubridate::year(end_date)}"
+    )
+  }
   cols <- switch (var_name,
                   "sst" = c(get_palette("blues"), get_palette("reds")),
                   get_palette("oce_jets"))
@@ -409,8 +438,8 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       plot.title.position = "plot"
     )
 
-  if (season == "week" && !is.null(labeller_vector)) {
-    plot <- plot + ggplot2::facet_wrap(~week_name, ncol = n_col, labeller = ggplot2::labeller(week_name = labeller_vector))
+  if (season == "week") {
+    plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col, labeller = ggplot2::labeller(season = labeller_vector))
   } else {
     plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col)
   }
