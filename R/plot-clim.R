@@ -142,10 +142,15 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                       "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
                       "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
                       default = "Sensor desconocido")
+    #guide_title <- switch(var_name,
+    #                      "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{
+    #                        -3
+    #                      }, "]")),
+    #                      "sst" = "Temperatura Superficial Mar [°C]",
+    #                      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
+    #)
     guide_title <- switch(var_name,
-                          "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{
-                            -3
-                          }, "]")),
+                          "chlor_a" = bquote("Clorofila-α [" * mg~m^{-3} * "]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
     )
@@ -376,10 +381,15 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                       "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
                       default = "Sensor desconocido"
     )
+    #guide_title <- switch(var_name,
+    #                      "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{
+    #                        -3
+    #                      }, "]")),
+    #                      "sst" = "Temperatura Superficial Mar [°C]",
+    #                      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
+    #)
     guide_title <- switch(var_name,
-                          "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{
-                            -3
-                          }, "]")),
+                          "chlor_a" = bquote("Clorofila-α [" * mg~m^{-3} * "]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
     )
