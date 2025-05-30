@@ -20,66 +20,39 @@ l2_to_dataframe(
   west,
   east,
   fudge,
-  area_weighting = 0
+  area_weighting = 0,
+  data_compress = TRUE
 )
 }
 \arguments{
-\item{dir_ocssw}{directorio en donde estan los binarios ocssw (seadas)}
+\item{dir_ocssw}{Directorio OCSSW (SeaDAS)}
 
-\item{dir_input}{directorio en donde se almacenan las imágenes L2}
+\item{dir_input}{Directorio con archivos L2 (o .tar si data_compress = TRUE)}
 
-\item{dir_output}{directorio en donde se almacenaran los archivos resultantes}
+\item{dir_output}{Directorio de salida para L3 y archivos finales}
 
-\item{format_output}{formato de los archivos resultantes. Toma valores "parquet" o "csv. Por defecto parquet.}
+\item{format_output}{Formato de salida para las tablas ('parquet' por defecto)}
 
-\item{sensor}{String que indica de que sensor tomar datos. POr ahora esta MODIS AQUA ("aqua") y MODIS TERRA ("terra"),"sentinel3A", "sentinel3B", ambos modis ("modis_aq) o ambos sentinel ("sentinelAB")}
+\item{sensor}{Sensor MODIS/Sentinel ('aqua', 'terra', etc.)}
 
-\item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
+\item{var_name}{Nombre del producto (e.g. 'chlor_a')}
 
-\item{season}{temporalidad para la generación de las tablas de datos ("day",  "month", "year" por ahora)}
+\item{season}{Periodo de agregación ('year', 'month', 'day')}
 
-\item{n_cores}{número de núcleos a usar. Por defecto, n_cores = 1 (corrida secuencial). La parelelización es respecto de la cantidad de sub_folder procesados simultaneamente}
+\item{n_cores}{Núm. de núcleos para procesamiento paralelo}
 
-\item{res_l2}{resolución para l2bin. Por defecto, res = "1" (H: 0.5km, Q: 250m, HQ: 100m, HH: 50m, 1: 1.1km, 2: 2.3km, 4: 4.6km, 9: 9.2km, 18: 18.5km, 36: 36km, 1D: 1 degree, HD: 0.5 degree, QD: 0.25 degree)}
+\item{res_l2}{Resolución de binning (default '1')}
 
-\item{res_l3}{resolución para l3mapgen. Por defecto, res = "1km" (36km: 1080 x 540, 18km: 2160 x 1080, 9km: 4320 x 2160, 4km: 8640 x 4320, 2km: 17280 x 8640, 1km: 34560 x 17280, hkm: 69120 x 34560, qkm: 138240 x 69120, smi: 4096 x 2048, smi4: 8192 x 4096, land: 8640 x 4320)}
+\item{res_l3}{Resolución de mapeo ('1Km')}
 
-\item{north}{latitud norte para la generación de las imágenes L3}
+\item{north, }{south, west, east Límites espaciales}
 
-\item{south}{latitud sur para la generación de las imágenes L3}
+\item{fudge}{Valor fudge para mapgen}
 
-\item{west}{latitud oeste para la generación de las imágenes L3}
+\item{area_weighting}{Si se aplica ponderación por área}
 
-\item{east}{latitud este para la generación de las imágenes L3}
-
-\item{fudge}{??fusionador}
-
-\item{area_weighting}{area_weighting}
-}
-\value{
-tabla de datos en csv o parquet
+\item{data_compress}{Si TRUE, espera archivos .tar; si FALSE, archivos .nc directos}
 }
 \description{
-Función para obtener tablas de datos en parquet o csv a partir de imágenes L2 descargadas desde ://oceancolor.gsfc.nasa.gov/cgi/browse.pl. Solo se pueden extraer archivos diarios, mensuales o anuales.
-}
-\examples{
-\dontrun{
-dir_input <- "/dir/to/input_tar"
-dir_output <- "/dir/to/output"
-dir_ocssw <- "/dir/to/ocssw_binaries"
-format_output <- "parquet"
-var_name <- "sst"
-season <- "day"
-n_cores <- 6
-res_l2 <- "1"
-res_l3 <- "1km"
-north <- -35
-south <- -40
-west <- -75
-east <- -70
-fudge <- 2
-area_weighting <- 0
-sensor <- "all"
-l2_to_dataframe(dir_ocssw = dir_ocssw, dir_input = dir_input, dir_output = dir_output, format_ouput = format_ouput, var_name = var_name, season = season, n_cores = n_cores, res_l2 = res_l2, res_l3 = res_l3, north = north, south = south, west = west, east = east, sensor = sensor)
-}
+Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet)
 }
