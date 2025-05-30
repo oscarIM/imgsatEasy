@@ -227,8 +227,10 @@ l2_to_dataframe_temp <- function(dir_ocssw, dir_input, dir_output, format_output
       }, .options = furrr_options(seed = TRUE))
     })
   }
-
-  files_l3mapped <- list.files(dir_output, pattern = "L3mapped.nc$", full.names = TRUE)
+  pattern_del <- paste(c(patterns_l2, ".txt$","_L3b_tmp.nc$"), collapse = "|")
+  files_del <- list.files(path = dir_output, pattern = pattern_del, full.names = TRUE, recursive = FALSE)
+  files_l3mapped <- list.files(dir_output, pattern = "L3mapped.nc$", full.names = TRUE, recursive = FALSE)
+  unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
 
   cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
   if (length(files_l3mapped) <= 10) {
