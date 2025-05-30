@@ -150,10 +150,9 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     #                      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
     #)
     guide_title <- switch(var_name,
-                          "chlor_a" = bquote("Clorofila-α [" * mg~m^{-3} * "]"),
+                          "chlor_a" = expression("Clorofila-α [mg"~m^{-3}*"]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
-                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
-    )
+                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
     barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
     if (var_name == "chlor_a") {
       data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
@@ -389,10 +388,9 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     #                      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
     #)
     guide_title <- switch(var_name,
-                          "chlor_a" = bquote("Clorofila-α [" * mg~m^{-3} * "]"),
+                          "chlor_a" = expression("Clorofila-α [mg"~m^{-3}*"]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
-                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
-    )
+                          "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
     barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
 
     if (var_name == "chlor_a") {
