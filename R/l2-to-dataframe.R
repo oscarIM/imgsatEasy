@@ -55,8 +55,8 @@
 l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet" , sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting = 0) {
   tic()
   current_wd <- getwd()
-  patterns_oc <- paste(c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$"), collapse = "|")
-  patterns_sst <- paste(c(".SST.x.nc$", ".SST.NRT.nc$", ".SST.NRT.x.nc$"), collapse = "|")
+  patterns_oc <- paste(c(".OC.x.nc$", ".OC.NRT.nc$", ".OC.NRT.x.nc$",".OC.nc$"), collapse = "|")
+  patterns_sst <- paste(c(".SST.x.nc$", ".SST.NRT.nc$", ".SST.NRT.x.nc$", ".SST.nc$"), collapse = "|")
   patterns_l2 <- paste(c(patterns_oc, patterns_sst), collapse = "|")
   setwd(dir_input)
   cat("Descomprimiendo archivos...\n\n")
