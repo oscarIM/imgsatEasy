@@ -160,10 +160,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     } else if (var_name == "sst") {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
-      # labels <- ggplot2::waiver()
+      labels <- ggplot2::waiver()
     } else {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- seq(from = limits[[1]], to = limits[[2]], length.out = 4)
+      labels <- ggplot2::waiver()
     }
     plot <- ggplot2::ggplot(data = data_plot) +
       ggplot2::geom_tile(aes(x = lon, y = lat, fill = fill)) +
@@ -171,7 +172,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         colours = cols,
         na.value = "white",
         breaks = breaks,
-        # labels = labels,
+        labels = labels,
         limits = limits
       ) +
       scale_x_longitude(ticks = ticks_x) +
@@ -394,10 +395,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     } else if (var_name == "sst") {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
-      # labels <- ggplot2::waiver()
+      labels <- ggplot2::waiver()
     } else {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- seq(from = limits[[1]], to = limits[[2]], length.out = 4)
+      labels <- ggplot2::waiver()
     }
     plot <- ggplot2::ggplot(data = data_plot) +
       ggplot2::geom_tile(aes(x = lon, y = lat, fill = fill)) +
@@ -405,7 +407,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         colours = cols,
         na.value = "white",
         breaks = breaks,
-        # labels = labels,
+        labels = labels,
         limits = limits
       ) +
       scale_x_longitude(ticks = ticks_x) +
