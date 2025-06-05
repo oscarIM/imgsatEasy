@@ -171,10 +171,9 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
       system2(seadas_bins[[1]], c(infile, ofile, "regional", var_name, res_l2, "off", "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT", 2, north, south, east, west, area_weighting))
     }
   }
-
   seadas_l3mapgen <- function(infile, ofile) {
     system2("chmod", c("+x", seadas_bins[[2]]))
-    system2(seadas_bins[[2]], c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "area", north, south, west, east, "true", "no", fudge))
+    system2(seadas_bins[[2]], c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "bin", north, south, west, east, "true", "no", fudge))
   }
 
   cat("Transformando archivos L2 a L3: Corriendo l2bin...\n\n")
