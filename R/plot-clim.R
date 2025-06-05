@@ -154,21 +154,26 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
     barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
+
+
     if (var_name == "chlor_a") {
-      data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
-      min_value <- min(data_plot$fill, na.rm = TRUE)
-      max_value <- max(data_plot$fill, na.rm = TRUE)
-      limits <- c(floor(min_value), ceiling(max_value))
-      breaks <- seq(limits[1], limits[2], by = 1)
-      labels <- as.expression(lapply(breaks, function(x) bquote(10^.(x))))
+      #data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
+      valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
+      breaks <- scales::log_breaks()(valid_range)
+      label <- formatC(breaks, format = "f", digits = 1)
+      limits <- c(min(breaks), max(breaks))
+      use_log10 <- TRUE
+
     } else if (var_name == "sst") {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
       labels <- ggplot2::waiver()
+      use_log10 <- FALSE
     } else {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- seq(from = limits[[1]], to = limits[[2]], length.out = 4)
       labels <- ggplot2::waiver()
+      use_log10 <- FALSE
     }
     plot <- ggplot2::ggplot(data = data_plot) +
       ggplot2::geom_tile(aes(x = lon, y = lat, fill = fill)) +
@@ -177,8 +182,8 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         na.value = "white",
         breaks = breaks,
         labels = labels,
-        limits = limits
-      ) +
+        limits = limits,
+        transform = if (use_log10) "log10" else "identity") +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       ggplot2::geom_sf(data = shp_sf, fill = "grey80", col = "black") +
