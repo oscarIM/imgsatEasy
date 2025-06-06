@@ -269,14 +269,14 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                           ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
       dataframe <- dataframe %>%
         tidyr::drop_na() %>%
-        dplyr::group_by(lat, lon, date) %>%
+        dplyr::group_by(lat, lon, date1) %>%
         dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
         dplyr::filter(dplyr::between(lon, xlim[1], xlim[2])) %>%
         dplyr::filter(dplyr::between(lat, ylim[2], ylim[1])) %>%
         dplyr::mutate(
-          year = lubridate::year(date),
-          month = lubridate:::month(date),
-          week = lubridate::isoweek(date),
+          year = lubridate::year(date1),
+          month = lubridate:::month(date1),
+          week = lubridate::isoweek(date1),
           season = dplyr::case_when(
             season == "year" ~ year,
             season == "month" ~ month,
@@ -309,7 +309,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
             result
           }, .options = furrr::furrr_options(
             seed = TRUE,
-            packages = c("sf", "dplyr")))})
+            packages = c("dplyr")))})
         }
       return(dataframe_list)
       }
@@ -319,11 +319,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       process_sublist(entry_list = .x)
     }) %>%
       dplyr::bind_rows() %>%
-      dplyr::select(lat, lon, date, season, fill)
+      dplyr::select(lat, lon, date1, season, fill)
     if (season == "month") {
       data_plot <- data_plot %>%
         dplyr::mutate(
-          season = stringr::str_to_title(lubridate::month(date, label = TRUE, abbr = FALSE)),
+          season = stringr::str_to_title(lubridate::month(date1, label = TRUE, abbr = FALSE)),
           season = factor(season, levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"))
         )
     } else if (season == "year") {
@@ -362,7 +362,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     )
     title_plot <- glue::glue("{title_plot} {zona}")
 
-    years <- unique(lubridate::year(data_plot$date))
+    years <- unique(lubridate::year(data_plot$date1))
 
     if (length(years) == 1) {
       subtitle <- glue::glue(
