@@ -232,24 +232,24 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
       dplyr::tibble(file = .) %>%
       dplyr::mutate(
-        tmp_col = basename(file),
-        tmp = stringr::str_extract(string = tmp_col, pattern = "^\\d+-\\d+")
-      ) %>%
-      tidyr::separate(tmp_col, into = "date", sep = "_", remove = FALSE, extra = "drop") %>%
-      dplyr::mutate(date = as.Date(date))
-    all_files_tmp <- if (is.null(start_date) || is.null(end_date)) {
-      all_files_tmp
-    } else {
-      start_date <- as.Date(start_date)
-      end_date <- as.Date(end_date)
-      all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
-    }
-    all_files_tmp <- all_files_tmp %>%
-      tidyr::separate_wider_delim(., cols = "tmp", delim = "-", cols_remove = TRUE, names = c("year", "month"), too_many = "drop") %>%
-      dplyr::select(-tmp_col)
+        filename = basename(file),
+        date_str = stringr::str_extract(filename, "^\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}"),
+        has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{2}"))
+    if(any(all_files_tmp$has_day)){
+          all_files_tmp <- all_files_tmp %>% dplyr::mutate(date = as.Date(date_str))
+        } else {
+          all_files_tmp <- all_files_tmp %>% dplyr::mutate(date = as.Date(glue::glue("{date_str}-01")))
+        }
+
+    all_files_tmp <- all_files_tmp %>% dplyr::mutate(month = lubridate::month(date),
+                                                     year = lubridate::year(date))
     if (season == "week") {
       all_files_tmp <- all_files_tmp %>%
         dplyr::mutate(week = lubridate::isoweek(date))
+    }
+    
+    if (!is.null(start_date) && !is.null(end_date)) {
+      all_files_tmp <- all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
     }
     cat("\n\n Calculando climatología...\n\n")
     path_list <- all_files_tmp %>%
@@ -265,7 +265,6 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       )
       dataframe <- dataframe %>%
         tidyr::drop_na() %>%
-        dplyr::mutate(date = lubridate::as_date(date1)) %>%
         dplyr::group_by(lat, lon, date) %>%
         dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
         dplyr::filter(dplyr::between(lon, xlim[1], xlim[2])) %>%
@@ -396,15 +395,13 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                           "chlor_a" = expression("Clorofila-α [mg"~m^{-3}*"]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
-    barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
-
+    barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_co
+    use_log10 <- var_name == "chlor_a"
     if (var_name == "chlor_a") {
-      data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
-      min_value <- min(data_plot$fill, na.rm = TRUE)
-      max_value <- max(data_plot$fill, na.rm = TRUE)
-      limits <- c(floor(min_value), ceiling(max_value))
-      breaks <- seq(limits[1], limits[2], by = 1)
-      labels <- as.expression(lapply(breaks, function(x) bquote(10^.(x))))
+    valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
+    breaks <- scales::log_breaks()(valid_range)
+    labels <- formatC(breaks, format = "f", digits = 1)
+    limits <- c(min(breaks), max(breaks))
     } else if (var_name == "sst") {
       limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
       breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
@@ -421,8 +418,8 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         na.value = "white",
         breaks = breaks,
         labels = labels,
-        limits = limits
-      ) +
+        limits = limits,
+        transform = if (use_log10) "log10" else "identity") +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
       ggplot2::geom_sf(data = shp_sf, fill = "grey80", col = "black") +
