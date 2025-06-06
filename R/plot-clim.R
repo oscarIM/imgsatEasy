@@ -154,115 +154,119 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
     barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
-
-
+    use_log10 <- var_name == "chlor_a"
     if (var_name == "chlor_a") {
       #data_plot <- data_plot %>% dplyr::mutate(fill = log10(fill))
       valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
       breaks <- scales::log_breaks()(valid_range)
       label <- formatC(breaks, format = "f", digits = 1)
       limits <- c(min(breaks), max(breaks))
-      use_log10 <- TRUE
-
-    } else if (var_name == "sst") {
-      limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
-      breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
-      labels <- ggplot2::waiver()
-      use_log10 <- FALSE
-    } else {
-      limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
-      breaks <- seq(from = limits[[1]], to = limits[[2]], length.out = 4)
-      labels <- ggplot2::waiver()
-      use_log10 <- FALSE
-    }
+      } else if (var_name == "sst") {
+        limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
+        breaks <- round(seq(from = limits[[1]], to = limits[[2]], length.out = 4))
+        labels <- ggplot2::waiver()
+        } else {
+          limits <- ceiling(range(data_plot$fill, na.rm = TRUE))
+          breaks <- seq(from = limits[[1]], to = limits[[2]], length.out = 4)
+          labels <- ggplot2::waiver()
+          }
     plot <- ggplot2::ggplot(data = data_plot) +
-      ggplot2::geom_tile(aes(x = lon, y = lat, fill = fill)) +
-      ggplot2::scale_fill_gradientn(
-        colours = cols,
-        na.value = "white",
-        breaks = breaks,
-        labels = labels,
-        limits = limits,
-        transform = if (use_log10) "log10" else "identity") +
+      ggplot2::geom_tile(aes(x = lon,
+                             y = lat,
+                             fill = fill)) +
+      ggplot2::scale_fill_gradientn(colours = cols,
+                                    na.value = "white",
+                                    breaks = breaks,
+                                    labels = labels,
+                                    limits = limits,
+                                    transform = if (use_log10) "log10" else "identity") +
       scale_x_longitude(ticks = ticks_x) +
       scale_y_latitude(ticks = ticks_y) +
-      ggplot2::geom_sf(data = shp_sf, fill = "grey80", col = "black") +
-      ggplot2::coord_sf(xlim = xlim, ylim = ylim, expand = FALSE, clip = "on") +
-      ggplot2::guides(fill = guide_colorbar(
-        title = guide_title,
-        title.position = "top",
-        barwidth = barwidth,
-        # title.theme = element_text(angle = 90),
-        # barwidth = .5,
-        barheight = 0.8,
-        title.hjust = 0.5
-      )) +
-      ggplot2::labs(
-        title = title_plot,
-        subtitle = subtitle,
-        caption = caption,
-        x = NULL,
-        y = NULL
-      ) +
+      ggplot2::geom_sf(data = shp_sf,
+                       fill = "grey80",
+                       col = "black") +
+      ggplot2::coord_sf(xlim = xlim,
+                        ylim = ylim,
+                        expand = FALSE,
+                        clip = "on") +
+      ggplot2::guides(fill = guide_colorbar(title = guide_title,
+                                            title.position = "top",
+                                            barwidth = barwidth,
+                                            barheight = 0.8,
+                                            title.hjust = 0.5)) +
+      ggplot2::labs(title = title_plot,
+                    subtitle = subtitle,
+                    caption = caption,
+                    x = NULL,
+                    y = NULL) +
       ggplot2::theme_minimal(base_size = 11) +
-      ggplot2::theme(
-        axis.text = element_text(color = "gray30"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(1.5, "lines"),
-        plot.title = element_text(size = 12, face = "bold", color = "#222222"),
-        plot.subtitle = element_text(size = 10, color = "#444444"),
-        plot.caption = element_text(size = 9, color = "gray50", hjust = 1),
-        strip.text = element_text(face = "bold", size = 11),
-        legend.position = "bottom",
-        legend.title = element_text(size = 10, face = "bold"),
-        legend.text = element_text(size = 10),
-        legend.key.width = unit(2, "cm"),
-        legend.key.height = unit(0.4, "cm"),
-        plot.background = element_rect(fill = "white", color = NA),
-        plot.margin = margin(t = 5, r = 5, b = 5, l = 5),
-        plot.title.position = "plot"
-      )
+      ggplot2::theme(axis.text = element_text(color = "gray30"),
+                     panel.grid = element_blank(),
+                     panel.spacing = unit(1.5, "lines"),
+                     plot.title = element_text(size = 12,
+                                               face = "bold",
+                                               color = "#222222"),
+                     plot.subtitle = element_text(size = 10,
+                                                  color = "#444444"),
+                     plot.caption = element_text(size = 9,
+                                                 color = "gray50",
+                                                 hjust = 1),
+                     strip.text = element_text(face = "bold",
+                                               size = 11),
+                     legend.position = "bottom",
+                     legend.title = element_text(size = 10,
+                                                 face = "bold"),
+                     legend.text = element_text(size = 10),
+                     legend.key.width = unit(2, "cm"),
+                     legend.key.height = unit(0.4, "cm"),
+                     plot.background = element_rect(fill = "white",
+                                                    color = NA),
+                     plot.margin = margin(t = 5,
+                                          r = 5,
+                                          b = 5,
+                                          l = 5),
+                     plot.title.position = "plot")
     if (season == "week") {
       plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col, labeller = ggplot2::labeller(season = labeller_vector))
-    } else {
-      plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col)
-    }
-  } else {
-    files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
-    all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
-      dplyr::tibble(file = .) %>%
-      dplyr::mutate(
-        filename = basename(file),
-        date_str = stringr::str_extract(filename, "^\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}"),
-        has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{2}"))
-    if(any(all_files_tmp$has_day)){
-          all_files_tmp <- all_files_tmp %>% dplyr::mutate(date = as.Date(date_str))
-        } else {
-          all_files_tmp <- all_files_tmp %>% dplyr::mutate(date = as.Date(glue::glue("{date_str}-01")))
+      } else {
+        plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col)
         }
-
-    all_files_tmp <- all_files_tmp %>% dplyr::mutate(month = lubridate::month(date),
-                                                     year = lubridate::year(date))
-    if (season == "week") {
+    } else {
+      files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
+      all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
+        dplyr::tibble(file = .) %>%
+        dplyr::mutate(
+          filename = basename(file),
+          date_str = stringr::str_extract(filename, "^\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}"),
+          has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{2}"))
+      if(any(all_files_tmp$has_day)){
+        all_files_tmp <- all_files_tmp %>%
+          dplyr::mutate(date = as.Date(date_str))
+        } else {
+          all_files_tmp <- all_files_tmp %>%
+            dplyr::mutate(date = as.Date(glue::glue("{date_str}-01")))
+          }
       all_files_tmp <- all_files_tmp %>%
-        dplyr::mutate(week = lubridate::isoweek(date))
-    }
-    
-    if (!is.null(start_date) && !is.null(end_date)) {
-      all_files_tmp <- all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
-    }
-    cat("\n\n Calculando climatología...\n\n")
-    path_list <- all_files_tmp %>%
-      dplyr::group_by(dplyr::across(dplyr::all_of(season))) %>%
-      dplyr::group_split() %>%
-      purrr::map(~ dplyr::pull(.x, "file"))
-    func <- eval(parse(text = stat_function))
-    ext_file <- unique(stringr::str_extract(string = all_files_tmp$file, pattern = files_ext_pattern))
-    process_tables <- function(file) {
-      dataframe <- switch(ext_file,
+        dplyr::mutate(month = lubridate::month(date),
+                      year = lubridate::year(date))
+      if (season == "week") {
+        all_files_tmp <- all_files_tmp %>%
+          dplyr::mutate(week = lubridate::isoweek(date))
+        }
+      if (!is.null(start_date) && !is.null(end_date)) {
+        all_files_tmp <- all_files_tmp %>% dplyr::filter(dplyr::between(date, start_date, end_date))
+        }
+      cat("\n\n Calculando climatología...\n\n")
+      path_list <- all_files_tmp %>%
+        dplyr::group_by(dplyr::across(dplyr::all_of(season))) %>%
+        dplyr::group_split() %>%
+        purrr::map(~ dplyr::pull(.x, "file"))
+      func <- eval(parse(text = stat_function))
+      ext_file <- unique(stringr::str_extract(string = all_files_tmp$file, pattern = files_ext_pattern))
+      process_tables <- function(file) {
+        dataframe <- switch(ext_file,
                           ".parquet" = arrow::read_parquet(file),
-                          ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
-      )
+                          ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
       dataframe <- dataframe %>%
         tidyr::drop_na() %>%
         dplyr::group_by(lat, lon, date) %>%
@@ -277,11 +281,10 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
             season == "year" ~ year,
             season == "month" ~ month,
             season == "week" ~ week
-          )
-        )
+          ))
       gc()
       return(dataframe)
-    }
+      }
     process_sublist <- function(entry_list) {
       if (n_cores <= 1) {
         progressr::with_progress({
@@ -306,12 +309,10 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
             result
           }, .options = furrr::furrr_options(
             seed = TRUE,
-            packages = c("sf", "dplyr")
-          ))
-        })
-      }
+            packages = c("sf", "dplyr")))})
+        }
       return(dataframe_list)
-    }
+      }
 
     data_plot <- purrr::imap(path_list, ~ {
       print(paste("Procesando item", .y, "de", length(path_list), "con", length(.x), "archivos"))
@@ -384,18 +385,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
                       "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
                       default = "Sensor desconocido"
     )
-    #guide_title <- switch(var_name,
-    #                      "chlor_a" = expression(paste("Clorofila-α [", mg ~ m^{
-    #                        -3
-    #                      }, "]")),
-    #                      "sst" = "Temperatura Superficial Mar [°C]",
-    #                      "Rrs_645" = "Radiación normalizada de salida del agua (645nm)"
-    #)
     guide_title <- switch(var_name,
                           "chlor_a" = expression("Clorofila-α [mg"~m^{-3}*"]"),
                           "sst" = "Temperatura Superficial Mar [°C]",
                           "Rrs_645" = "Radiación normalizada de salida del agua (645nm)")
-    barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_co
+    barwidth <- grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.1 + n_col
     use_log10 <- var_name == "chlor_a"
     if (var_name == "chlor_a") {
     valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
