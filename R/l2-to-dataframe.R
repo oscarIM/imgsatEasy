@@ -111,7 +111,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
 
   #rm(list = ls(pattern = "tmp"))
   gc()
-  setwd(dir_output)
+  #setwd(dir_output)
 
   #files_df <- list.files(path = dir_output, pattern = ".nc$", full.names = TRUE) %>%
   # dplyr::tibble(infile_l2bin = .) %>%
