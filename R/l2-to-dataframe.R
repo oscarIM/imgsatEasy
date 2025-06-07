@@ -1,5 +1,7 @@
 #' @title l2_to_dataframe
-#' @description Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet)
+#' @description Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet).\
+#'   Los archivos L2 y temporales se mantienen en \code{dir_input}; solo los archivos
+#'   finales en formato parquet o csv se almacenan en \code{dir_output}.
 #' @param dir_ocssw Directorio OCSSW (SeaDAS)
 #' @param dir_input Directorio con archivos L2 (o .tar si data_compress = TRUE)
 #' @param dir_output Directorio de salida para L3 y archivos finales
@@ -102,18 +104,11 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   selected_files_tmp <- all_files_tmp %>%
     dplyr::filter(var_type == ifelse(var_name == "sst", "SST", "OC")) %>%
     dplyr::pull(file)
-  destination_files_tmp <- file.path(dir_output, basename(selected_files_tmp))
-  remove_files_tmp <- all_files_tmp %>%
-    dplyr::filter(var_type == ifelse(var_name == "sst", "OC", "SST")) %>%
-    dplyr::pull(file)
-  invisible(file.copy(selected_files_tmp, destination_files_tmp, overwrite = TRUE))
 
-  rm(list = ls(pattern = "tmp"))
   gc()
   setwd(dir_output)
 
-  files_df <- list.files(path = dir_output, pattern = ".nc$", full.names = TRUE) %>%
-    dplyr::tibble(infile_l2bin = .) %>%
+  files_df <- dplyr::tibble(infile_l2bin = selected_files_tmp) %>%
     dplyr::mutate(tmp_col = basename(infile_l2bin)) %>%
     tidyr::separate(col = "tmp_col", into = c("sensor", "full_time"), sep = "\\.", extra = "drop") %>%
     dplyr::mutate(date = as.Date(full_time, format = "%Y%m%d"),

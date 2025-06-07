@@ -54,5 +54,5 @@ l2_to_dataframe(
 \item{data_compress}{Si TRUE, espera archivos .tar; si FALSE, archivos .nc directos}
 }
 \description{
-Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet)
+Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet). Los archivos L2 y temporales permanecen en \code{dir_input}; solo los resultados finales en parquet o csv se almacenan en \code{dir_output}.
 }
