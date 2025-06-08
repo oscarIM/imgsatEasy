@@ -159,8 +159,8 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     seadas_bins[[i]][2] <- paste0("export OCSSWROOT=${OCSSWROOT:-", dir_ocssw, "}")
   }
   names_bins <- paste0(".", names(seadas_bins))
-  purrr::walk2(seadas_bins, names_bins, ~ readr::write_lines(.x, file = file.path(dir_output, .y)))
-  seadas_bins <- purrr::map(names_bins, ~ file.path(dir_output, .x))
+  purrr::walk2(seadas_bins, names_bins, ~ readr::write_lines(.x, file = file.path(dir_input, .y)))
+  seadas_bins <- purrr::map(names_bins, ~ file.path(dir_input, .x))
 
   if (var_name == "sst") {
     seadas_l2bin <- function(infile, ofile) {
@@ -202,7 +202,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     })
   }
 
-  l3binned_files <- list.files(dir_input,pattern = "_L3b_tmp.nc$", full.names = TRUE)
+  l3binned_files <- list.files(dir_input, pattern = "_L3b_tmp.nc$", full.names = TRUE)
   outfile_mapgen <- stringr::str_replace(l3binned_files, "_L3b_tmp.nc", "_L3mapped.nc")
 
   cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
@@ -230,7 +230,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
   pattern_del <- paste(c(".txt$","_L3b_tmp.nc$"), collapse = "|")
   files_del <- list.files(path = dir_input, pattern = pattern_del, full.names = TRUE, recursive = FALSE)
-  files_l3mapped <- list.files(dir_input, pattern = "L3mapped.nc$", full.names = TRUE, recursive = FALSE)
+  files_l3mapped <- list.files(dir_input, pattern = "_L3mapped.nc$", full.names = TRUE, recursive = FALSE)
   unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
 
   cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
@@ -258,13 +258,12 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
       }, .options = furrr_options(seed = TRUE))
     })
   }
-  paste(c(".OC.x.nc$",".OC.nc$"), collapse = "|")
+
   pattern_out <- glue::glue("*.csv|*.parquet")
   list_final_files <- list.files(dir_input,pattern = pattern_out, full.names = TRUE)
   invisible(file.rename(list_final_files, file.path(dir_output, basename(list_final_files))))
   unlink(files_l3mapped)
   setwd(current_wd)
   toc()
-  gc()
   cat("Fin \n\n")
 }
