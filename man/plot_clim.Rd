@@ -14,7 +14,6 @@ plot_clim(
   end_date = NULL,
   n_col,
   name_output,
-  res = 300,
   height = 8,
   width = 6,
   ticks_x = 0.1,
@@ -48,8 +47,6 @@ plot_clim(
 
 \item{name_output}{nombre para la salidas}
 
-\item{res}{resolución para la imágen png de la climatología}
-
 \item{height}{altura para la imágen png de la climatología}
 
 \item{width}{amplitud para la imágen png de la climatología}
@@ -73,6 +70,8 @@ plot_clim(
 \item{sensor}{nombre del sensor (solo sirve para la leyenda)}
 
 \item{zona}{string que define la zona de estudio}
+
+\item{res}{resolución para la imágen png de la climatología}
 }
 \value{
 imágenes png
