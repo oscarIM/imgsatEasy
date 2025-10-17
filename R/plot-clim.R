@@ -85,6 +85,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       dplyr::mutate(filename = basename(file),
                     date_str = stringr::str_extract(filename, "^(\\d{4}-\\d{2}-\\d{1,2}|\\d{4}-\\d{2})"),
                     has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{1,2}"),
+                    date_str = as.character(date_str),
                     date = as.Date(ifelse(has_day, date_str, paste0(date_str, "-01"))),
                     month = lubridate::month(date),
                     year = lubridate::year(date),
