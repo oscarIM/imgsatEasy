@@ -31,8 +31,8 @@
 l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet", sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting = 0, data_compress = TRUE) {
   tic()
   current_wd <- getwd()
-  patterns_oc <- paste(c(".OC.x.nc$",".OC.nc$"), collapse = "|")
-  patterns_sst <- paste(c(".SST.x.nc$",".SST.nc$"), collapse = "|")
+  patterns_oc <- paste(c(".OC.x.nc$", ".OC.nc$"), collapse = "|")
+  patterns_sst <- paste(c(".SST.x.nc$", ".SST.nc$"), collapse = "|")
   patterns_l2 <- paste(c(patterns_oc, patterns_sst), collapse = "|")
 
   setwd(dir_input)
@@ -73,18 +73,19 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   cat("Transformando archivos L2 a L3: Configurando archivos de entrada... \n\n")
   all_files_tmp <- list.files(full.names = TRUE, pattern = ".nc$") %>%
     dplyr::tibble(file = .) %>%
-    tidyr::separate(col = "file", into = c("tmp", "sensor", "full_time", "level","var_type"), extra = "drop", sep = "\\.", remove = FALSE) %>%
+    tidyr::separate(col = "file", into = c("tmp", "sensor", "full_time", "level", "var_type"), extra = "drop", sep = "\\.", remove = FALSE) %>%
     dplyr::select(-tmp) %>%
     dplyr::mutate(sensor = stringr::str_remove(string = sensor, pattern = "^/"))
 
-  sensor_pattern  <- switch(sensor,
-                            "aqua"  = "^AQUA",
-                            "terra" = "^TERRA",
-                            "modis_aq"   = "^AQUA|^TERRA",
-                            "sentinel3A" = "^S3A",
-                            "sentinel3B" = "^S3B",
-                            "sentinelAB" = "^S3A|^S3B",
-                            default = NULL)
+  sensor_pattern <- switch(sensor,
+    "aqua" = "^AQUA",
+    "terra" = "^TERRA",
+    "modis_aq" = "^AQUA|^TERRA",
+    "sentinel3A" = "^S3A",
+    "sentinel3B" = "^S3B",
+    "sentinelAB" = "^S3A|^S3B",
+    default = NULL
+  )
 
   if (!is.na(sensor_pattern)) {
     cat(paste0("Utilizano datos del sensor: ", sensor, "\n\n"))
@@ -95,7 +96,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
 
   if (!dir.exists(dir_output)) {
-    dir.create(dir_output)
+    dir.create(dir_output, recursive = TRUE)
   } else {
     cat("El directorio ya existe:", dir_output, "\n")
   }
@@ -103,30 +104,33 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   selected_files_tmp <- all_files_tmp %>%
     dplyr::filter(var_type == ifelse(var_name == "sst", "SST", "OC")) %>%
     dplyr::pull(file)
-  #destination_files_tmp <- file.path(dir_output, basename(selected_files_tmp))
-  #remove_files_tmp <- all_files_tmp %>%
+  # destination_files_tmp <- file.path(dir_output, basename(selected_files_tmp))
+  # remove_files_tmp <- all_files_tmp %>%
   #  dplyr::filter(var_type == ifelse(var_name == "sst", "OC", "SST")) %>%
   #  dplyr::pull(file)
-  #invisible(file.copy(selected_files_tmp, destination_files_tmp, overwrite = TRUE))
+  # invisible(file.copy(selected_files_tmp, destination_files_tmp, overwrite = TRUE))
 
-  #rm(list = ls(pattern = "tmp"))
+  # rm(list = ls(pattern = "tmp"))
   gc()
-  #setwd(dir_output)
+  # setwd(dir_output)
 
-  #files_df <- list.files(path = dir_output, pattern = ".nc$", full.names = TRUE) %>%
+  # files_df <- list.files(path = dir_output, pattern = ".nc$", full.names = TRUE) %>%
   # dplyr::tibble(infile_l2bin = .) %>%
   files_df <- dplyr::tibble(infile_l2bin = selected_files_tmp) %>%
     dplyr::mutate(tmp_col = basename(infile_l2bin)) %>%
     tidyr::separate(col = "tmp_col", into = c("sensor", "full_time"), sep = "\\.", extra = "drop") %>%
-    dplyr::mutate(date = as.Date(full_time, format = "%Y%m%d"),
-                  year = lubridate::year(date),
-                  month = sprintf("%02d", lubridate::month(date)),
-                  day = lubridate::day(date))
+    dplyr::mutate(
+      date = as.Date(full_time, format = "%Y%m%d"),
+      year = lubridate::year(date),
+      month = sprintf("%02d", lubridate::month(date)),
+      day = lubridate::day(date)
+    )
 
   group_vars <- switch(season,
-                       "year" = "year",
-                       "month" = c("year", "month"),
-                       "day" = "date")
+    "year" = "year",
+    "month" = c("year", "month"),
+    "day" = "date"
+  )
 
   files_df_list <- files_df %>%
     dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
@@ -228,7 +232,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
       }, .options = furrr_options(seed = TRUE))
     })
   }
-  pattern_del <- paste(c(".txt$","_L3b_tmp.nc$"), collapse = "|")
+  pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$"), collapse = "|")
   files_del <- list.files(path = dir_input, pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   files_l3mapped <- list.files(dir_input, pattern = "_L3mapped.nc$", full.names = TRUE, recursive = FALSE)
   unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
@@ -260,7 +264,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
 
   pattern_out <- glue::glue("*.csv|*.parquet")
-  list_final_files <- list.files(dir_input,pattern = pattern_out, full.names = TRUE)
+  list_final_files <- list.files(dir_input, pattern = pattern_out, full.names = TRUE)
   invisible(file.rename(list_final_files, file.path(dir_output, basename(list_final_files))))
   unlink(files_l3mapped)
   setwd(current_wd)
