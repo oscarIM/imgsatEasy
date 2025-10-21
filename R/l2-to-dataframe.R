@@ -97,19 +97,8 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
 
   selected_files_tmp <- all_files_tmp %>%
     dplyr::filter(var_type == ifelse(var_name == "sst", "SST", "OC")) %>%
-    dplyr::pull(file)
-  # destination_files_tmp <- file.path(dir_output, basename(selected_files_tmp))
-  # remove_files_tmp <- all_files_tmp %>%
-  #  dplyr::filter(var_type == ifelse(var_name == "sst", "OC", "SST")) %>%
-  #  dplyr::pull(file)
-  # invisible(file.copy(selected_files_tmp, destination_files_tmp, overwrite = TRUE))
+    gc()
 
-  # rm(list = ls(pattern = "tmp"))
-  gc()
-  # setwd(dir_output)
-
-  # files_df <- list.files(path = dir_output, pattern = ".nc$", full.names = TRUE) %>%
-  # dplyr::tibble(infile_l2bin = .) %>%
   files_df <- dplyr::tibble(infile_l2bin = selected_files_tmp) %>%
     dplyr::mutate(tmp_col = basename(infile_l2bin)) %>%
     tidyr::separate(col = "tmp_col", into = c("sensor", "full_time"), sep = "\\.", extra = "drop") %>%
@@ -200,7 +189,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     })
   }
 
-  l3binned_files <- list.files(input_folder, pattern = "_L3b_tmp.nc$", full.names = TRUE)
+  l3binned_files <- list.files(path = ".", pattern = "_L3b_tmp.nc$", full.names = TRUE)
   outfile_mapgen <- stringr::str_replace(l3binned_files, "_L3b_tmp.nc", "_L3mapped.nc")
 
   cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
@@ -227,8 +216,8 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     })
   }
   pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$"), collapse = "|")
-  files_del <- list.files(path = input_folder, pattern = pattern_del, full.names = TRUE, recursive = FALSE)
-  files_l3mapped <- list.files(input_folder, pattern = "_L3mapped.nc$", full.names = TRUE, recursive = FALSE)
+  files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
+  files_l3mapped <- list.files(path = ".", pattern = "_L3mapped.nc$", full.names = TRUE, recursive = FALSE)
   unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
 
   cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
@@ -262,10 +251,12 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   } else {
     cat("El directorio ya existe:", dir_output, "\n")
   }
+  pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$", ".nc$"), collapse = "|")
+  files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   pattern_out <- glue::glue("*.csv|*.parquet")
-  list_final_files <- list.files(input_folder, pattern = pattern_out, full.names = TRUE)
+  list_final_files <- list.files(path = ".", pattern = pattern_out, full.names = TRUE)
   invisible(file.rename(list_final_files, file.path(dir_output, basename(list_final_files))))
-  unlink(files_l3mapped)
+  unlink(c(files_l3mapped, seadas_bins[[1]], seadas_bins[[2]], files_del))
   setwd(current_wd)
   toc()
   cat("Fin \n\n")
