@@ -50,25 +50,25 @@
 #' season <- "month"
 #' stat_function <- "median"
 #' var_name <- "chlor_a"
-#' #shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
+#' # shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
 #' n_col <- 4
 #' name_output <- "chlor_aqua_proyecto_junin.png"
-#' ticks_x = 0.1
-#' ticks_y = 0.15
-#' n_cores = 16
+#' ticks_x <- 0.1
+#' ticks_y <- 0.15
+#' n_cores <- 16
 #' xlim <- c(west, east)
 #' ylim <- c(north, south)
-#' sensor = "aqua"
-#' plot_clim(dir_input = dir_input,season = season, stat_function = stat_function,var_name = var_name,n_col = n_col,name_output = name_output,res = 300,height = 12,width = 9,ticks_x = ticks_x, ticks_y = ticks_y,n_cores = n_cores,xlim = xlim, ylim = ylim,save_data = FALSE,from_data = TRUE,data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
+#' sensor <- "aqua"
+#' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 #' }
-
 plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_file = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona) {
   tic()
   sf::sf_use_s2(FALSE)
   if (is.null(shp_file)) {
     if (!requireNamespace("rnaturalearth", quietly = TRUE)) stop("El paquete 'rnaturalearth' no está instalado.")
     shp_sf <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf") %>%
-      dplyr::filter(admin == "Chile") %>% sf::st_geometry()
+      dplyr::filter(admin == "Chile") %>%
+      sf::st_geometry()
     bbox <- sf::st_bbox(c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]), crs = sf::st_crs(shp_sf))
     shp_sf <- suppressWarnings(sf::st_crop(shp_sf, bbox))
   } else {
@@ -82,14 +82,16 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
     all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
       tibble::tibble(file = .) %>%
-      dplyr::mutate(filename = basename(file),
-                    date_str = stringr::str_extract(filename, "^(\\d{4}-\\d{2}-\\d{1,2}|\\d{4}-\\d{2})"),
-                    has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{1,2}"),
-                    date_str = as.character(date_str),
-                    date = as.Date(ifelse(has_day, date_str, paste0(date_str, "-01"))),
-                    month = lubridate::month(date),
-                    year = lubridate::year(date),
-                    week = lubridate::isoweek(date)) %>%
+      dplyr::mutate(
+        filename = basename(file),
+        date_str = stringr::str_extract(filename, "^(\\d{4}-\\d{2}-\\d{1,2}|\\d{4}-\\d{2})"),
+        has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{1,2}"),
+        date_str = as.character(date_str),
+        date = as.Date(ifelse(has_day, date_str, paste0(date_str, "-01"))),
+        month = lubridate::month(date),
+        year = lubridate::year(date),
+        week = lubridate::isoweek(date)
+      ) %>%
       dplyr::filter(is.null(start_date) | is.null(end_date) | dplyr::between(date, start_date, end_date)) %>%
       dplyr::mutate(season = dplyr::case_when(
         season == "week" ~ week,
@@ -106,8 +108,9 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
 
     process_tables <- function(file) {
       dataframe <- switch(ext_file,
-                          ".parquet" = arrow::read_parquet(file, as_data_frame = FALSE),
-                          ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE))
+        ".parquet" = arrow::read_parquet(file, as_data_frame = FALSE),
+        ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
+      )
       dataframe %>%
         dplyr::filter(!is.na(!!rlang::sym(var_name))) %>%
         dplyr::filter(dplyr::between(lon, xlim[1], xlim[2])) %>%
@@ -120,9 +123,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       if (n_cores <= 1) {
         progressr::with_progress({
           p <- progressr::progressor(steps = length(entry_list))
-          purrr::map(entry_list, ~ { p()
-            #Sys.sleep(0.1)
-            process_tables(.x) })
+          purrr::map(entry_list, ~ {
+            p()
+            # Sys.sleep(0.1)
+            process_tables(.x)
+          })
         })
       } else {
         cl <- parallel::makeForkCluster(n_cores)
@@ -130,20 +135,23 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         future::plan("cluster", workers = cl)
         progressr::with_progress({
           p <- progressr::progressor(steps = length(entry_list))
-          furrr::future_map(entry_list, ~ { p()
+          furrr::future_map(entry_list, ~ {
+            p()
             Sys.sleep(0.1)
-            process_tables(.x) },
-            .options = furrr::furrr_options(seed = TRUE, packages = c("dplyr", "readr", "arrow")))
+            process_tables(.x)
+          },
+          .options = furrr::furrr_options(seed = TRUE, packages = c("dplyr", "readr", "arrow"))
+          )
         })
       }
     }
 
     data_plot <- purrr::imap(path_list, ~ {
       msg <- switch(season,
-                    "month" = glue::glue("Procesando mes: {month.name[as.integer(.y)]}"),
-                    "week"  = glue::glue("Procesando semana: {.y}"),
-                    "year"  = glue::glue("Procesando año: {.y}"),
-                    glue::glue("Procesando: {.y}")
+        "month" = glue::glue("Procesando mes: {month.name[as.integer(.y)]}"),
+        "week"  = glue::glue("Procesando semana: {.y}"),
+        "year"  = glue::glue("Procesando año: {.y}"),
+        glue::glue("Procesando: {.y}")
       )
       message(msg)
       sub_data_list <- process_sublist(.x)
@@ -151,17 +159,20 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         dplyr::group_by(lat, lon, date1) %>%
         dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
         dplyr::mutate(season = dplyr::case_when(
-          season == "week"  ~ as.character(glue::glue("Semana {lubridate::isoweek(date1)}")),
+          season == "week" ~ as.character(glue::glue("Semana {lubridate::isoweek(date1)}")),
           season == "month" ~ as.character(lubridate::month(date1)),
-          TRUE              ~ as.character(.y)))
+          TRUE ~ as.character(.y)
+        ))
     }) %>%
       dplyr::bind_rows()
 
     if (season == "month") {
       data_plot <- data_plot %>%
-        dplyr::mutate(season = month(as.integer(season), label = TRUE, abbr = FALSE),
-                      season = stringr::str_to_title(season),
-                      season = factor(season, levels = stringr::str_to_title(month(1:12, label = TRUE, abbr = FALSE))))
+        dplyr::mutate(
+          season = month(as.integer(season), label = TRUE, abbr = FALSE),
+          season = stringr::str_to_title(season),
+          season = factor(season, levels = stringr::str_to_title(month(1:12, label = TRUE, abbr = FALSE)))
+        )
     } else if (season == "year") {
       data_plot <- data_plot %>% dplyr::mutate(season = factor(season))
     } else if (season == "week") {
@@ -183,7 +194,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
   } else {
     data_plot <- readr::read_csv(data_plot_file, show_col_types = FALSE)
     if (season == "month") {
-      data_plot <- data_plot %>% dplyr::mutate(season = factor(season, levels = c("Enero", "Febrero", "Marzo", "Abril","Mayo","Junio","Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
+      data_plot <- data_plot %>% dplyr::mutate(season = factor(season, levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
     } else if (season == "year") {
       data_plot <- data_plot %>% dplyr::mutate(season = factor(season))
     } else if (season == "week") {
@@ -191,8 +202,10 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         dplyr::mutate(season = glue::glue("Semana {season}"))
       all_dates <- seq(start_date, end_date, by = "day")
       labeller_vector <- tibble::tibble(date = all_dates) %>%
-        dplyr::mutate(week = lubridate::isoweek(date),
-                      season = glue::glue("Semana {week}")) %>%
+        dplyr::mutate(
+          week = lubridate::isoweek(date),
+          season = glue::glue("Semana {week}")
+        ) %>%
         dplyr::group_by(season) %>%
         dplyr::summarise(start = min(date), end = max(date), .groups = "drop") %>%
         dplyr::mutate(label = glue::glue("{season} ({format(start, '%d')}–{format(end, '%d %b')})")) %>%
@@ -202,9 +215,10 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
   }
 
   title_plot <- switch(var_name,
-                       "chlor_a" = "Concentración de clorofila-a en",
-                       "sst" = "Temperatura Superficial del Mar en",
-                       "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en")
+    "chlor_a" = "Concentración de clorofila-a en",
+    "sst" = "Temperatura Superficial del Mar en",
+    "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en"
+  )
   title_plot <- glue::glue("{title_plot} {zona}")
 
   years <- seq(lubridate::year(start_date), lubridate::year(end_date))
@@ -215,22 +229,34 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
   }
 
   caption <- switch(sensor,
-                    "aqua" = "Fuente: OceanColor Data; Sensor Modis-Aqua",
-                    "terra" = "Fuente: OceanColor Data; Sensor Modis-Terra",
-                    "modis_aq" = "Fuente: OceanColor Data; Combined Aqua-Terra satellites",
-                    "sentinel3A" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3A",
-                    "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
-                    "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
-                    default = "Sensor desconocido")
+    "aqua" = "Fuente: OceanColor Data; Sensor Modis-Aqua",
+    "terra" = "Fuente: OceanColor Data; Sensor Modis-Terra",
+    "modis_aq" = "Fuente: OceanColor Data; Combined Aqua-Terra satellites",
+    "sentinel3A" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3A",
+    "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
+    "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
+    default = "Sensor desconocido"
+  )
 
   guide_title <- switch(var_name,
-                        "chlor_a" = expression("Clorofila-α [mg"~m^{-3}*"]"),
-                        "sst" = "Temperatura Superficial Mar [°C]",
-                        "Rrs_645" = expression("nWLR 645 [mW" ~ cm^{-2} ~ mu*m^{-1} ~ sr^{-1}*"]"))
+    "chlor_a" = expression("Clorofila-α [mg" ~ m^
+      {
+        -3
+      } * "]"),
+    "sst" = "Temperatura Superficial Mar [°C]",
+    "Rrs_645" = expression("nWLR 645 [mW" ~ cm^{
+      -2
+    } ~ mu * m^{
+      -1
+    } ~ sr^
+      {
+        -1
+      } * "]")
+  )
 
   if (var_name == "Rrs_645") {
     use_log10 <- FALSE
-    #data_plot <- data_plot %>%
+    # data_plot <- data_plot %>%
     #  dplyr::mutate(fill = fill * 158.9418,
     #                fill = dplyr::if_else(condition = fill<0,true = 0, false = fill))
 
@@ -239,13 +265,11 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     step <- signif(range_span / 5, digits = 1)
     breaks <- seq(valid_range[1], valid_range[2], by = step)
     labels <- formatC(breaks, format = "f", digits = 2)
-
   } else if (var_name == "chlor_a") {
     use_log10 <- TRUE
     valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
     breaks <- scales::log_breaks()(valid_range)
     labels <- formatC(breaks, format = "f", digits = 1)
-
   } else {
     use_log10 <- FALSE
     valid_range <- range(data_plot$fill, na.rm = TRUE)
@@ -261,7 +285,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
       na.value = "white",
       breaks = breaks,
       labels = labels,
-      #limits = c(0,1),
+      # limits = c(0,1),
       transform = if (use_log10) "log10" else "identity"
     ) +
     scale_x_longitude(ticks = ticks_x) +
