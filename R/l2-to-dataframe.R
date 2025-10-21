@@ -96,7 +96,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
 
   if (!dir.exists(dir_output)) {
-    dir.create(dir_output, recursive = TRUE)
+    dir.create(dir_output)
   } else {
     cat("El directorio ya existe:", dir_output, "\n")
   }
