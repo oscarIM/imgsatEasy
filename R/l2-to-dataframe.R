@@ -97,7 +97,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
 
   selected_files_tmp <- all_files_tmp %>%
     dplyr::filter(var_type == ifelse(var_name == "sst", "SST", "OC")) %>%
-    gc()
+    dplyr::pull(file)
 
   files_df <- dplyr::tibble(infile_l2bin = selected_files_tmp) %>%
     dplyr::mutate(tmp_col = basename(infile_l2bin)) %>%
@@ -215,10 +215,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
       }, .options = furrr_options(seed = TRUE))
     })
   }
-  pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$"), collapse = "|")
-  files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
-  files_l3mapped <- list.files(path = ".", pattern = "_L3mapped.nc$", full.names = TRUE, recursive = FALSE)
-  unlink(c(files_del, seadas_bins[[1]], seadas_bins[[2]]))
+
 
   cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
   if (length(files_l3mapped) <= 10) {
@@ -251,6 +248,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   } else {
     cat("El directorio ya existe:", dir_output, "\n")
   }
+
   pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$", ".nc$"), collapse = "|")
   files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   pattern_out <- glue::glue("*.csv|*.parquet")
