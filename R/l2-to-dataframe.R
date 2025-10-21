@@ -216,7 +216,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     })
   }
 
-
+  files_l3mapped <- list.files(path = ".", pattern = "_L3mapped.nc$", full.names = TRUE)
   cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
   if (length(files_l3mapped) <= 10) {
     progressr::with_progress({
