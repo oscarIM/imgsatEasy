@@ -249,13 +249,17 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     cat("El directorio ya existe:", dir_output, "\n")
   }
 
-  pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$", ".nc$"), collapse = "|")
-  files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
+  # pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$", ".nc$"), collapse = "|")
+  # files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   pattern_out <- glue::glue("*.csv|*.parquet")
   list_final_files <- list.files(path = ".", pattern = pattern_out, full.names = TRUE)
   invisible(file.rename(list_final_files, file.path(dir_output, basename(list_final_files))))
-  unlink(c(files_l3mapped, seadas_bins[[1]], seadas_bins[[2]], files_del))
   setwd(current_wd)
+  del_folder <- list.dirs(full.names = TRUE) %>%
+    stringr::str_subset(pattern = "nc_files")
+  unlink(del_folder, recursive = TRUE)
+  # unlink(c(files_l3mapped, seadas_bins[[1]], seadas_bins[[2]], files_del))
+
   toc()
   cat("Fin \n\n")
 }
