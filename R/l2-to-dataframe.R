@@ -25,15 +25,20 @@
 #' @importFrom furrr future_walk future_walk2 furrr_options
 #' @importFrom utils untar
 #' @importFrom stringr str_replace
-#' @importFrom glue glue
+#' @importFrom glue glue glue_collapse
 #' @export l2_to_dataframe
 
 l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet", sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting = 0, data_compress = TRUE) {
   tic()
   current_wd <- getwd()
-  patterns_oc <- paste(c(".OC.x.nc$", ".OC.nc$"), collapse = "|")
-  patterns_sst <- paste(c(".SST.x.nc$", ".SST.nc$"), collapse = "|")
-  patterns_l2 <- paste(c(patterns_oc, patterns_sst), collapse = "|")
+  # patterns_oc <- paste(c(".OC.x.nc$", ".OC.nc$"), collapse = "|")
+  # patterns_sst <- paste(c(".SST.x.nc$", ".SST.nc$"), collapse = "|")
+  # patterns_l2 <- paste(c(patterns_oc, patterns_sst), collapse = "|")
+
+  patterns_oc <- glue::glue_collapse(c(".OC.x.nc$", ".OC.nc$"), sep = "|")
+  patterns_sst <- glue::glue_collapse(c(".SST.x.nc$", ".SST.nc$"), sep = "|")
+  patterns_l2 <- glue::glue("{patterns_oc}|{patterns_sst}")
+
 
   setwd(dir_input)
 
