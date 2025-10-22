@@ -61,7 +61,7 @@ toc <- function() {
 #' @param var_name as input
 nc_to_table <- function(file, var_name) {
   nc <- ncdf4::nc_open(file)
-  on.exit(nc_close(nc))
+  on.exit(ncdf4::nc_close(nc))
   times <- c(ncdf4::ncatt_get(nc, 0, "time_coverage_start")$value, ncdf4::ncatt_get(nc, 0, "time_coverage_end")$value)
   lat <- ncdf4::ncvar_get(nc, "lat") %>% as.vector()
   lon <- ncdf4::ncvar_get(nc, "lon") %>% as.vector()
