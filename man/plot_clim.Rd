@@ -85,15 +85,15 @@ dir_input <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisi
 season <- "month"
 stat_function <- "median"
 var_name <- "chlor_a"
-#shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
+# shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
 n_col <- 4
 name_output <- "chlor_aqua_proyecto_junin.png"
-ticks_x = 0.1
-ticks_y = 0.15
-n_cores = 16
+ticks_x <- 0.1
+ticks_y <- 0.15
+n_cores <- 16
 xlim <- c(west, east)
 ylim <- c(north, south)
-sensor = "aqua"
-plot_clim(dir_input = dir_input,season = season, stat_function = stat_function,var_name = var_name,n_col = n_col,name_output = name_output,res = 300,height = 12,width = 9,ticks_x = ticks_x, ticks_y = ticks_y,n_cores = n_cores,xlim = xlim, ylim = ylim,save_data = FALSE,from_data = TRUE,data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
+sensor <- "aqua"
+plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 }
 }
