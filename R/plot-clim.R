@@ -334,7 +334,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
   name_output <- stringr::str_replace(name_output, "\\.png$", ".rds")
 
   if (save_plot_obj) {
-    saveRDS(plot, file = name_ouput)
+    saveRDS(plot, file = name_output)
   }
 
 
