@@ -72,7 +72,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
 
   cat("Transformando archivos L2 a L3: Configurando archivos de entrada... \n\n")
-  all_files_tmp <- list.files(full.names = TRUE, pattern = ".nc$") %>%
+  files_df <- list.files(full.names = TRUE, pattern = ".nc$") %>%
     dplyr::tibble(file = .) %>%
     tidyr::separate(col = "file", into = c("tmp", "sensor", "full_time", "level", "var_type"), extra = "drop", sep = "\\.", remove = FALSE) %>%
     dplyr::select(-tmp) %>%
