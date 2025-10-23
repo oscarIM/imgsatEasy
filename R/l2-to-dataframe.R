@@ -84,13 +84,13 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     "modis_aq" = "^AQUA|^TERRA",
     "sentinel3A" = "^S3A_",
     "sentinel3B" = "^S3B_",
-    "sentinelAB" = "^S3A|^S3B",
+    "sentinelAB" = "^S3A_|^S3B_",
     default = NULL
   )
 
   if (!is.na(sensor_pattern)) {
     cat(paste0("Utilizano datos del sensor: ", sensor, "\n\n"))
-    all_files_tmp <- all_files_tmp %>%
+    files_df <- files_df %>%
       dplyr::filter(stringr::str_detect(sensor, pattern = sensor_pattern))
   } else {
     stop("ingresar sensor: aqua, terra, modis_aq, sentinel3A, sentinel3B, sentinelAB... \n\n")
