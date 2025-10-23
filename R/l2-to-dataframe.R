@@ -31,10 +31,6 @@
 l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "parquet", sensor, var_name, season, n_cores = 1, res_l2 = "1", res_l3 = "1Km", north, south, west, east, fudge, area_weighting = 0, data_compress = TRUE) {
   tic()
   current_wd <- getwd()
-  # patterns_oc <- paste(c(".OC.x.nc$", ".OC.nc$"), collapse = "|")
-  # patterns_sst <- paste(c(".SST.x.nc$", ".SST.nc$"), collapse = "|")
-  # patterns_l2 <- paste(c(patterns_oc, patterns_sst), collapse = "|")
-
   patterns_oc <- glue::glue_collapse(c(".OC.x.nc$", ".OC.nc$"), sep = "|")
   patterns_sst <- glue::glue_collapse(c(".SST.x.nc$", ".SST.nc$"), sep = "|")
   patterns_l2 <- glue::glue("{patterns_oc}|{patterns_sst}")
@@ -86,8 +82,8 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     "aqua" = "^AQUA",
     "terra" = "^TERRA",
     "modis_aq" = "^AQUA|^TERRA",
-    "sentinel3A" = "^S3A",
-    "sentinel3B" = "^S3B",
+    "sentinel3A" = "^S3A_",
+    "sentinel3B" = "^S3B_",
     "sentinelAB" = "^S3A|^S3B",
     default = NULL
   )
@@ -99,45 +95,27 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   } else {
     stop("ingresar sensor: aqua, terra, modis_aq, sentinel3A, sentinel3B, sentinelAB... \n\n")
   }
-
-  selected_files_tmp <- all_files_tmp %>%
-    dplyr::filter(var_type == ifelse(var_name == "sst", "SST", "OC")) %>%
-    dplyr::pull(file)
-
-  files_df <- dplyr::tibble(infile_l2bin = selected_files_tmp) %>%
-    dplyr::mutate(tmp_col = basename(infile_l2bin)) %>%
-    tidyr::separate(col = "tmp_col", into = c("sensor", "full_time"), sep = "\\.", extra = "drop") %>%
+  files_df <- files_df %>%
     dplyr::mutate(
       date = as.Date(full_time, format = "%Y%m%d"),
       year = lubridate::year(date),
       month = sprintf("%02d", lubridate::month(date)),
-      day = lubridate::day(date)
+      day = lubridate::day(date),
+      season_id = dplyr::case_when(
+        season == "year" ~ glue::glue("{year}"),
+        season == "month" ~ glue::glue("{year}-{month}"),
+        season == "day" ~ glue::glue("{year}-{month}-{day}")
+      ),
+      infile_txt = glue::glue("{season_id}_infile.txt"),
+      outfile_l2bin = glue::glue("{season_id}_{var_name}_{res_l2}_km_L3b_tmp.nc"),
+      outfile_mapgen = stringr::str_replace(outfile_l2bin, "_L3b_tmp.nc", "_L3mapped.nc")
     )
+  files <- files_df %>%
+    dplyr::group_by(infile_txt, outfile_l2bin, outfile_mapgen) %>%
+    dplyr::summarise(file_list = list(file), .groups = "drop")
 
-  group_vars <- switch(season,
-    "year" = "year",
-    "month" = c("year", "month"),
-    "day" = "date"
-  )
-
-  files_df_list <- files_df %>%
-    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
-    dplyr::group_split() %>%
-    setNames(purrr::map_chr(., ~ {
-      if (season == "year") {
-        unique(.[["year"]])
-      } else if (season == "month") {
-        paste0(unique(.[["year"]]), "-", unique(.[["month"]]))
-      } else {
-        paste0(unique(.[["year"]]), "-", unique(.[["month"]]), "-", unique(.[["day"]]))
-      }
-    }))
-
-  files <- paste0(names(files_df_list), "_infile.txt")
-  purrr::walk2(files_df_list, files, ~ cat(.x$infile_l2bin, file = .y, sep = "\n"))
-
-  outfile_l2bin <- paste0(names(files_df_list), "_", var_name, "_", res_l2, "km_L3b_tmp.nc")
-
+  purrr::walk2(files$file_list, files$infile_txt, ~ cat(.x, file = .y, sep = "\n"))
+  #### setting seadas bins####
   seadas_bins_path <- system.file("exec", package = "imgsatEasy")
   seadas_bins <- list.files(path = seadas_bins_path, full.names = TRUE)
   if (var_name == "sst") {
@@ -170,11 +148,20 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     system2(seadas_bins[[2]], c(infile, ofile, var_name, "netcdf4", res_l3, "platecarree", "bin", north, south, west, east, "true", "no", fudge))
   }
 
-  cat("Transformando archivos L2 a L3: Corriendo l2bin...\n\n")
-  if (length(files) <= 10) {
+  # cat("Transformando archivos L2 a L3: Corriendo l2bin...\n\n")
+
+  cat("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+  cat("🚀 Transformando archivos L2 a L3\n")
+  cat("➡️  Corriendo l2bin...\n")
+  cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
+
+  infiles <- files$infile_txt
+  outfiles <- files$outfile_l2bin
+
+  if (length(infiles) <= 10) {
     progressr::with_progress({
-      p <- progressr::progressor(steps = length(files))
-      purrr::walk2(files, outfile_l2bin, ~ {
+      p <- progressr::progressor(steps = length(infiles))
+      purrr::walk2(infiles, outfiles, ~ {
         Sys.sleep(.2)
         seadas_l2bin(.x, .y)
         p()
@@ -186,7 +173,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     future::plan("cluster", workers = cl)
     progressr::with_progress({
       p <- progressr::progressor(steps = length(files))
-      furrr::future_walk2(files, outfile_l2bin, ~ {
+      furrr::future_walk2(infiles, outfiles, ~ {
         Sys.sleep(.2)
         seadas_l2bin(.x, .y)
         p()
@@ -194,10 +181,17 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     })
   }
 
-  l3binned_files <- list.files(path = ".", pattern = "_L3b_tmp.nc$", full.names = TRUE)
-  outfile_mapgen <- stringr::str_replace(l3binned_files, "_L3b_tmp.nc", "_L3mapped.nc")
 
-  cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
+  # cat("Transformando archivos L2 a L3: Corriendo l3mapgen...\n\n")
+  cat("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+  cat("🚀 Transformando archivos L2 a L3\n")
+  cat("➡️  Corriendo l3mapgen...\n")
+  cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
+
+  l3binned_files <- files$outfile_l2bin
+  outfile_mapgen <- files$outfile_mapgen
+
+
   if (length(l3binned_files) <= 10) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(l3binned_files))
@@ -222,7 +216,13 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   }
 
   files_l3mapped <- list.files(path = ".", pattern = "_L3mapped.nc$", full.names = TRUE)
-  cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
+  # cat(paste0("Iniciando generación de archivos de ", var_name, " en formato ", format_output, "\n\n"))
+  cat(glue::glue("
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🧩 Iniciando generación de archivos de {var_name}
+  💾 Formato de salida: {format_output}
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
+
   if (length(files_l3mapped) <= 10) {
     progressr::with_progress({
       p <- progressr::progressor(steps = length(files_l3mapped))
@@ -253,9 +253,6 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   } else {
     cat("El directorio ya existe:", dir_output, "\n")
   }
-
-  # pattern_del <- paste(c(".txt$", "_L3b_tmp.nc$", ".nc$"), collapse = "|")
-  # files_del <- list.files(path = ".", pattern = pattern_del, full.names = TRUE, recursive = FALSE)
   pattern_out <- glue::glue("*.csv|*.parquet")
   list_final_files <- list.files(path = ".", pattern = pattern_out, full.names = TRUE)
   invisible(file.rename(list_final_files, file.path(dir_output, basename(list_final_files))))
@@ -263,8 +260,13 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
   del_folder <- list.dirs(full.names = TRUE) %>%
     stringr::str_subset(pattern = "nc_files")
   unlink(del_folder, recursive = TRUE)
-  # unlink(c(files_l3mapped, seadas_bins[[1]], seadas_bins[[2]], files_del))
 
   toc()
-  cat("Fin \n\n")
+  # cat("Fin \n\n")
+  cat("
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Proceso finalizado
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+")
 }
