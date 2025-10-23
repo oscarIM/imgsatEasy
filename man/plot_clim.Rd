@@ -25,7 +25,8 @@ plot_clim(
   from_data = FALSE,
   data_plot_file = NULL,
   sensor,
-  zona
+  zona,
+  save_plot_obj = TRUE
 )
 }
 \arguments{
@@ -70,6 +71,8 @@ plot_clim(
 \item{sensor}{nombre del sensor (solo sirve para la leyenda)}
 
 \item{zona}{string que define la zona de estudio}
+
+\item{save_plot_obj}{boleano que indica si se quiere exportar el objeto rds del plot para modificaciones posteriores}
 
 \item{res}{resolución para la imágen png de la climatología}
 }

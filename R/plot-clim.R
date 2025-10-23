@@ -22,6 +22,7 @@
 #' @param start_date fecha inicio (formato "YYYYY-MM-DD")
 #' @param end_date fecha final
 #' @param zona string que define la zona de estudio
+#' @param save_plot_obj boleano que indica si se quiere exportar el objeto rds del plot para modificaciones posteriores
 #' @importFrom arrow read_parquet
 #' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup reframe case_when collect
 #' @importFrom lubridate month year isoweek as_date
@@ -35,7 +36,7 @@
 #' @importFrom grid convertWidth stringWidth
 #' @importFrom scales pretty_breaks
 #' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_geometry st_crs st_crop
-#' @importFrom stringr str_extract str_to_sentence str_to_title str_detect
+#' @importFrom stringr str_extract str_to_sentence str_to_title str_detect str_replace
 #' @importFrom tidyr separate_wider_delim
 #' @importFrom tibble deframe tibble
 #' @importFrom magrittr %>%
@@ -61,7 +62,7 @@
 #' sensor <- "aqua"
 #' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 #' }
-plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_file = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona) {
+plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_file = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona, save_plot_obj = TRUE) {
   tic()
   sf::sf_use_s2(FALSE)
   if (is.null(shp_file)) {
@@ -329,8 +330,14 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     file_out <- stringr::str_replace(name_output, "\\.png$", ".csv")
     readr::write_csv(data_plot, file_out)
   }
-
   ggplot2::ggsave(name_output, plot = plot, width = width, height = height, dpi = 300)
+  name_output <- stringr::str_replace(name_output, "\\.png$", ".rds")
+
+  if (save_plot_obj) {
+    saveRDS(plot, file = name_ouput)
+  }
+
+
   cat("\n✅ Listo: gráfico generado y guardado.\n")
   toc()
 }
