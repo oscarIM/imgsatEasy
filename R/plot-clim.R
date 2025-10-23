@@ -155,6 +155,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
         glue::glue("Procesando: {.y}")
       )
       message(msg)
+      sub_data_list <- process_sublist(.x)
       dplyr::bind_rows(sub_data_list) %>%
         dplyr::mutate(
           year  = lubridate::year(date1),
