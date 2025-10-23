@@ -172,7 +172,7 @@ l2_to_dataframe <- function(dir_ocssw, dir_input, dir_output, format_output = "p
     on.exit(parallel::stopCluster(cl))
     future::plan("cluster", workers = cl)
     progressr::with_progress({
-      p <- progressr::progressor(steps = length(files))
+      p <- progressr::progressor(steps = length(infiles))
       furrr::future_walk2(infiles, outfiles, ~ {
         Sys.sleep(.2)
         seadas_l2bin(.x, .y)
