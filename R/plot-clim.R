@@ -4,7 +4,7 @@
 #' @param season temporalidad para la generación de imágenes en formato raster("mes", o "year")
 #' @param stat_function función estadística para generar las imágenes raster ("median" o "mean")
 #' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
-#' @param shp_file nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional
+#' @param shp archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional
 #' @param n_col numero de columnas para el gráfico
 #' @param name_output nombre para la salidas
 #' @param res resolución para la imágen png de la climatología
@@ -51,7 +51,7 @@
 #' season <- "month"
 #' stat_function <- "median"
 #' var_name <- "chlor_a"
-#' # shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
+#' # shp <- sf::st_read("/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp")
 #' n_col <- 4
 #' name_output <- "chlor_aqua_proyecto_junin.png"
 #' ticks_x <- 0.1
@@ -62,19 +62,18 @@
 #' sensor <- "aqua"
 #' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
 #' }
-plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_file = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona, save_plot_obj = TRUE) {
+plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, shp = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona, save_plot_obj = TRUE) {
   tic()
   sf::sf_use_s2(FALSE)
-  if (is.null(shp_file)) {
+  if (is.null(shp)) {
     if (!requireNamespace("rnaturalearth", quietly = TRUE)) stop("El paquete 'rnaturalearth' no está instalado.")
-    shp_sf <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf") %>%
+    shp <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf") %>%
       dplyr::filter(admin == "Chile") %>%
       sf::st_geometry()
     bbox <- sf::st_bbox(c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]), crs = sf::st_crs(shp_sf))
-    shp_sf <- suppressWarnings(sf::st_crop(shp_sf, bbox))
-  } else {
-    shp_sf <- sf::read_sf(shp_file) %>% sf::st_geometry()
+    shp <- suppressWarnings(sf::st_crop(shp, bbox))
   }
+
   start_date <- as.Date(start_date)
   end_date <- as.Date(end_date)
   func <- match.fun(stat_function)
@@ -291,7 +290,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function, var_name, shp_fil
     ) +
     scale_x_longitude(ticks = ticks_x) +
     scale_y_latitude(ticks = ticks_y) +
-    ggplot2::geom_sf(data = shp_sf, fill = "grey80", col = "black") +
+    ggplot2::geom_sf(data = shp, fill = "grey80", col = "black") +
     ggplot2::coord_sf(xlim = xlim, ylim = ylim, expand = FALSE, clip = "on") +
     ggplot2::guides(fill = guide_colorbar(
       title = guide_title,

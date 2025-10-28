@@ -7,9 +7,9 @@
 plot_clim(
   dir_input = NULL,
   season,
-  stat_function,
+  stat_function = NULL,
   var_name,
-  shp_file = NULL,
+  shp = NULL,
   start_date = NULL,
   end_date = NULL,
   n_col,
@@ -38,7 +38,7 @@ plot_clim(
 
 \item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
 
-\item{shp_file}{nombre archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
+\item{shp}{archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
 
 \item{start_date}{fecha inicio (formato "YYYYY-MM-DD")}
 
@@ -88,7 +88,7 @@ dir_input <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisi
 season <- "month"
 stat_function <- "median"
 var_name <- "chlor_a"
-# shp_file <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp"
+# shp <- sf::st_read("/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp")
 n_col <- 4
 name_output <- "chlor_aqua_proyecto_junin.png"
 ticks_x <- 0.1
