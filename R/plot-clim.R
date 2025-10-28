@@ -244,7 +244,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
     "chlor_a" = "Concentración de clorofila-a en",
     "sst" = "Temperatura Superficial del Mar en",
     "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en",
-    "kd_490" = "Coeficiente de atenuación difusa (490 nm)"
+    "Kd490" = "Coeficiente de atenuación difusa (490 nm)"
   )
   title_plot <- glue::glue("{title_plot} {zona}")
 
@@ -279,7 +279,7 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
       {
         -1
       } * "]"),
-    "kd_490" = expression("Coeficiente de atenuación difusa a 490" ~ "nm [m"^
+    "Kd490" = expression("Coeficiente de atenuación difusa a 490" ~ "nm [m"^
       {
         -1
       } * "]")
