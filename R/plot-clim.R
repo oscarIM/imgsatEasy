@@ -155,14 +155,40 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
       )
       message(msg)
       sub_data_list <- process_sublist(.x)
-      bind_rows(sub_data_list) %>%
-        dplyr::group_by(lat, lon, date1) %>%
-        dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
-        dplyr::mutate(season = dplyr::case_when(
-          season == "week" ~ as.character(glue::glue("Semana {lubridate::isoweek(date1)}")),
-          season == "month" ~ as.character(lubridate::month(date1)),
-          TRUE ~ as.character(.y)
-        ))
+      dplyr::bind_rows(sub_data_list) %>%
+        dplyr::mutate(
+          year  = lubridate::year(date1),
+          month = lubridate::month(date1),
+          week  = lubridate::isoweek(date1)
+        ) %>%
+        dplyr::group_by(
+          lat, lon,
+          season = dplyr::case_when(
+            season == "week" ~ week,
+            season == "month" ~ month,
+            TRUE ~ year
+          )
+        ) %>%
+        dplyr::summarise(
+          fill = func(!!sym(var_name), na.rm = TRUE),
+          .groups = "drop"
+        ) %>%
+        dplyr::mutate(
+          season = dplyr::case_when(
+            season == "week" ~ as.character(glue::glue("Semana {season}")),
+            season == "month" ~ as.character(lubridate::month(as.integer(season), label = TRUE, abbr = FALSE)),
+            TRUE ~ as.character(season)
+          )
+        )
+      # sub_data_list <- process_sublist(.x)
+      # dplyr::bind_rows(sub_data_list) %>%
+      #  dplyr::group_by(lat, lon, date1) %>%
+      #  dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
+      #  dplyr::mutate(season = dplyr::case_when(
+      #    season == "week" ~ as.character(glue::glue("Semana {lubridate::isoweek(date1)}")),
+      #    season == "month" ~ as.character(lubridate::month(date1)),
+      #    TRUE ~ as.character(.y)
+      #  ))
     }) %>%
       dplyr::bind_rows()
 
