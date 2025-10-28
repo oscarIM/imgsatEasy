@@ -33,6 +33,9 @@ nc_to_table <- function(file, var_name) {
   times <- c(ncdf4::ncatt_get(nc, 0, "time_coverage_start")$value, ncdf4::ncatt_get(nc, 0, "time_coverage_end")$value)
   lat <- ncdf4::ncvar_get(nc, "lat") %>% as.vector()
   lon <- ncdf4::ncvar_get(nc, "lon") %>% as.vector()
+  if (var_name == "Kd_490") {
+    var_name <- "Kd490"
+  }
   var_tmp <- ncdf4::ncvar_get(nc, var_name)
   df <- tidyr::expand_grid(lat = lat, lon = lon) %>%
     dplyr::mutate(!!sym(var_name) := as.vector(var_tmp),
