@@ -217,10 +217,12 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
         dplyr::select(season, label) %>%
         tibble::deframe()
     }
-    if(var_name =="Rrs_645") {
+    if (var_name == "Rrs_645") {
       data_plot <- data_plot %>%
-        dplyr::mutate(fill = fill * 158.9418,
-                      fill = dplyr::if_else(condition = fill<0,true = 0, false = fill))
+        dplyr::mutate(
+          fill = fill * 158.9418,
+          fill = dplyr::if_else(condition = fill < 0, true = 0, false = fill)
+        )
     }
   } else {
     data_plot <- readr::read_csv(data_plot_file, show_col_types = FALSE)
