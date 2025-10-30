@@ -287,8 +287,8 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
 
   if (var_name == "Rrs_645") {
     use_log10 <- FALSE
-    # data_plot <- data_plot %>%
-    #  dplyr::mutate(fill = fill * 158.9418,
+    data_plot <- data_plot %>%
+      dplyr::mutate(fill = fill * 158.9418)
     #                fill = dplyr::if_else(condition = fill<0,true = 0, false = fill))
 
     valid_range <- c(0, max(data_plot$fill, na.rm = TRUE))
