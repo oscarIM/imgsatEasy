@@ -64,13 +64,18 @@
 #' }
 plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, shp = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona, save_plot_obj = TRUE) {
   tic()
+  ## set vars
+  x_min <- min(xlim)
+  x_max <- max(xlim)
+  y_min <- min(ylim)
+  y_max <- max(ylim)
   sf::sf_use_s2(FALSE)
   if (is.null(shp)) {
     if (!requireNamespace("rnaturalearth", quietly = TRUE)) stop("El paquete 'rnaturalearth' no está instalado.")
     shp <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf") %>%
       dplyr::filter(admin == "Chile") %>%
       sf::st_geometry()
-    bbox <- sf::st_bbox(c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]), crs = sf::st_crs(shp_sf))
+    bbox <- sf::st_bbox(c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]), crs = sf::st_crs(shp))
     shp <- suppressWarnings(sf::st_crop(shp, bbox))
   }
 
@@ -110,11 +115,14 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
       dataframe <- switch(ext_file,
         ".parquet" = arrow::read_parquet(file, as_data_frame = FALSE),
         ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
-      )
-      dataframe %>%
+      ) %>%
         dplyr::filter(!is.na(!!rlang::sym(var_name))) %>%
-        dplyr::filter(dplyr::between(lon, xlim[1], xlim[2])) %>%
-        dplyr::filter(dplyr::between(lat, ylim[2], ylim[1])) %>%
+        dplyr::filter(
+          lon >= lon_min,
+          lon <= lon_max,
+          lat >= lat_min,
+          lat <= lat_max
+        ) %>%
         dplyr::select(lat, lon, date1, !!rlang::sym(var_name)) %>%
         dplyr::collect()
     }
