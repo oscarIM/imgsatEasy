@@ -145,3 +145,46 @@ LatLabel <- function(lat, north = "\u00B0N", south = "\u00B0S", zero = "\u00B0")
 
   return(newlat)
 }
+
+## taken from Rwind
+#' @title uv2ds
+#' @rdname uv2ds
+#' @keywords internal
+
+uv2ds <- function(u, v) {
+  ###### DIRECTION
+  direction <- atan2(u, v)
+  direction <- rad2deg(direction)
+  direction[direction < 0] <- 360 + direction[direction < 0]
+
+  ###### SPEED
+  speed <- sqrt((u * u) + (v * v))
+
+  ######
+  res <- cbind(dir = direction, speed = speed)
+  return(res)
+}
+
+#' @title ds2uv
+#' @rdname ds2uv
+#' @keywords internal
+
+ds2uv <- function(d, s) {
+  d <- d %% 360
+  r <- deg2rad(d)
+  u <- sin(r) * s
+  v <- cos(r) * s
+  cbind(u = u, v = v)
+}
+#' @title rad2deg
+#' @rdname rad2deg
+#' @keywords internal
+rad2deg <- function(rad) {
+  (rad * 180) / (pi)
+}
+#' @title deg2rad
+#' @rdname deg2rad
+#' @keywords internal
+deg2rad <- function(deg) {
+  (deg * pi) / (180)
+}
