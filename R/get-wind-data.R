@@ -24,7 +24,6 @@
 #' @importFrom readr write_csv
 #' @importFrom arrow write_parquet
 #' @importFrom tidyr separate
-#' @importFrom rWind uv2ds
 #' @importFrom dtplyr lazy_dt
 #' @importFrom magrittr %>%
 #' @examples
@@ -131,7 +130,7 @@ get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_
   arrays_list <- purrr::map(.x = vars, .f = ~ ncdf4::ncvar_get(nc = nc_data, varid = .x))
   names(arrays_list) <- vars
   tmp <- expand.grid(dims_list$lon, dims_list$lat, dims_list$valid_time) %>%
-   as.data.frame()
+    as.data.frame()
   colnames(tmp) <- c("lon", "lat", "valid_time")
   tmp <- tmp %>%
     dplyr::mutate(

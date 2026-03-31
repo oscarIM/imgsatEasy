@@ -45,7 +45,7 @@ l2_to_dataframe(
 
 \item{res_l3}{Resolución de mapeo ('1Km')}
 
-\item{north, }{south, west, east Límites espaciales}
+\item{north, south, west, east}{Límites espaciales}
 
 \item{fudge}{Valor fudge para mapgen}
 
