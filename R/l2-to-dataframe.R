@@ -142,13 +142,13 @@ l2_to_dataframe <- function(
 
   ## 3.2. Filtrar por sensor --------------------------------------------------
   sensor_pattern <- switch(sensor,
-                           "aqua"       = "^AQUA|^AQUA_",
-                           "terra"      = "^TERRA|^TERRA_",
-                           "modis_aq"   = "^AQUA|^TERRA",
-                           "sentinel3A" = "^S3A_",
-                           "sentinel3B" = "^S3B_",
-                           "sentinelAB" = "^S3A_|^S3B_",
-                           NULL
+    "aqua"       = "^AQUA|^AQUA_",
+    "terra"      = "^TERRA|^TERRA_",
+    "modis_aq"   = "^AQUA|^TERRA",
+    "sentinel3A" = "^S3A_",
+    "sentinel3B" = "^S3B_",
+    "sentinelAB" = "^S3A_|^S3B_",
+    NULL
   )
 
   if (!is.null(sensor_pattern)) {
