@@ -188,3 +188,15 @@ rad2deg <- function(rad) {
 deg2rad <- function(deg) {
   (deg * pi) / (180)
 }
+#' @title circ_mean
+#' @rdname circ_mean
+#' @keywords internal
+circ_mean <- function(deg) {
+  rad_m <- (deg * pi) / 180
+  mean_cos <- mean(cos(rad_m))
+  mean_sin <- mean(sin(rad_m))
+  theta <- rad2deg(atan(mean_sin / mean_cos))
+  if (mean_cos < 0) theta <- theta + 180
+  if ((mean_sin < 0) & (mean_cos > 0)) theta <- theta + 360
+  theta
+}

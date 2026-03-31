@@ -43,21 +43,8 @@
 get_wind_data <- function(long_min, long_max, lat_min, lat_max, start_time, end_time, dir_output, prefix_outfile, product_name) {
   if (!dir.exists(dir_output)) dir.create(dir_output, recursive = TRUE)
   ### Funciones auxiliares internas ###
-  circ_mean <- function(deg) {
-    rad_m <- (deg * pi) / 180
-    mean_cos <- mean(cos(rad_m))
-    mean_sin <- mean(sin(rad_m))
-    theta <- rad2deg(atan(mean_sin / mean_cos))
-    if (mean_cos < 0) theta <- theta + 180
-    if ((mean_sin < 0) & (mean_cos > 0)) theta <- theta + 360
-    theta
-  }
-  rad2deg <- function(rad) {
-    (rad * 180) / pi
-  }
-  deg2rad <- function(deg) {
-    (deg * pi) / 180
-  }
+
+
   cat("Generando la solicitud de datos para el área y tiempo definidos...\n")
   ### Validación de argumentos ###
   purrr::walk(
