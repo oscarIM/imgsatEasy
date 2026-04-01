@@ -1,273 +1,149 @@
-#' @title plot_clim
-#' @description Función para generar climatología y exportarla (formato png) para una variable determinada
-#' @param dir_input directorio en donde se almacenan las tablas en csv o parquet
-#' @param season temporalidad para la generación de imágenes en formato raster("mes", o "year")
-#' @param stat_function función estadística para generar las imágenes raster ("median" o "mean")
-#' @param var_name nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)
-#' @param shp archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional
-#' @param n_col numero de columnas para el gráfico
-#' @param name_output nombre para la salidas
-#' @param res resolución para la imágen png de la climatología
-#' @param height altura para la imágen png de la climatología
-#' @param width amplitud para la imágen png de la climatología
-#' @param xlim vector numérico tamaño 2 para los limites de x en el plot
-#' @param ylim vector numérico tamaño 2 para los limites de y en el plot
-#' @param ticks_x vector numérico tamaño 1 indicando ticks en el eje x del plot
-#' @param ticks_y vector numérico tamaño 1 indicando ticks en el eje y del plot
-#' @param n_cores cores a usar
-#' @param sensor nombre del sensor (solo sirve para la leyenda)
-#' @param save_data opcion boleana
-#' @param from_data opcion boleana
-#' @param data_plot_file nombre de archivo
-#' @param start_date fecha inicio (formato "YYYYY-MM-DD")
-#' @param end_date fecha final
-#' @param zona string que define la zona de estudio
-#' @param save_plot_obj boleano que indica si se quiere exportar el objeto rds del plot para modificaciones posteriores
-#' @importFrom arrow read_parquet
-#' @importFrom dplyr all_of across between bind_rows group_by group_split cur_group_id filter first mutate pull select summarise tibble ungroup reframe case_when collect
-#' @importFrom lubridate month year isoweek as_date
-#' @importFrom furrr future_walk furrr_options
-#' @importFrom future plan
-#' @importFrom parallel makeForkCluster stopCluster
-#' @importFrom progressr progressor with_progress
-#' @importFrom purrr map map2 map_chr
-#' @importFrom rlang !! sym :=
+#' Genera climatología oceanográfica y la exporta como imagen PNG
+#'
+#' Construye un gráfico de facetas con la climatología de una variable
+#' oceanográfica a partir de un data frame ya procesado, y lo exporta como
+#' archivo PNG (y opcionalmente como objeto RDS para ediciones posteriores).
+#'
+#' @param data_plot Data frame procesado con columnas `lat`, `lon`, `fill`
+#'   (valores de la variable) y `season` (factor con etiquetas de periodo).
+#' @param var_name Nombre de la variable a graficar. Valores aceptados:
+#'   `"chlor_a"`, `"sst"`, `"Rrs_645"`, `"Kd490"`.
+#' @param sensor Nombre del sensor para el caption del gráfico. Valores
+#'   aceptados: `"aqua"`, `"terra"`, `"modis_aq"`, `"sentinel3A"`,
+#'   `"sentinel3B"`, `"sentinelAB"`.
+#' @param zona String que identifica la zona de estudio (se incluye en el
+#'   título del gráfico, e.g. `"Golfo de Arauco"`).
+#' @param start_date Fecha de inicio del periodo analizado (`"YYYY-MM-DD"`).
+#' @param end_date Fecha de fin del periodo analizado (`"YYYY-MM-DD"`).
+#' @param shp Objeto `sf` con la geometría costera superpuesta al raster. Si
+#'   es `NULL`, se descarga automáticamente el contorno de Chile desde
+#'   [rnaturalearth::ne_countries()].
+#' @param xlim Vector numérico de longitud 2 con los límites en x del mapa
+#'   en grados decimales: `c(oeste, este)`.
+#' @param ylim Vector numérico de longitud 2 con los límites en y del mapa
+#'   en grados decimales: `c(norte, sur)`.
+#' @param ticks_x Separación entre ticks del eje x en grados. Default `0.1`.
+#' @param ticks_y Separación entre ticks del eje y en grados. Default `0.1`.
+#' @param n_col Número de columnas del panel de facetas (`facet_wrap`).
+#' @param output_file Nombre y ruta del archivo PNG de salida
+#'   (e.g. `"output/chlor_aqua_junin.png"`).
+#' @param height Altura de la imagen exportada en pulgadas. Default `8`.
+#' @param width Ancho de la imagen exportada en pulgadas. Default `6`.
+#' @param save_plot_obj Lógico. Si `TRUE`, exporta el objeto `ggplot` como
+#'   archivo `.rds` con el mismo nombre que `output_file`. Default `TRUE`.
+#'
+#' @return Invisiblemente el objeto `ggplot` generado. Como efecto secundario
+#'   escribe en disco el PNG y, opcionalmente, el RDS.
+#'
+#' @details
+#' La función ejecuta los siguientes pasos:
+#' \enumerate{
+#'   \item Valida entradas y prepara la geometría costera (`shp`).
+#'   \item Construye los textos del gráfico: título, subtítulo, caption y
+#'     título de la barra de color, en función de `var_name`, `sensor` y
+#'     el periodo definido por `start_date` / `end_date`.
+#'   \item Determina la escala de color: logarítmica para `chlor_a`, lineal
+#'     para el resto; calcula `breaks` y `labels` automáticamente.
+#'   \item Construye el objeto `ggplot` con capas de raster (`geom_tile`),
+#'     geometría costera (`geom_sf`), ejes geográficos y panel de facetas.
+#'   \item Exporta el PNG con [ggplot2::ggsave()] y, si `save_plot_obj = TRUE`,
+#'     serializa el objeto como RDS.
+#' }
+#'
+#' @note Si `shp` es `NULL` se requiere conexión a internet y el paquete
+#'   `rnaturalearth` instalado para descargar el contorno de Chile.
+#'
+#' @seealso [ggplot2::facet_wrap()], [ggplot2::scale_fill_gradientn()],
+#'   [rnaturalearth::ne_countries()]
+#'
+#' @importFrom dplyr filter
+#' @importFrom lubridate year
 #' @importFrom glue glue
+#' @importFrom stringr str_to_sentence str_replace
+#' @importFrom scales log_breaks
 #' @importFrom grid convertWidth stringWidth
-#' @importFrom scales pretty_breaks
-#' @importFrom sf sf_use_s2 read_sf st_as_sf st_bbox st_geometry st_crs st_crop
-#' @importFrom stringr str_extract str_to_sentence str_to_title str_detect str_replace
-#' @importFrom tidyr separate_wider_delim
-#' @importFrom tibble deframe tibble
+#' @importFrom sf sf_use_s2 st_bbox st_crs st_geometry st_crop
+#' @importFrom cli cli_inform
 #' @importFrom magrittr %>%
-#' @importFrom readr read_csv write_csv
-#' @importFrom arrow read_parquet
 #' @import ggplot2
-#' @return imágenes png
-#' @export plot_clim
+#'
+#' @export
+#'
 #' @examples
 #' \dontrun{
-#' dir_input <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/aqua/chlor_a/parquet_files"
-#' season <- "month"
-#' stat_function <- "median"
-#' var_name <- "chlor_a"
-#' # shp <- sf::st_read("/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp")
-#' n_col <- 4
-#' name_output <- "chlor_aqua_proyecto_junin.png"
-#' ticks_x <- 0.1
-#' ticks_y <- 0.15
-#' n_cores <- 16
-#' xlim <- c(west, east)
-#' ylim <- c(north, south)
-#' sensor <- "aqua"
-#' plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
+#' plot_clim(
+#'   data_plot = data_clean,
+#'   var_name = var_name,
+#'   sensor = sensor,
+#'   zona = zona,
+#'   start_date = start_clim,
+#'   end_date = end_clim,
+#'   shp = shp_mask,
+#'   xlim = xlim,
+#'   ylim = ylim,
+#'   ticks_x = ticks_x,
+#'   ticks_y = ticks_y,
+#'   n_col = 4,
+#'   output_file = glue::glue("sst_GA_{periodo_clim}_{sensor}_clean.png")
+#' )
 #' }
-plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, shp = NULL, start_date = NULL, end_date = NULL, n_col, name_output, height = 8, width = 6, ticks_x = 0.1, ticks_y = 0.1, n_cores = 1, xlim, ylim, save_data = TRUE, from_data = FALSE, data_plot_file = NULL, sensor, zona, save_plot_obj = TRUE) {
-  tic()
-  ## set vars
-  x_min <- min(xlim)
-  x_max <- max(xlim)
-  y_min <- min(ylim)
-  y_max <- max(ylim)
+plot_clim <- function(
+    data_plot,
+    var_name,
+    sensor,
+    zona,
+    start_date,
+    end_date,
+    shp = NULL,
+    xlim,
+    ylim,
+    ticks_x = 0.1,
+    ticks_y = 0.1,
+    n_col,
+    output_file,
+    height = 8,
+    width = 6,
+    save_plot_obj = TRUE) {
+  # 1. Validar entradas y preparar geometría costera -------------------------
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+
   sf::sf_use_s2(FALSE)
+
   if (is.null(shp)) {
-    if (!requireNamespace("rnaturalearth", quietly = TRUE)) stop("El paquete 'rnaturalearth' no está instalado.")
+    if (!requireNamespace("rnaturalearth", quietly = TRUE)) {
+      stop("El paquete 'rnaturalearth' no está instalado.")
+    }
     shp <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf") %>%
       dplyr::filter(admin == "Chile") %>%
       sf::st_geometry()
-    bbox <- sf::st_bbox(c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]), crs = sf::st_crs(shp))
+    bbox <- sf::st_bbox(
+      c(xmin = xlim[2], xmax = xlim[1], ymin = ylim[2], ymax = ylim[1]),
+      crs = sf::st_crs(shp)
+    )
     shp <- suppressWarnings(sf::st_crop(shp, bbox))
   }
 
-  start_date <- as.Date(start_date)
-  end_date <- as.Date(end_date)
-  func <- match.fun(stat_function)
-
-  if (!from_data) {
-    files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
-    all_files_tmp <- list.files(path = dir_input, full.names = TRUE, pattern = files_ext_pattern) %>%
-      tibble::tibble(file = .) %>%
-      dplyr::mutate(
-        filename = basename(file),
-        date_str = stringr::str_extract(filename, "^(\\d{4}-\\d{2}-\\d{1,2}|\\d{4}-\\d{2})"),
-        has_day = stringr::str_detect(date_str, "^\\d{4}-\\d{2}-\\d{1,2}"),
-        date_str = as.character(date_str),
-        date = as.Date(ifelse(has_day, date_str, paste0(date_str, "-01"))),
-        month = lubridate::month(date),
-        year = lubridate::year(date),
-        week = lubridate::isoweek(date)
-      ) %>%
-      dplyr::filter(is.null(start_date) | is.null(end_date) | dplyr::between(date, start_date, end_date)) %>%
-      dplyr::mutate(season = dplyr::case_when(
-        season == "week" ~ week,
-        season == "month" ~ month,
-        TRUE ~ year
-      ))
-
-    path_list <- all_files_tmp %>%
-      dplyr::group_by(season) %>%
-      dplyr::group_split() %>%
-      purrr::map(~ dplyr::pull(.x, "file"))
-
-    ext_file <- unique(stringr::str_extract(all_files_tmp$file, files_ext_pattern))
-
-    process_tables <- function(file) {
-      dataframe <- switch(ext_file,
-        ".parquet" = arrow::read_parquet(file, as_data_frame = FALSE),
-        ".csv" = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
-      ) %>%
-        dplyr::filter(!is.na(!!rlang::sym(var_name))) %>%
-        dplyr::filter(
-          lon >= lon_min,
-          lon <= lon_max,
-          lat >= lat_min,
-          lat <= lat_max
-        ) %>%
-        dplyr::select(lat, lon, date1, !!rlang::sym(var_name)) %>%
-        dplyr::collect()
-    }
-
-    process_sublist <- function(entry_list) {
-      if (n_cores <= 1) {
-        progressr::with_progress({
-          p <- progressr::progressor(steps = length(entry_list))
-          purrr::map(entry_list, ~ {
-            p()
-            # Sys.sleep(0.1)
-            process_tables(.x)
-          })
-        })
-      } else {
-        cl <- parallel::makeForkCluster(n_cores)
-        on.exit(parallel::stopCluster(cl))
-        future::plan("cluster", workers = cl)
-        progressr::with_progress({
-          p <- progressr::progressor(steps = length(entry_list))
-          furrr::future_map(entry_list, ~ {
-            p()
-            Sys.sleep(0.1)
-            process_tables(.x)
-          },
-          .options = furrr::furrr_options(seed = TRUE, packages = c("dplyr", "readr", "arrow"))
-          )
-        })
-      }
-    }
-
-    data_plot <- purrr::imap(path_list, ~ {
-      msg <- switch(season,
-        "month" = glue::glue("Procesando mes: {month.name[as.integer(.y)]}"),
-        "week"  = glue::glue("Procesando semana: {.y}"),
-        "year"  = glue::glue("Procesando año: {.y}"),
-        glue::glue("Procesando: {.y}")
-      )
-      message(msg)
-      sub_data_list <- process_sublist(.x)
-      dplyr::bind_rows(sub_data_list) %>%
-        dplyr::mutate(
-          year  = lubridate::year(date1),
-          month = lubridate::month(date1),
-          week  = lubridate::isoweek(date1)
-        ) %>%
-        dplyr::group_by(
-          lat, lon,
-          season = dplyr::case_when(
-            season == "week" ~ week,
-            season == "month" ~ month,
-            TRUE ~ year
-          )
-        ) %>%
-        dplyr::summarise(
-          fill = func(!!sym(var_name), na.rm = TRUE),
-          .groups = "drop"
-        ) %>%
-        dplyr::mutate(
-          season = dplyr::case_when(
-            season == "week" ~ as.character(glue::glue("Semana {season}")),
-            season == "month" ~ as.character(lubridate::month(as.integer(season), label = TRUE, abbr = FALSE)),
-            TRUE ~ as.character(season)
-          )
-        )
-      # sub_data_list <- process_sublist(.x)
-      # dplyr::bind_rows(sub_data_list) %>%
-      #  dplyr::group_by(lat, lon, date1) %>%
-      #  dplyr::summarise(fill = func(!!sym(var_name), na.rm = TRUE), .groups = "drop") %>%
-      #  dplyr::mutate(season = dplyr::case_when(
-      #    season == "week" ~ as.character(glue::glue("Semana {lubridate::isoweek(date1)}")),
-      #    season == "month" ~ as.character(lubridate::month(date1)),
-      #    TRUE ~ as.character(.y)
-      #  ))
-    }) %>%
-      dplyr::bind_rows()
-
-    if (season == "month") {
-      data_plot <- data_plot %>%
-        dplyr::mutate(
-          season = month(as.integer(season), label = TRUE, abbr = FALSE),
-          season = stringr::str_to_title(season),
-          season = factor(season, levels = stringr::str_to_title(month(1:12, label = TRUE, abbr = FALSE)))
-        )
-    } else if (season == "year") {
-      data_plot <- data_plot %>% dplyr::mutate(season = factor(season))
-    } else if (season == "week") {
-      data_plot <- data_plot %>% dplyr::mutate(date = as.Date(date1))
-      all_dates <- seq(start_date, end_date, by = "day")
-      labeller_vector <- tibble::tibble(date = all_dates) %>%
-        dplyr::mutate(
-          year = lubridate::year(date),
-          month = lubridate::month(date),
-          week = lubridate::isoweek(date),
-          season = glue::glue("Semana {week}")
-        ) %>%
-        dplyr::group_by(year, month, season) %>%
-        dplyr::summarise(start = min(date), end = max(date), .groups = "drop") %>%
-        dplyr::mutate(label = glue::glue("{season} ({format(start, '%d')}–{format(end, '%d %b')})")) %>%
-        dplyr::select(season, label) %>%
-        tibble::deframe()
-    }
-    if (var_name == "Rrs_645") {
-      data_plot <- data_plot %>%
-        dplyr::mutate(
-          fill = fill * 158.9418,
-          fill = dplyr::if_else(condition = fill < 0, true = 0, false = fill)
-        )
-    }
-  } else {
-    data_plot <- readr::read_csv(data_plot_file, show_col_types = FALSE)
-    if (season == "month") {
-      data_plot <- data_plot %>% dplyr::mutate(season = factor(season, levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
-    } else if (season == "year") {
-      data_plot <- data_plot %>% dplyr::mutate(season = factor(season))
-    } else if (season == "week") {
-      data_plot <- data_plot %>%
-        dplyr::mutate(season = glue::glue("Semana {season}"))
-      all_dates <- seq(start_date, end_date, by = "day")
-      labeller_vector <- tibble::tibble(date = all_dates) %>%
-        dplyr::mutate(
-          week = lubridate::isoweek(date),
-          season = glue::glue("Semana {week}")
-        ) %>%
-        dplyr::group_by(season) %>%
-        dplyr::summarise(start = min(date), end = max(date), .groups = "drop") %>%
-        dplyr::mutate(label = glue::glue("{season} ({format(start, '%d')}–{format(end, '%d %b')})")) %>%
-        dplyr::select(season, label) %>%
-        tibble::deframe()
-    }
-  }
-
-  title_plot <- switch(var_name,
-    "chlor_a" = "Concentración de clorofila-a en",
+  # 2. Construir textos del gráfico ------------------------------------------
+  titulo_var <- switch(var_name,
+    "chlor_a" = "Concentraci\u00f3n de clorofila-a en",
     "sst" = "Temperatura Superficial del Mar en",
-    "Rrs_645" = "Radiación normalizada de salida del agua (645nm) en",
-    "Kd490" = "Coeficiente de atenuación difusa (490 nm)"
+    "Rrs_645" = "Radiaci\u00f3n normalizada de salida del agua (645nm) en",
+    "Kd490" = "Coeficiente de atenuaci\u00f3n difusa (490 nm) en",
+    stop(glue::glue("var_name '{var_name}' no reconocida."))
   )
-  title_plot <- glue::glue("{title_plot} {zona}")
+  title_plot <- glue::glue("{titulo_var} {zona}")
 
   years <- seq(lubridate::year(start_date), lubridate::year(end_date))
   subtitle <- if (length(years) == 1) {
-    glue::glue("Periodo: del {format(start_date, '%d')} de {stringr::str_to_sentence(format(start_date, '%B'))} al {format(end_date, '%d')} de {stringr::str_to_sentence(format(end_date, '%B'))} de {years}")
+    glue::glue(
+      "Periodo: del {format(start_date, '%d')} de ",
+      "{stringr::str_to_sentence(format(start_date, '%B'))} al ",
+      "{format(end_date, '%d')} de ",
+      "{stringr::str_to_sentence(format(end_date, '%B'))} de {years}"
+    )
   } else {
-    glue::glue("Periodo: {years[1]} – {years[length(years)]}")
+    glue::glue("Periodo: {years[1]} \u2013 {years[length(years)]}")
   }
 
   caption <- switch(sensor,
@@ -277,15 +153,15 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
     "sentinel3A" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3A",
     "sentinel3B" = "Fuente: OceanColor Data; Sensor OLCI-Sentinel3B",
     "sentinelAB" = "Fuente: OceanColor Data; Combined Sentinel3A-Sentinel3B satellites",
-    default = "Sensor desconocido"
+    "Sensor desconocido"
   )
 
   guide_title <- switch(var_name,
-    "chlor_a" = expression("Clorofila-α [mg" ~ m^
+    "chlor_a" = expression("Clorofila-\u03b1 [mg" ~ m^
       {
         -3
       } * "]"),
-    "sst" = "Temperatura Superficial Mar [°C]",
+    "sst" = "Temperatura Superficial Mar [\u00b0C]",
     "Rrs_645" = expression("nWLR 645 [mW" ~ cm^{
       -2
     } ~ mu * m^{
@@ -294,96 +170,108 @@ plot_clim <- function(dir_input = NULL, season, stat_function = NULL, var_name, 
       {
         -1
       } * "]"),
-    "Kd490" = expression("Coeficiente de atenuación difusa a 490" ~ "nm [m"^
+    "Kd490" = expression("Coef. atenuaci\u00f3n difusa 490 nm [m"^
       {
         -1
       } * "]")
   )
 
+  # 3. Definir escala de color y breaks --------------------------------------
   if (var_name == "Rrs_645") {
-    use_log10 <- FALSE
-    # data_plot <- data_plot %>%
-    #  dplyr::mutate(
-    #    fill = fill * 158.9418,
-    #    fill = dplyr::if_else(condition = fill < 0, true = 0, false = fill)
-    #  )
     valid_range <- c(0, max(data_plot$fill, na.rm = TRUE))
-    range_span <- diff(valid_range)
-    step <- signif(range_span / 5, digits = 1)
-    breaks <- seq(valid_range[1], valid_range[2], by = step)
-    labels <- formatC(breaks, format = "f", digits = 2)
-  } else if (var_name == "chlor_a") {
-    use_log10 <- TRUE
-    valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
-    breaks <- scales::log_breaks()(valid_range)
-    labels <- formatC(breaks, format = "f", digits = 1)
-  } else {
+    step <- signif(diff(valid_range) / 5, digits = 1)
+    breaks_color <- seq(valid_range[1], valid_range[2], by = step)
+    labels_color <- formatC(breaks_color, format = "f", digits = 2)
     use_log10 <- FALSE
+  } else if (var_name == "chlor_a") {
+    valid_range <- range(data_plot$fill[data_plot$fill > 0], na.rm = TRUE)
+    breaks_color <- scales::log_breaks()(valid_range)
+    labels_color <- formatC(breaks_color, format = "f", digits = 1)
+    use_log10 <- TRUE
+  } else {
     valid_range <- range(data_plot$fill, na.rm = TRUE)
-    breaks <- pretty(valid_range, 4)
-    labels <- waiver()
+    breaks_color <- pretty(valid_range, 4)
+    labels_color <- waiver()
+    use_log10 <- FALSE
   }
-  cols <- if (var_name == "sst") c(get_palette("blues"), get_palette("reds")) else get_palette("oce_jets")
 
-  plot <- ggplot2::ggplot(data = data_plot) +
-    ggplot2::geom_tile(aes(x = lon, y = lat, fill = fill)) +
+  cols <- if (var_name == "sst") {
+    c(get_palette("blues"), get_palette("reds"))
+  } else {
+    get_palette("oce_jets")
+  }
+
+  # 4. Construir objeto ggplot -----------------------------------------------
+  plot_obj <- ggplot2::ggplot(data = data_plot) +
+    ggplot2::geom_tile(
+      ggplot2::aes(x = lon, y = lat, fill = fill)
+    ) +
     ggplot2::scale_fill_gradientn(
       colours = cols,
       na.value = "white",
-      breaks = breaks,
-      labels = labels,
-      # limits = c(0,1),
+      breaks = breaks_color,
+      labels = labels_color,
       transform = if (use_log10) "log10" else "identity"
     ) +
     scale_x_longitude(ticks = ticks_x) +
     scale_y_latitude(ticks = ticks_y) +
     ggplot2::geom_sf(data = shp, fill = "grey80", col = "black") +
     ggplot2::coord_sf(xlim = xlim, ylim = ylim, expand = FALSE, clip = "on") +
-    ggplot2::guides(fill = guide_colorbar(
-      title = guide_title,
-      title.position = "top",
-      barwidth = grid::convertWidth(grid::stringWidth(guide_title), unitTo = "lines", valueOnly = TRUE) * 1.5 + n_col,
-      barheight = 0.8,
-      title.hjust = 0.5
-    )) +
-    ggplot2::labs(title = title_plot, subtitle = subtitle, caption = caption, x = NULL, y = NULL) +
+    ggplot2::guides(
+      fill = ggplot2::guide_colorbar(
+        title = guide_title,
+        title.position = "top",
+        title.hjust = 0.5,
+        barwidth = grid::convertWidth(
+          grid::stringWidth(guide_title),
+          unitTo = "lines",
+          valueOnly = TRUE
+        ) * 1.5 + n_col,
+        barheight = 0.8
+      )
+    ) +
+    ggplot2::labs(
+      title = title_plot,
+      subtitle = subtitle,
+      caption = caption,
+      x = NULL,
+      y = NULL
+    ) +
     ggplot2::facet_wrap(~season, ncol = n_col) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
-      axis.text = element_text(color = "gray30"),
-      panel.grid = element_blank(),
-      panel.spacing = unit(1.5, "lines"),
-      plot.title = element_text(size = 12, face = "bold", color = "#222222"),
-      plot.subtitle = element_text(size = 10, color = "#444444"),
-      plot.caption = element_text(size = 9, color = "gray50", hjust = 1),
-      strip.text = element_text(face = "bold", size = 11),
+      axis.text = ggplot2::element_text(color = "gray30"),
+      panel.grid = ggplot2::element_blank(),
+      panel.spacing = ggplot2::unit(1.5, "lines"),
+      plot.title = ggplot2::element_text(size = 12, face = "bold", color = "#222222"),
+      plot.subtitle = ggplot2::element_text(size = 10, color = "#444444"),
+      plot.caption = ggplot2::element_text(size = 9, color = "gray50", hjust = 1),
+      strip.text = ggplot2::element_text(face = "bold", size = 11),
       legend.position = "bottom",
-      legend.title = element_text(size = 10, face = "bold"),
-      legend.text = element_text(size = 10),
-      legend.key.width = unit(2, "cm"),
-      legend.key.height = unit(0.4, "cm"),
-      plot.background = element_rect(fill = "white", color = NA),
-      plot.margin = margin(t = 5, r = 5, b = 5, l = 5),
+      legend.title = ggplot2::element_text(size = 10, face = "bold"),
+      legend.text = ggplot2::element_text(size = 10),
+      legend.key.width = ggplot2::unit(2, "cm"),
+      legend.key.height = ggplot2::unit(0.4, "cm"),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.margin = ggplot2::margin(t = 5, r = 5, b = 5, l = 5),
       plot.title.position = "plot"
     )
-  if (season == "week") {
-    plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col, labeller = ggplot2::labeller(season = labeller_vector))
-  } else {
-    plot <- plot + ggplot2::facet_wrap(~season, ncol = n_col)
-  }
 
-  if (save_data) {
-    file_out <- stringr::str_replace(name_output, "\\.png$", ".csv")
-    readr::write_csv(data_plot, file_out)
-  }
-  ggplot2::ggsave(name_output, plot = plot, width = width, height = height, dpi = 300)
-  name_output <- stringr::str_replace(name_output, "\\.png$", ".rds")
+  # 5. Exportar PNG y RDS ----------------------------------------------------
+  ggplot2::ggsave(
+    filename = output_file,
+    plot = plot_obj,
+    width = width,
+    height = height,
+    dpi = 300
+  )
+  cli::cli_inform("\u2705 Gr\u00e1fico PNG guardado en: {output_file}")
 
   if (save_plot_obj) {
-    saveRDS(plot, file = name_output)
+    rds_output <- stringr::str_replace(output_file, "\\.png$", ".rds")
+    saveRDS(plot_obj, file = rds_output)
+    cli::cli_inform("\u2705 Objeto RDS guardado en: {rds_output}")
   }
 
-
-  cat("\n✅ Listo: gráfico generado y guardado.\n")
-  toc()
+  return(invisible(plot_obj))
 }

@@ -2,101 +2,119 @@
 % Please edit documentation in R/plot-clim.R
 \name{plot_clim}
 \alias{plot_clim}
-\title{plot_clim}
+\title{Genera climatología oceanográfica y la exporta como imagen PNG}
 \usage{
 plot_clim(
-  dir_input = NULL,
-  season,
-  stat_function = NULL,
+  data_plot,
   var_name,
-  shp = NULL,
-  start_date = NULL,
-  end_date = NULL,
-  n_col,
-  name_output,
-  height = 8,
-  width = 6,
-  ticks_x = 0.1,
-  ticks_y = 0.1,
-  n_cores = 1,
-  xlim,
-  ylim,
-  save_data = TRUE,
-  from_data = FALSE,
-  data_plot_file = NULL,
   sensor,
   zona,
+  start_date,
+  end_date,
+  shp = NULL,
+  xlim,
+  ylim,
+  ticks_x = 0.1,
+  ticks_y = 0.1,
+  n_col,
+  output_file,
+  height = 8,
+  width = 6,
   save_plot_obj = TRUE
 )
 }
 \arguments{
-\item{dir_input}{directorio en donde se almacenan las tablas en csv o parquet}
+\item{data_plot}{Data frame procesado con columnas \code{lat}, \code{lon}, \code{fill}
+(valores de la variable) y \code{season} (factor con etiquetas de periodo).}
 
-\item{season}{temporalidad para la generación de imágenes en formato raster("mes", o "year")}
+\item{var_name}{Nombre de la variable a graficar. Valores aceptados:
+\code{"chlor_a"}, \code{"sst"}, \code{"Rrs_645"}, \code{"Kd490"}.}
 
-\item{stat_function}{función estadística para generar las imágenes raster ("median" o "mean")}
+\item{sensor}{Nombre del sensor para el caption del gráfico. Valores
+aceptados: \code{"aqua"}, \code{"terra"}, \code{"modis_aq"}, \code{"sentinel3A"},
+\code{"sentinel3B"}, \code{"sentinelAB"}.}
 
-\item{var_name}{nombre de la variable a analizar ("chlor_a", "sst", "Rrs_645", "pic", "poc", "nflh", etc)}
+\item{zona}{String que identifica la zona de estudio (se incluye en el
+título del gráfico, e.g. \code{"Golfo de Arauco"}).}
 
-\item{shp}{archivo shp para el gráfico (si no esta en dir_input poner nombre con ruta completa). Opcional}
+\item{start_date}{Fecha de inicio del periodo analizado (\code{"YYYY-MM-DD"}).}
 
-\item{start_date}{fecha inicio (formato "YYYYY-MM-DD")}
+\item{end_date}{Fecha de fin del periodo analizado (\code{"YYYY-MM-DD"}).}
 
-\item{end_date}{fecha final}
+\item{shp}{Objeto \code{sf} con la geometría costera superpuesta al raster. Si
+es \code{NULL}, se descarga automáticamente el contorno de Chile desde
+\code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}.}
 
-\item{n_col}{numero de columnas para el gráfico}
+\item{xlim}{Vector numérico de longitud 2 con los límites en x del mapa
+en grados decimales: \code{c(oeste, este)}.}
 
-\item{name_output}{nombre para la salidas}
+\item{ylim}{Vector numérico de longitud 2 con los límites en y del mapa
+en grados decimales: \code{c(norte, sur)}.}
 
-\item{height}{altura para la imágen png de la climatología}
+\item{ticks_x}{Separación entre ticks del eje x en grados. Default \code{0.1}.}
 
-\item{width}{amplitud para la imágen png de la climatología}
+\item{ticks_y}{Separación entre ticks del eje y en grados. Default \code{0.1}.}
 
-\item{ticks_x}{vector numérico tamaño 1 indicando ticks en el eje x del plot}
+\item{n_col}{Número de columnas del panel de facetas (\code{facet_wrap}).}
 
-\item{ticks_y}{vector numérico tamaño 1 indicando ticks en el eje y del plot}
+\item{output_file}{Nombre y ruta del archivo PNG de salida
+(e.g. \code{"output/chlor_aqua_junin.png"}).}
 
-\item{n_cores}{cores a usar}
+\item{height}{Altura de la imagen exportada en pulgadas. Default \code{8}.}
 
-\item{xlim}{vector numérico tamaño 2 para los limites de x en el plot}
+\item{width}{Ancho de la imagen exportada en pulgadas. Default \code{6}.}
 
-\item{ylim}{vector numérico tamaño 2 para los limites de y en el plot}
-
-\item{save_data}{opcion boleana}
-
-\item{from_data}{opcion boleana}
-
-\item{data_plot_file}{nombre de archivo}
-
-\item{sensor}{nombre del sensor (solo sirve para la leyenda)}
-
-\item{zona}{string que define la zona de estudio}
-
-\item{save_plot_obj}{boleano que indica si se quiere exportar el objeto rds del plot para modificaciones posteriores}
-
-\item{res}{resolución para la imágen png de la climatología}
+\item{save_plot_obj}{Lógico. Si \code{TRUE}, exporta el objeto \code{ggplot} como
+archivo \code{.rds} con el mismo nombre que \code{output_file}. Default \code{TRUE}.}
 }
 \value{
-imágenes png
+Invisiblemente el objeto \code{ggplot} generado. Como efecto secundario
+escribe en disco el PNG y, opcionalmente, el RDS.
 }
 \description{
-Función para generar climatología y exportarla (formato png) para una variable determinada
+Construye un gráfico de facetas con la climatología de una variable
+oceanográfica a partir de un data frame ya procesado, y lo exporta como
+archivo PNG (y opcionalmente como objeto RDS para ediciones posteriores).
+}
+\details{
+La función ejecuta los siguientes pasos:
+\enumerate{
+\item Valida entradas y prepara la geometría costera (\code{shp}).
+\item Construye los textos del gráfico: título, subtítulo, caption y
+título de la barra de color, en función de \code{var_name}, \code{sensor} y
+el periodo definido por \code{start_date} / \code{end_date}.
+\item Determina la escala de color: logarítmica para \code{chlor_a}, lineal
+para el resto; calcula \code{breaks} y \code{labels} automáticamente.
+\item Construye el objeto \code{ggplot} con capas de raster (\code{geom_tile}),
+geometría costera (\code{geom_sf}), ejes geográficos y panel de facetas.
+\item Exporta el PNG con \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} y, si \code{save_plot_obj = TRUE},
+serializa el objeto como RDS.
+}
+}
+\note{
+Si \code{shp} es \code{NULL} se requiere conexión a internet y el paquete
+\code{rnaturalearth} instalado para descargar el contorno de Chile.
 }
 \examples{
 \dontrun{
-dir_input <- "/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/aqua/chlor_a/parquet_files"
-season <- "month"
-stat_function <- "median"
-var_name <- "chlor_a"
-# shp <- sf::st_read("/home/holon--oim/Dropbox/HolonSPA/PROYECTOS/Proyecto_Junin/Analisis/satelital/zona_proyecto_junin.shp")
-n_col <- 4
-name_output <- "chlor_aqua_proyecto_junin.png"
-ticks_x <- 0.1
-ticks_y <- 0.15
-n_cores <- 16
-xlim <- c(west, east)
-ylim <- c(north, south)
-sensor <- "aqua"
-plot_clim(dir_input = dir_input, season = season, stat_function = stat_function, var_name = var_name, n_col = n_col, name_output = name_output, res = 300, height = 12, width = 9, ticks_x = ticks_x, ticks_y = ticks_y, n_cores = n_cores, xlim = xlim, ylim = ylim, save_data = FALSE, from_data = TRUE, data_plot_file = "chlor_aqua_proyecto_junin.csv", sensor = sensor)
+plot_clim(
+  data_plot = data_clean,
+  var_name = var_name,
+  sensor = sensor,
+  zona = zona,
+  start_date = start_clim,
+  end_date = end_clim,
+  shp = shp_mask,
+  xlim = xlim,
+  ylim = ylim,
+  ticks_x = ticks_x,
+  ticks_y = ticks_y,
+  n_col = 4,
+  output_file = glue::glue("sst_GA_{periodo_clim}_{sensor}_clean.png")
+)
 }
+}
+\seealso{
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}, \code{\link[ggplot2:scale_gradient]{ggplot2::scale_fill_gradientn()}},
+\code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}
 }
