@@ -31,8 +31,7 @@
 #'
 #' @seealso [sf::st_intersects()], [rnaturalearth::ne_countries()]
 #'
-#' @importFrom sf st_as_sf st_transform st_crs st_make_valid st_union
-#'   st_intersects st_coordinates st_drop_geometry
+#' @importFrom sf st_as_sf st_transform st_crs st_make_valid st_union st_intersects st_coordinates st_drop_geometry
 #' @importFrom dplyr filter bind_cols rename
 #' @importFrom readr write_csv
 #' @importFrom rnaturalearth ne_countries

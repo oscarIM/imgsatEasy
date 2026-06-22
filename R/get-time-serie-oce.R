@@ -33,10 +33,8 @@
 #' `NA` en la var_name antes de traer los datos a R.
 #'
 #' @importFrom arrow read_parquet read_csv_arrow
-#' @importFrom dplyr select filter collect mutate group_by summarise bind_cols
-#'   rename bind_rows
-#' @importFrom sf st_as_sf st_transform st_crs st_intersects st_coordinates
-#'   st_drop_geometry st_make_valid st_union st_buffer
+#' @importFrom dplyr select filter collect mutate group_by summarise bind_cols rename bind_rows
+#' @importFrom sf st_as_sf st_transform st_crs st_intersects st_coordinates st_drop_geometry st_make_valid st_union st_buffer
 #' @importFrom rlang sym !! :=
 #' @importFrom purrr map compact
 #' @importFrom readr write_csv

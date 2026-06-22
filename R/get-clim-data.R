@@ -39,8 +39,7 @@
 #'   guarda en disco como CSV y se retorna de forma invisible.
 #'
 #' @importFrom arrow read_parquet
-#' @importFrom dplyr between bind_rows collect filter group_by group_split
-#'   if_else mutate pull select summarise
+#' @importFrom dplyr between bind_rows collect filter group_by group_split if_else mutate pull select summarise
 #' @importFrom furrr future_map furrr_options
 #' @importFrom future plan
 #' @importFrom glue glue

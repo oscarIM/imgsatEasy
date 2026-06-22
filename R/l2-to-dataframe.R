@@ -14,6 +14,7 @@
 #' @param fudge Valor fudge para mapgen
 #' @param area_weighting Si se aplica ponderación por área
 #' @param data_compress Si TRUE, espera archivos .tar; si FALSE, archivos .nc directos
+#' @param flaguse flaguse
 #' @importFrom dplyr tibble mutate filter pull select group_by summarise case_when
 #' @importFrom tidyr separate
 #' @importFrom stringr str_remove str_detect str_subset str_replace
@@ -28,20 +29,22 @@
 #' @export l2_to_dataframe
 
 l2_to_dataframe <- function(
-    dir_ocssw,
-    dir_input,
-    dir_output,
-    format_output = "parquet",
-    sensor,
-    var_name,
-    season,
-    n_cores = 1,
-    res_l2 = "1",
-    res_l3 = "1Km",
-    north, south, west, east,
-    fudge,
-    area_weighting = 0,
-    data_compress = TRUE) {
+  dir_ocssw,
+  dir_input,
+  dir_output,
+  format_output = "parquet",
+  sensor,
+  var_name,
+  season,
+  n_cores = 1,
+  res_l2 = "1",
+  res_l3 = "1Km",
+  north, south, west, east,
+  fudge,
+  area_weighting = 0,
+  data_compress = TRUE,
+  flaguse
+) {
   # ---- 1. l2_to_dataframe: Inicialización ----------------------------------
 
   tic()
@@ -231,9 +234,7 @@ l2_to_dataframe <- function(
     seadas_l2bin <- function(infile, ofile) {
       system2("chmod", c("+x", seadas_bins[[1]]))
       system2(seadas_bins[[1]], c(
-        infile, ofile, "regional", var_name, res_l2, "off",
-        "ATMFAIL,LAND,HILT,HISATZEN,STRAYLIGHT,CLDICE,COCCOLITH,LOWLW,CHLWARN,CHLFAIL,NAVWARN,MAXAERITER,ATMWARN,HISOLZEN,NAVFAIL,FILTER,HIGLINT",
-        2, north, south, east, west, area_weighting
+        infile, ofile, "regional", var_name, res_l2, "off", flaguse, 2, north, south, east, west, area_weighting
       ))
     }
   }
@@ -350,8 +351,14 @@ l2_to_dataframe <- function(
   # ---- 10. l2_to_dataframe: Limpieza y cierre ------------------------------
   # setwd() y stopCluster() se manejan automáticamente por on.exit()
 
-  del_folder <- file.path(dir_input, "nc_files")
-  unlink(del_folder, recursive = TRUE)
+  pattern_del <- glue::glue("*.txt|*tmp.nc|*L3mapped.nc")
+  del_files <- list.files(path = ".", pattern = pattern_del, full.names = TRUE)
+  if (dir.exists(file.path(dir_input, "nc_files"))) {
+    del_folder <- file.path(dir_input, "nc_files")
+    unlink(del_folder, recursive = TRUE)
+  }
+
+  unlink(del_files)
   unlink(seadas_bins)
   toc()
 

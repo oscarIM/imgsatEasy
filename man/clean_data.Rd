@@ -53,5 +53,5 @@ clean_data(
 }
 }
 \seealso{
-\code{\link[sf:geos_binary_pred]{sf::st_intersects()}}, \code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}
+\code{\link[sf:st_intersects]{sf::st_intersects()}}, \code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}
 }

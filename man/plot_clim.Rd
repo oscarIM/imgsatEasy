@@ -115,6 +115,6 @@ plot_clim(
 }
 }
 \seealso{
-\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}, \code{\link[ggplot2:scale_gradient]{ggplot2::scale_fill_gradientn()}},
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}, \code{\link[ggplot2:scale_fill_gradientn]{ggplot2::scale_fill_gradientn()}},
 \code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}
 }

@@ -21,7 +21,8 @@ l2_to_dataframe(
   east,
   fudge,
   area_weighting = 0,
-  data_compress = TRUE
+  data_compress = TRUE,
+  flaguse
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ l2_to_dataframe(
 \item{area_weighting}{Si se aplica ponderación por área}
 
 \item{data_compress}{Si TRUE, espera archivos .tar; si FALSE, archivos .nc directos}
+
+\item{flaguse}{flaguse}
 }
 \description{
 Procesa archivos L2 (SeaDAS) y los transforma a L3 y luego a tabla (e.g., parquet)
