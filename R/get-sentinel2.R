@@ -278,7 +278,7 @@ make_token_manager <- function(ttl = 600, margin = 60) {
 #'   descargar (sin la extensión \code{.SAFE}).
 #' @param manager Función gestora de token, típicamente devuelta por
 #'   \code{\link{make_token_manager}}.
-#' @param dest Cadena. Directorio de destino donde se guardan y descomprimen los
+#' @param output_dir Cadena. Directorio de destino donde se guardan y descomprimen los
 #'   productos. Se crea si no existe.
 #' @param history_path Cadena. Ruta al archivo \code{.rds} donde se persiste el
 #'   historial de descargas (por defecto \code{"download_files.rds"}).
@@ -304,9 +304,9 @@ make_token_manager <- function(ttl = 600, margin = 60) {
 #' }
 #'
 #' @export
-run_download <- function(all_files, manager, dest, history_path = "download_files.rds") {
-  if (!dir.exists(dest)) {
-    dir.create(dest, recursive = TRUE, showWarnings = FALSE)
+run_download <- function(all_files, manager, output_dir, history_path = "download_files.rds") {
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   }
 
   # --- Descarga de un producto (cierra sobre manager y dest) ---
@@ -316,13 +316,13 @@ run_download <- function(all_files, manager, dest, history_path = "download_file
       httr2::req_perform() %>%
       httr2::resp_body_json()
     uuid <- meta$value[[1]]$Id
-    zip_path <- fs::path(dest, glue::glue("{product_name}.zip"))
+    zip_path <- fs::path(output_dir, glue::glue("{product_name}.zip"))
 
     httr2::request(glue::glue("https://zipper.dataspace.copernicus.eu/odata/v1/Products({uuid})/$value")) %>%
       httr2::req_auth_bearer_token(manager()) %>%
       httr2::req_perform(path = zip_path)
 
-    utils::unzip(zip_path, exdir = dest)
+    utils::unzip(zip_path, exdir = output_dir)
   }
 
   # --- Historial: en memoria (environment) y persistido en .rds ---
@@ -343,7 +343,7 @@ run_download <- function(all_files, manager, dest, history_path = "download_file
 
   # --- Pendientes: excluye lo del historial Y lo que ya está en disco ---
   on_disk <- all_files %>%
-    purrr::keep(~ fs::dir_exists(fs::path(dest, glue::glue("{.x}.SAFE"))))
+    purrr::keep(~ fs::dir_exists(fs::path(output_dir, glue::glue("{.x}.SAFE"))))
 
   pending <- setdiff(all_files, union(state$history$product_name, on_disk))
   message(glue::glue("Pendientes: {length(pending)} de {length(all_files)}"))
