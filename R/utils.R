@@ -200,3 +200,34 @@ circ_mean <- function(deg) {
   if ((mean_sin < 0) & (mean_cos > 0)) theta <- theta + 360
   theta
 }
+
+#' Obtener la grilla de tiles
+#'
+#' @description Carga la grilla de tiles desde los archivos del paquete.
+#' El objeto se mantiene en memoria una vez cargado para optimizar el rendimiento.
+#'
+#' @param refresh Lógico. Si \code{TRUE}, fuerza la recarga desde disco.
+#' @return Un objeto \code{sf}.
+#' @export
+get_tile_grid <- function(refresh = FALSE) {
+  # Definimos una variable persistente en el entorno de la función
+  if (!exists(".cached_tile_grid", envir = parent.env(environment()))) {
+    .cached_tile_grid <<- NULL
+  }
+
+  # Si ya existe en caché y no se pide refresh, lo devolvemos
+  if (!refresh && !is.null(.cached_tile_grid)) {
+    return(.cached_tile_grid)
+  }
+
+  # Localizamos y leemos el archivo (debe estar en inst/extdata/)
+  file_path <- system.file("extdata", "grilla_tiles.rds", package = "imgsatEasy")
+
+  if (file_path == "") {
+    stop("No se encuentra el archivo 'grilla_tiles.rds' en inst/extdata/")
+  }
+
+  # Guardamos en caché y retornamos
+  .cached_tile_grid <<- readRDS(file_path)
+  return(.cached_tile_grid)
+}
