@@ -9,7 +9,6 @@
 #' @param south Numérico. Límite sur de la ROI (latitud, grados decimales).
 #' @param west Numérico. Límite oeste de la ROI (longitud, grados decimales).
 #' @param east Numérico. Límite este de la ROI (longitud, grados decimales).
-#' @param kml Cadena. Ruta al archivo KML con la grilla de tiles Sentinel-2.
 #'
 #' @return Vector de caracteres con los nombres de los tiles que cubren la ROI,
 #'   ordenados de mayor a menor porcentaje de cobertura. Como efecto secundario,
@@ -29,14 +28,8 @@
 #' }
 #'
 #' @export
-get_s2_tiles <- function(
-  north,
-  south,
-  west,
-  east,
-  kml = "S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml"
-) {
-  tile <- get_tile_grid(kml) %>%
+get_s2_tiles <- function(north, south, west, east) {
+  tile <- get_tile_grid() %>%
     dplyr::select(Name, geometry)
   roi <- sf::st_as_sfc(
     sf::st_bbox(

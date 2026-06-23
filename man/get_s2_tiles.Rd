@@ -4,14 +4,7 @@
 \alias{get_s2_tiles}
 \title{Identificar y graficar tiles Sentinel-2 que cubren una ROI}
 \usage{
-get_s2_tiles(
-  north,
-  south,
-  west,
-  east,
-  kml =
-    "S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml"
-)
+get_s2_tiles(north, south, west, east)
 }
 \arguments{
 \item{north}{Numérico. Límite norte de la ROI (latitud, grados decimales).}
@@ -21,8 +14,6 @@ get_s2_tiles(
 \item{west}{Numérico. Límite oeste de la ROI (longitud, grados decimales).}
 
 \item{east}{Numérico. Límite este de la ROI (longitud, grados decimales).}
-
-\item{kml}{Cadena. Ruta al archivo KML con la grilla de tiles Sentinel-2.}
 }
 \value{
 Vector de caracteres con los nombres de los tiles que cubren la ROI,
