@@ -559,7 +559,8 @@ l1_to_l2 <- function(
       })
     })
   })
-
+  att_files <- list.files(getwd(), pattern = ".atteph$", full.names = TRUE, recursive = TRUE)
+  unlink(att_files)
   l2s <- resultados %>%
     unlist(recursive = FALSE) %>%
     purrr::compact() %>%
