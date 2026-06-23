@@ -222,7 +222,6 @@ get_tile_grid <- function(refresh = FALSE) {
 
   # Localizamos y leemos el archivo (debe estar en inst/extdata/)
   file_path <- system.file("extdata", "grilla_tiles.rds", package = "imgsatEasy")
-
   if (file_path == "") {
     stop("No se encuentra el archivo 'grilla_tiles.rds' en inst/extdata/")
   }
