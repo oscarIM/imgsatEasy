@@ -4,7 +4,12 @@
 \alias{run_download}
 \title{Descargar y descomprimir productos Sentinel-2 desde CDSE}
 \usage{
-run_download(all_files, manager, dest, history_path = "download_files.rds")
+run_download(
+  all_files,
+  manager,
+  output_dir,
+  history_path = "download_files.rds"
+)
 }
 \arguments{
 \item{all_files}{Vector de caracteres con los nombres de los productos a
@@ -13,7 +18,7 @@ descargar (sin la extensión \code{.SAFE}).}
 \item{manager}{Función gestora de token, típicamente devuelta por
 \code{\link{make_token_manager}}.}
 
-\item{dest}{Cadena. Directorio de destino donde se guardan y descomprimen los
+\item{output_dir}{Cadena. Directorio de destino donde se guardan y descomprimen los
 productos. Se crea si no existe.}
 
 \item{history_path}{Cadena. Ruta al archivo \code{.rds} donde se persiste el

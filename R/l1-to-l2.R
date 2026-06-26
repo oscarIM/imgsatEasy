@@ -41,6 +41,7 @@
 #' @param ca_bundle Ruta al CA bundle del sistema (Ubuntu/Debian por defecto).
 #' @importFrom glue glue
 #' @return String de shell que exporta OCSSWROOT, sourcea OCSSW_bash.env y fija el CA.
+
 get_ocssw_env <- function(dir_ocssw, ca_bundle = "/etc/ssl/certs/ca-certificates.crt") {
   glue::glue(
     "export OCSSWROOT={dir_ocssw} && source $OCSSWROOT/OCSSW_bash.env",
@@ -61,6 +62,7 @@ get_ocssw_env <- function(dir_ocssw, ca_bundle = "/etc/ssl/certs/ca-certificates
 #' @param capturar Si TRUE devuelve la salida de texto; si FALSE el status (invisible).
 #' @importFrom glue glue
 #' @return stdout si capturar = TRUE; el status (invisible) si FALSE.
+#' @export
 run_ocssw <- function(env, cmd, capturar = FALSE) {
   full <- shQuote(glue::glue("{env} && {cmd}"))
   if (capturar) {
@@ -84,6 +86,7 @@ run_ocssw <- function(env, cmd, capturar = FALSE) {
 #' @importFrom glue glue
 #' @importFrom stringr str_detect
 #' @return Ruta del L1A usable (la misma si no estaba comprimido).
+#' @export
 decompress_l1a <- function(l1a_file) {
   l1a_file <- normalizePath(l1a_file, mustWork = TRUE)
   tipo <- system2("file", shQuote(l1a_file), stdout = TRUE)
@@ -116,6 +119,7 @@ decompress_l1a <- function(l1a_file) {
 #' @importFrom glue glue
 #' @importFrom stringr str_remove
 #' @return Ruta del archivo GEO.
+#' @export
 generate_geo <- function(env, l1a_file, out_dir) {
   base <- stringr::str_remove(basename(l1a_file), "\\.L1A.*$")
   geo <- file.path(out_dir, glue::glue("{base}.GEO"))
@@ -149,6 +153,7 @@ generate_geo <- function(env, l1a_file, out_dir) {
 #' @param out_dir Directorio de salida.
 #' @importFrom glue glue
 #' @return Ruta del L1B de 1km.
+#' @export
 generate_l1b <- function(env, l1a_file, geo_file, out_dir) {
   run_ocssw(env, glue::glue("cd {out_dir} && modis_L1B {l1a_file} {geo_file}"))
   l1b <- list.files(
@@ -178,6 +183,7 @@ generate_l1b <- function(env, l1a_file, geo_file, out_dir) {
 #' @importFrom glue glue
 #' @importFrom stringr str_match
 #' @return Lista con spixl, epixl, sline, eline ya escalados.
+#' @export
 compute_crop <- function(env, geo_file, north, south, west, east, resolution = 250) {
   # lonlat2pixline ifile SWlon SWlat NElon NElat
   salida <- run_ocssw(
@@ -228,6 +234,7 @@ compute_crop <- function(env, geo_file, north, south, west, east, resolution = 2
 #' @importFrom glue glue
 #' @importFrom stringr str_detect
 #' @return Lista con anc (ruta del .anc) y no_optima (TRUE si getanc aviso de ancillary no optima).
+#' @export
 download_anc <- function(env, l1b_file, work_dir) {
   salida <- run_ocssw(
     env,
@@ -272,6 +279,7 @@ download_anc <- function(env, l1b_file, work_dir) {
 #' @importFrom magrittr %>%
 #' @importFrom tools file_path_sans_ext
 #' @return Ruta del L2.
+#' @export
 generate_l2 <- function(
   env, l1b_file, geo_file, px, out_dir,
   resolution = 250, refresh_anc = TRUE, anc_file = NULL
@@ -343,6 +351,7 @@ generate_l2 <- function(
 #' @importFrom glue glue
 #' @importFrom tools file_path_sans_ext
 #' @return Lista con work, l1b, geo, px, anc y anc_no_optima.
+#' @export
 prepare_granule <- function(
   l1a_file,
   dir_ocssw,
@@ -388,6 +397,7 @@ prepare_granule <- function(
 #' @param limpiar Si TRUE, borra la carpeta de trabajo (intermedios) al terminar.
 #' @importFrom glue glue
 #' @return Ruta del L2 generado.
+#' @export
 process_l1a <- function(
   l1a_file,
   dir_ocssw,
@@ -467,6 +477,7 @@ process_l1a <- function(
 #' @importFrom progressr with_progress progressor
 #' @importFrom magrittr %>%
 #' @return Invisible: vector con las rutas de los L2 generados.
+#' @export
 l1_to_l2 <- function(
   dir_ocssw,
   dir_input,
