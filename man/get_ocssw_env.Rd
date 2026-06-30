@@ -9,14 +9,11 @@ get_ocssw_env(dir_ocssw, ca_bundle = "/etc/ssl/certs/ca-certificates.crt")
 \arguments{
 \item{dir_ocssw}{Directorio raiz de OCSSW (OCSSWROOT).}
 
-\item{ca_bundle}{Ruta al CA bundle del sistema (Ubuntu/Debian por defecto).}
+\item{ca_bundle}{Ruta al CA bundle del sistema.}
 }
 \value{
-String de shell que exporta OCSSWROOT, sourcea OCSSW_bash.env y fija el CA.
+String de shell listo para anteponer a cualquier herramienta OCSSW.
 }
 \description{
-Tras sourcear el entorno, apunta los certificados al CA bundle del SISTEMA.
-El curl que trae OCSSW (opt/bin/curl) viene compilado buscando el bundle de
-RedHat (/etc/pki/tls/certs/ca-bundle.crt), que en Ubuntu no existe; sin esto
-las descargas HTTPS (atteph, getanc) fallan callado y dejan archivos vacios.
+Apunta los certificados al CA bundle del sistema porque el curl de OCSSW
 }

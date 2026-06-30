@@ -2,7 +2,7 @@
 % Please edit documentation in R/l1-to-l2.R
 \name{process_l1a}
 \alias{process_l1a}
-\title{Procesar UN granulo del crudo al L2}
+\title{Procesar un granulo del l1a a L2}
 \usage{
 process_l1a(
   l1a_file,
@@ -17,25 +17,21 @@ process_l1a(
 )
 }
 \arguments{
-\item{l1a_file}{L1A crudo (.L1A_LAC).}
+\item{l1a_file}{L1A (.L1A_LAC).}
 
 \item{dir_ocssw}{Directorio raiz de OCSSW.}
 
 \item{out_dir}{Directorio de salida (donde queda el L2).}
 
-\item{north, south, west, east}{Caja del Itata.}
+\item{north, south, west, east}{Caja lat/lon.}
 
 \item{resolution}{Resolucion en metros (250).}
 
-\item{limpiar}{Si TRUE, borra la carpeta de trabajo (intermedios) al terminar.}
+\item{limpiar}{Si TRUE, borra la carpeta de trabajo al terminar.}
 }
 \value{
 Ruta del L2 generado.
 }
 \description{
-Encadena fase 1 (prepare_granule: descomprime + GEO + L1B + recorte +
-getanc) y fase 2 (generate_l2: l2gen) en una carpeta de trabajo propia, y deja
-el L2 en out_dir, listo para l2_to_dataframe. Reusa los mismos helpers que
-l1_to_l2, asi que no hay logica duplicada entre el modo de un granulo y el de
-directorio completo.
+Procesar un granulo del l1a a L2
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/l1-to-l2.R
 \name{l1_to_l2}
 \alias{l1_to_l2}
-\title{Procesar un directorio de L1A crudos a L2 (serie o paralelo segun workers)}
+\title{Procesar un directorio de L1A crudos a L2}
 \usage{
 l1_to_l2(
   dir_ocssw,
@@ -25,42 +25,24 @@ l1_to_l2(
 
 \item{dir_output}{Directorio donde se escriben los L2.}
 
-\item{north, south, west, east}{Caja del Itata.}
+\item{north, south, west, east}{Caja lat/lon.}
 
 \item{resolution}{Resolucion en metros (250).}
 
-\item{workers}{Procesos paralelos para la fase 2 (l2gen). 1 = todo en serie.
-l2gen es intensivo en CPU/memoria; no conviene pasar el numero de nucleos
-fisicos.}
+\item{workers}{Procesos paralelos para l2gen. 1 = todo en serie.}
 
-\item{batch_size}{Granulos por lote. Por defecto max(workers, 1): de a uno en
-serie, o una tanda por pool de workers en paralelo. Subirlo amortiza el
-setup de la fase 2 pero aumenta el pico de disco; bajarlo lo reduce.}
+\item{batch_size}{Granulos por lote (por defecto = workers).}
 
-\item{limpiar}{Si TRUE, borra los intermedios de cada granulo tras mover su L2.}
+\item{limpiar}{Si TRUE, borra intermedios de cada granulo tras mover su L2.}
 }
 \value{
 Invisible: vector con las rutas de los L2 generados.
 }
 \description{
-Lee todos los L1A de dir_input y los procesa por LOTES de batch_size. Cada
-lote pasa por dos fases:
+Procesa por lotes de batch_size. Cada lote:
+Fase 1 (SERIE): prepare_granule por granulo (atteph/getanc tocan DB compartida).
+Fase 2 (workers): generate_l2 en paralelo via furrr (solo lee archivos locales).
 }
 \details{
-Fase 1 (SIEMPRE serie): prepare_granule por granulo (descomprime + GEO +
-L1B + recorte + getanc). Serial porque modis_atteph y getanc escriben en
-bases de datos compartidas; en paralelo se pisan.
-
-Fase 2 (segun workers): generate_l2 (l2gen). Con workers = 1 corre en serie
-(future sequential); con workers > 1, en paralelo via furrr. l2gen aqui
-solo lee archivos locales (L1B, GEO, .anc), no toca red ni DB, asi que es
-seguro paralelizarlo.
-
-El troceado en lotes acota el pico de disco: solo coexisten los intermedios
-de un lote a la vez (se limpian al cerrar cada lote, si limpiar = TRUE),
-en vez de los de todo el directorio.
-
-Trabaja por efecto: escribe los L2 en dir_output y devuelve sus rutas
-invisible. Un granulo que falle (en cualquier fase) avisa con warning y no
-bota el lote.
+Un granulo que falle avisa con warning y no bota el lote.
 }
