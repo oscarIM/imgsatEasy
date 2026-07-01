@@ -14,6 +14,8 @@ get_clim_data(
   xlim,
   ylim,
   n_cores = 1,
+  n_day_min = 3,
+  year_min = 3,
   name_output = NULL
 )
 }
@@ -51,6 +53,10 @@ paralelo. Por defecto \code{1} (procesamiento secuencial). El
 paralelismo usa \code{parallel::makeForkCluster} y solo está
 disponible en sistemas Unix/macOS.}
 
+\item{n_day_min}{numero d días min con valores válidos}
+
+\item{year_min}{numero min de años con valores válidos}
+
 \item{name_output}{Ruta y nombre del archivo CSV de salida. Si es
 \code{NULL} (por defecto) no se guarda ningún archivo y la función
 retorna el data frame de forma invisible.}
@@ -71,16 +77,18 @@ CSV y usarse directamente en \code{\link{plot_clim}}.
 \examples{
 \dontrun{
 get_clim_data(
-  dir_input     = "/datos/satelital/sst/parquet",
-  season        = "month",
+  dir_input = "/datos/satelital/sst/parquet",
+  season = "month",
   stat_function = "median",
-  var_name      = "sst",
-  start_date    = "2020-01-01",
-  end_date      = "2023-12-31",
-  xlim          = c(-76, -70),
-  ylim          = c(-40, -35),
-  n_cores       = 8,
-  name_output   = "sst_mensual.csv"
+  var_name = "sst",
+  start_date = "2020-01-01",
+  end_date = "2023-12-31",
+  xlim = c(-76, -70),
+  ylim = c(-40, -35),
+  n_day_min = 3,
+  year_min = 3,
+  n_cores = 8,
+  name_output = "sst_mensual.csv"
 )
 }
 }
