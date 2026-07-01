@@ -2,7 +2,7 @@
 % Please edit documentation in R/l1-to-l2.R
 \name{prepare_granule}
 \alias{prepare_granule}
-\title{Preparar UN granulo hasta dejarlo listo para l2gen (fase 1, serial)}
+\title{Preparar UN granulo hasta dejarlo listo para l2gen}
 \usage{
 prepare_granule(
   l1a_file,
@@ -20,23 +20,17 @@ prepare_granule(
 
 \item{dir_ocssw}{Directorio raiz de OCSSW.}
 
-\item{dir_trabajo}{Directorio raiz donde se crea la carpeta de trabajo del granulo.}
+\item{dir_trabajo}{Directorio raiz donde se crea la carpeta de trabajo.}
 
-\item{north, south, west, east}{Caja del Itata.}
+\item{north, south, west, east}{Caja lat/lon del area de interes.}
 
-\item{resolution}{Resolucion en metros (250).}
+\item{resolution}{Resolucion de salida en metros (250).}
 }
 \value{
 Lista con work, l1b, geo, px, anc y anc_no_optima.
 }
 \description{
-Hace todo lo que toca bases de datos compartidas: descomprime, genera GEO
-(atteph adentro), L1B, el recorte por pixel/linea y descarga la ancillary
-(getanc). Al terminar, el granulo queda con todo lo que generate_l2() necesita
-para correr sin tocar red ni DB, por lo que puede llamarse en paralelo en la
-fase 2 de l1_to_l2().
-}
-\details{
-Aisla cada granulo en su propia carpeta de trabajo dentro de dir_trabajo,
-para que generate_l1b no agarre el L1B de otro granulo si varios comparten raiz.
+Ejecuta en orden: descompresion, atteph + GEO, L1B, recorte pixel/linea y
+descarga de ancillary. Todo corre en serie porque atteph y getanc escriben
+en bases compartidas. Al terminar, generate_l2() puede correr sin red ni DB.
 }

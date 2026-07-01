@@ -11,41 +11,28 @@ generate_l2(
   px,
   out_dir,
   resolution = 250,
-  refresh_anc = TRUE,
   anc_file = NULL
 )
 }
 \arguments{
 \item{env}{Entorno de OCSSW.}
 
-\item{l1b_file}{L1B de 1km (de generate_l1b()).}
+\item{l1b_file}{L1B de 1km.}
 
 \item{geo_file}{GEO.}
 
-\item{px}{Lista con spixl/epixl/sline/eline (de compute_crop()).}
+\item{px}{Lista con spixl/epixl/sline/eline (de prepare_granule()).}
 
 \item{out_dir}{Directorio de salida.}
 
 \item{resolution}{Resolucion en metros (250).}
 
-\item{refresh_anc}{Si TRUE, descarga la ancillary aqui mismo (download_anc),
-tocando la base compartida; usar solo en modo serie. Si FALSE, se usa el
-.anc ya bajado en anc_file (modo de dos fases).}
-
-\item{anc_file}{Ruta a un .anc ya bajado (de la fase 1 de l1_to_l2 o de
-download_anc). Se usa cuando refresh_anc es FALSE.}
+\item{anc_file}{Ruta al .anc ya bajado en la fase 1.}
 }
 \value{
 Ruta del L2.
 }
 \description{
 Corre l2gen con correccion atmosferica NIR-SWIR (aer_opt = -9) y recorte por
-pixel/linea. El L2 se nombra \if{html}{\out{<SENSOR>}}_MODIS.\if{html}{\out{<fecha>}}.L2.OC.nc, derivado del
-L1B, para que entre directo al parser de l2_to_dataframe.
-}
-\details{
-Esta funcion en si misma (con refresh_anc = FALSE) NO toca la base de datos
-compartida de ancillary: solo lee L1B, GEO y el .anc ya bajados y corre
-l2gen, que trabaja sobre archivos locales. Por eso es la unica parte del
-pipeline segura de paralelizar con furrr (ver fase 2 de l1_to_l2).
+pixel/linea. Solo lee archivos locales (L1B, GEO, .anc).
 }

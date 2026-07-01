@@ -9,15 +9,13 @@ run_ocssw(env, cmd, capturar = FALSE)
 \arguments{
 \item{env}{Entorno de OCSSW (de get_ocssw_env()).}
 
-\item{cmd}{Comando a correr (ej. "modis_GEO -o salida.GEO entrada.L1A_LAC").}
+\item{cmd}{Comando a correr.}
 
-\item{capturar}{Si TRUE devuelve la salida de texto; si FALSE el status (invisible).}
+\item{capturar}{Si TRUE devuelve stdout; si FALSE el status (invisible).}
 }
 \value{
-stdout si capturar = TRUE; el status (invisible) si FALSE.
+stdout si capturar = TRUE; status invisible si FALSE.
 }
 \description{
-Antepone el entorno a la herramienta en una sola llamada de bash, porque
-\code{source} solo vive en ese shell. Verifica el status: si no es 0, se detiene
-(asi una falla silenciosa de l2gen/l2bin no pasa como exito).
+Correr una herramienta de OCSSW y verificar el codigo de salida
 }
