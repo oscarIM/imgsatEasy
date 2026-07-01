@@ -24,6 +24,8 @@
 #'   \code{c(lon_min, lon_max)}.
 #' @param ylim Vector numérico de longitud 2 con los límites de latitud
 #'   \code{c(lat_min, lat_max)}.
+#' @param n_day_min numero d días min con valores válidos
+#' @param year_min numero min de años con valores válidos
 #' @param n_cores Número de núcleos a utilizar para el procesamiento
 #'   paralelo. Por defecto \code{1} (procesamiento secuencial). El
 #'   paralelismo usa \code{parallel::makeForkCluster} y solo está
@@ -59,20 +61,22 @@
 #' @examples
 #' \dontrun{
 #' get_clim_data(
-#'   dir_input     = "/datos/satelital/sst/parquet",
-#'   season        = "month",
+#'   dir_input = "/datos/satelital/sst/parquet",
+#'   season = "month",
 #'   stat_function = "median",
-#'   var_name      = "sst",
-#'   start_date    = "2020-01-01",
-#'   end_date      = "2023-12-31",
-#'   xlim          = c(-76, -70),
-#'   ylim          = c(-40, -35),
-#'   n_cores       = 8,
-#'   name_output   = "sst_mensual.csv"
+#'   var_name = "sst",
+#'   start_date = "2020-01-01",
+#'   end_date = "2023-12-31",
+#'   xlim = c(-76, -70),
+#'   ylim = c(-40, -35),
+#'   n_day_min = 3,
+#'   year_min = 3,
+#'   n_cores = 8,
+#'   name_output = "sst_mensual.csv"
 #' )
 #' }
 get_clim_data <- function(
-  dir_input,
+    dir_input,
   season,
   stat_function,
   var_name,
@@ -81,30 +85,35 @@ get_clim_data <- function(
   xlim,
   ylim,
   n_cores = 1,
+  n_day_min = 3,
+  year_min = 3,
   name_output = NULL
 ) {
   # 1. Configuración inicial -----------------------------------------------
-
+  
   meses_es <- c(
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   )
-
+  
   start_date <- as.Date(start_date)
   end_date <- as.Date(end_date)
   func <- match.fun(stat_function)
   season_param <- season
-
+  
   lon_min <- min(xlim)
   lon_max <- max(xlim)
   lat_min <- min(ylim)
   lat_max <- max(ylim)
-
-
+  
+  # productos donde un valor negativo no tiene sentido físico
+  neg_to_na <- var_name %in% c("Rrs_645")
+  
+  
   # 2. Inventario y filtrado de archivos -----------------------------------
-
+  
   files_ext_pattern <- paste(c(".parquet$", ".csv$", ".tif$"), collapse = "|")
-
+  
   all_files_tmp <- list.files(
     path       = dir_input,
     full.names = TRUE,
@@ -132,34 +141,48 @@ get_clim_data <- function(
       is.null(start_date) | is.null(end_date) |
         dplyr::between(date, start_date, end_date)
     )
-
+  
   ext_file <- unique(stringr::str_extract(all_files_tmp$file, files_ext_pattern))
-
+  
   path_list <- all_files_tmp %>%
     dplyr::group_by(season_val) %>%
     dplyr::group_split() %>%
     purrr::map(~ dplyr::pull(.x, "file"))
-
-
+  
+  
   # 3. Lectura y filtrado espacial de cada archivo -------------------------
-
+  # Los negativos de Rrs_645 se marcan como NA ANTES de cualquier agregación,
+  # de modo que no sesguen el estadístico. El filter(!is.na()) posterior los
+  # elimina junto con los NA originales.
+  
   process_tables <- function(file) {
-    switch(ext_file,
+    tab <- switch(ext_file,
       ".parquet" = arrow::read_parquet(file, as_data_frame = FALSE),
       ".csv"     = readr::read_csv(file, show_col_types = FALSE, progress = FALSE)
     ) %>%
-      dplyr::filter(!is.na(!!rlang::sym(var_name))) %>%
       dplyr::filter(
         lon >= lon_min, lon <= lon_max,
         lat >= lat_min, lat <= lat_max
-      ) %>%
+      )
+    
+    if (neg_to_na) {
+      tab <- tab %>%
+        dplyr::mutate(
+          !!rlang::sym(var_name) := dplyr::if_else(
+            !!rlang::sym(var_name) < 0, NA_real_, !!rlang::sym(var_name)
+          )
+        )
+    }
+    
+    tab %>%
+      dplyr::filter(!is.na(!!rlang::sym(var_name))) %>%
       dplyr::select(lat, lon, date1, !!rlang::sym(var_name)) %>%
       dplyr::collect()
   }
-
-
+  
+  
   # 4. Despacho secuencial o paralelo --------------------------------------
-
+  
   process_sublist <- function(entry_list) {
     if (n_cores <= 1) {
       progressr::with_progress({
@@ -190,10 +213,18 @@ get_clim_data <- function(
       })
     }
   }
-
-
+  
+  
   # 5. Agregación estadística por temporada --------------------------------
-
+  # Para climatologías que se repiten entre años (month, week) se usa un
+  # esquema de dos etapas: (1) estadístico por píxel-año + conteo de días
+  # válidos, descartando píxel-años con pocos días; (2) climatología entre
+  # años, descartando píxeles con pocos años. Esto evita que un año con
+  # muchos días despejados domine el resultado. Para season = "year" cada
+  # grupo es un único año, así que se mantiene una sola etapa.
+  
+  dos_etapas <- season_param %in% c("month", "week")
+  
   data_plot <- purrr::imap(path_list, ~ {
     message(switch(season_param,
       "month" = glue::glue("Procesando mes: {meses_es[as.integer(.y)]}"),
@@ -201,15 +232,12 @@ get_clim_data <- function(
       "year"  = glue::glue("Procesando año: {.y}"),
       glue::glue("Procesando: {.y}")
     ))
-
-    dplyr::bind_rows(process_sublist(.x)) %>%
+    
+    tab <- dplyr::bind_rows(process_sublist(.x)) %>%
       dplyr::mutate(
         year  = lubridate::year(date1),
         month = lubridate::month(date1),
-        week  = lubridate::isoweek(date1)
-      ) %>%
-      dplyr::group_by(
-        lat, lon,
+        week  = lubridate::isoweek(date1),
         season_num = if (season_param == "week") {
           week
         } else if (season_param == "month") {
@@ -217,17 +245,43 @@ get_clim_data <- function(
         } else {
           year
         }
-      ) %>%
-      dplyr::summarise(
-        fill = func(!!rlang::sym(var_name), na.rm = TRUE),
-        .groups = "drop"
       )
+    
+    if (dos_etapas) {
+      tab %>%
+        # Etapa 1: estadístico por píxel-año + nº de días válidos
+        dplyr::group_by(lat, lon, season_num, year) %>%
+        dplyr::summarise(
+          val_anual = func(!!rlang::sym(var_name), na.rm = TRUE),
+          n_dias = dplyr::n(),
+          .groups = "drop"
+        ) %>%
+        dplyr::filter(n_dias >= n_day_min) %>%
+        # Etapa 2: climatología entre años
+        dplyr::group_by(lat, lon, season_num) %>%
+        dplyr::summarise(
+          fill = func(val_anual, na.rm = TRUE),
+          n_anios = dplyr::n(),
+          n_dias_total = sum(n_dias),
+          .groups = "drop"
+        ) %>%
+        dplyr::filter(n_anios >= year_min)
+    } else {
+      tab %>%
+        dplyr::group_by(lat, lon, season_num) %>%
+        dplyr::summarise(
+          fill = func(!!rlang::sym(var_name), na.rm = TRUE),
+          n_dias = dplyr::n(),
+          .groups = "drop"
+        ) %>%
+        dplyr::filter(n_dias >= n_day_min)
+    }
   }) %>%
     dplyr::bind_rows()
-
-
+  
+  
   # 6. Etiquetado y ordenamiento de la columna season ----------------------
-
+  
   data_plot <- data_plot %>%
     dplyr::mutate(
       season = if (season_param == "month") {
@@ -245,25 +299,24 @@ get_clim_data <- function(
       }
     ) %>%
     dplyr::select(-season_num)
-
-
+  
+  
   # 7. Corrección específica para Rrs_645 ----------------------------------
-
+  # Solo escalado lineal. Los negativos ya se neutralizaron en la Sección 3,
+  # así que aquí no se aplica ningún clamp (que solo enmascararía el sesgo).
+  
   if (var_name == "Rrs_645") {
     data_plot <- data_plot %>%
-      dplyr::mutate(
-        fill = fill * 158.9418,
-        fill = dplyr::if_else(fill < 0, 0, fill)
-      )
+      dplyr::mutate(fill = fill * 158.9418)
   }
-
-
+  
+  
   # 8. Exportación opcional ------------------------------------------------
-
+  
   if (!is.null(name_output)) {
     readr::write_csv(data_plot, name_output)
     message(glue::glue("Datos procesados guardados en: {name_output}"))
   }
-
+  
   invisible(data_plot)
 }
